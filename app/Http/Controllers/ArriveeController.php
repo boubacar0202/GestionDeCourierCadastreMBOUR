@@ -49,6 +49,21 @@ class ArriveeController extends Controller
         return Inertia::render("arrivee/create");    
     }
 
+    // Supprimer le fichier PDF
+    public function deletePdf($id)
+    {
+        $arrivee = Arrivee::findOrFail($id);
+
+        if ($arrivee->fichierPDF && Storage::disk('public')->exists($arrivee->fichierPDF)) {
+            Storage::disk('public')->delete($arrivee->fichierPDF);
+        }
+
+        // Supprime le lien dans la base de données
+        $arrivee->update(['fichierPDF' => null]);
+ 
+        return back()->with('success', 'Fichier supprimé avec succès');
+    }
+  
     /**
      * Store a newly created resource in storage.
      */
@@ -57,19 +72,26 @@ class ArriveeController extends Controller
         //
         // dd($request->all());
         $validateData = $request->validate([
+            'txt_bordereau' => 'nullable|string',
             'txt_numdordre' => 'required|unique:arrivees,txt_numdordre',   
             'txt_caractere' => 'nullable|string|max:255',
             'dt_datearrivee' => 'required|date',
             'txt_numcourier' => 'required|string|max:255',
             'dt_datecourier' => 'required|date|before_or_equal:today',
-            'txt_reference' => 'required|string|max:255',
+            'txt_reference' => 'required|unique:arrivees,txt_reference',
             'txt_categorie' => 'required|string|max:255',
             'txt_designation' => 'required|string|max:255',
-            'dt_date' => 'nullable|date',
-            'txt_heure' => 'nullable|string|max:255',
+            'dt_date' => 'nullable|date', 
+            'txt_heure' => 'nullable|date_format:H:i', 
             'txt_lieu' => 'nullable|string|max:255',
             'txt_nombrepiece' => 'required|integer',
             'txt_objet' => 'required|string|max:255',
+            'txt_nicad' => 'nullable|string|max:255',
+            'txt_situation' => 'nullable|string|max:255',
+            'txt_prenom' => 'nullable|string|max:255',
+            'txt_nom' => 'nullable|string|max:255', 
+            'txt_surface' => 'nullable|numeric',
+            'txt_numLot' => 'nullable|string|max:255',
             'txt_expediteur' => 'required|string|max:255',
             'txt_agenttraiteur' => 'required|string|max:255',
             'txt_observation' => 'nullable|string|max:255',
@@ -77,6 +99,7 @@ class ArriveeController extends Controller
 
         ],[
             'txt_numdordre.unique' => 'Le numéro d\'ordre existe déjà.',
+            'txt_reference.unique' => 'La Référence existe dans la base',
             'txt_numdordre.required' => 'Le numéro d\'ordre est requis.',
             'txt_numcourier.required' => 'Le numéro du courrier est requis.',
             'dt_datearrivee.required' => 'La date d\'arrivée est requise.',
@@ -101,6 +124,7 @@ class ArriveeController extends Controller
         }
 
         Arrivee::create([
+            'txt_bordereau' => $validateData['txt_bordereau'] ?? null,
             'txt_numdordre' => $validateData['txt_numdordre'],  
             'txt_caractere' => $validateData['txt_caractere'] ?? null,
             'dt_datearrivee' => $validateData['dt_datearrivee'],
@@ -114,6 +138,14 @@ class ArriveeController extends Controller
             'txt_lieu' => $validateData['txt_lieu'],
             'txt_nombrepiece' => $validateData['txt_nombrepiece'],
             'txt_objet' => $validateData['txt_objet'],
+
+            'txt_nicad' => $validateData['txt_nicad'] ?? null,
+            'txt_situation' => $validateData['txt_situation'] ?? null,
+            'txt_prenom' => $validateData['txt_prenom'] ?? null,
+            'txt_nom' => $validateData['txt_nom'] ?? null, 
+            'txt_surface' => $validateData['txt_surface'] ?? null,
+            'txt_numLot' => $validateData['txt_numLot'] ?? null,
+
             'txt_expediteur' => $validateData['txt_expediteur'],
             'txt_agenttraiteur' => $validateData['txt_agenttraiteur'],
             'txt_observation' => $validateData['txt_observation'] ?? null, 
@@ -148,6 +180,7 @@ class ArriveeController extends Controller
 
         // ✅ UTILISEZ LES MÊMES RÈGLES DE VALIDATION QUE STORE()
         $validateData = $request->validate([
+            'txt_bordereau' => 'nullable|string',
             'txt_numdordre' => 'required|unique:arrivees,txt_numdordre,' . $id,   // ✅ Ajoutez l'ID pour ignorer l'unique
             'txt_caractere' => 'nullable|string|max:255',
             'dt_datearrivee' => 'required|date',
@@ -161,6 +194,12 @@ class ArriveeController extends Controller
             'txt_lieu' => 'nullable|string|max:255',
             'txt_nombrepiece' => 'required|integer',
             'txt_objet' => 'required|string|max:255',
+            'txt_nicad' => 'nullable|string|max:255',
+            'txt_situation' => 'nullable|string|max:255',
+            'txt_prenom' => 'nullable|string|max:255',
+            'txt_nom' => 'nullable|string|max:255', 
+            'txt_surface' => 'nullable|numeric',
+            'txt_numLot' => 'nullable|string|max:255',
             'txt_expediteur' => 'required|string|max:255',
             'txt_agenttraiteur' => 'required|string|max:255',
             'txt_observation' => 'nullable|string|max:255',
@@ -200,6 +239,7 @@ class ArriveeController extends Controller
 
         // ✅ MISE À JOUR COMME DANS STORE()
         $arrivee->update([
+            'txt_bordereau' => $validateData['txt_bordereau'] ?? null,
             'txt_numdordre' => $validateData['txt_numdordre'],  
             'txt_caractere' => $validateData['txt_caractere'] ?? null,
             'dt_datearrivee' => $validateData['dt_datearrivee'],
@@ -213,6 +253,14 @@ class ArriveeController extends Controller
             'txt_lieu' => $validateData['txt_lieu'],
             'txt_nombrepiece' => $validateData['txt_nombrepiece'],
             'txt_objet' => $validateData['txt_objet'],
+            
+            'txt_nicad' => $validateData['txt_nicad'] ?? null,
+            'txt_situation' => $validateData['txt_situation'] ?? null,
+            'txt_prenom' => $validateData['txt_prenom'] ?? null,
+            'txt_nom' => $validateData['txt_nom'] ?? null, 
+            'txt_surface' => $validateData['txt_surface'] ?? null,
+            'txt_numLot' => $validateData['txt_numLot'] ?? null,
+
             'txt_expediteur' => $validateData['txt_expediteur'],
             'txt_agenttraiteur' => $validateData['txt_agenttraiteur'],
             'txt_observation' => $validateData['txt_observation'] ?? null, 
@@ -226,8 +274,23 @@ class ArriveeController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+
+    public function destroy(Request $request, $id)
     {
-        //
+        // Vérifier code d'accès
+        $code = CodeAcces::where('code', $request->code_acces)
+            ->where('utilise', false)
+            ->first();
+
+        if (!$code) {
+            return back()->withErrors(['code_acces' => 'Code d’accès invalide ou déjà utilisé.']);
+        }
+ 
+
+        // Supprimer le courrier
+        $arrivee = InstanceArrivee::findOrFail($id);
+        $arrivee->delete();
+
+        return back()->with('success', 'Courrier supprimé avec succès.');
     }
 }

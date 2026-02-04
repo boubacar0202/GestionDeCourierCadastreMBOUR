@@ -7,15 +7,13 @@ import { router, usePage  } from '@inertiajs/vue3'
 import { Link as InertiaLink } from '@inertiajs/vue3' 
  
 const props = defineProps({
-    arrivee: Object,    
-    arrivees: Array,
-    departs: Array,
-    depart: Object,
+    visite: Object,    
+    visites: Array, 
 });
   
 const numeroCD = ref('');  
 const annee = ref('');
-const refCourrierArrivee = ref('');
+const refPrenomNom = ref('');
 
 // Normalisation pour éviter les problèmes d'espaces et de casse
 function normalize(str) {
@@ -23,34 +21,35 @@ function normalize(str) {
 }
  
 //  Filtrer par date et par Numéro + Tri croissant par txt_numdordrecd
-const filtereDeparts = computed(() => {
-    const filtered = props.departs.filter(depart => {
+const filtereVisites = computed(() => {
+    const filtered = props.visites.filter(visite => {
         const matchNumero = numeroCD.value
-            ? normalize(depart.txt_numdordrecd)?.includes(normalize(numeroCD.value))
+            ? normalize(visite.txt_numdordreVisite)?.includes(normalize(numeroCD.value))
             : true;
 
         const matchAnnee = annee.value
-            ? new Date(depart.dt_datecouriercd).getFullYear().toString() === annee.value
+            ? new Date(visite.dt_visite).getFullYear().toString() === annee.value
             : true;
 
-        const matchArrivee = refCourrierArrivee.value
-            ? normalize(depart.txt_destinatairecd)?.includes(normalize(refCourrierArrivee.value))
+        const matchPrenomNom = refPrenomNom.value 
+            ? normalize(visite.txt_prenomVisite)?.includes(normalize(refPrenomNom.value)) 
             : true;
+ 
 
-        return matchNumero && matchAnnee && matchArrivee;
+        return matchNumero && matchAnnee && matchPrenomNom;
     });
 
     // Tri par ordre numérique de la partie avant "/"
     return filtered.sort((a, b) => {
-        const numA = parseInt(a.txt_numdordrecd?.split("/")[0] || 0, 10);
-        const numB = parseInt(b.txt_numdordrecd?.split("/")[0] || 0, 10);
+        const numA = parseInt(a.txt_numdordreVisite?.split("/")[0] || 0, 10);
+        const numB = parseInt(b.txt_numdordreVisite?.split("/")[0] || 0, 10);
         return numA - numB; // ordre croissant
     });
 });
  
 // Compter le nombre total de courrier
-const totalCourrier = computed(() => {
-    return props.departs.filter(totalarrivee => !!totalarrivee.txt_numdordrecd).length;
+const totalvisite = computed(() => {
+    return props.visites.filter(totalvisite => !!totalvisite.txt_numdordreVisite).length;
 });
  
 // filtrer les instances par categorie  
@@ -64,7 +63,7 @@ const formatDate = (dateString) => {
 };
   
 // fonction d'envoi du formulaire
-function supprimerCourrierDepart(depart) {
+function supprimerVisite(visite) {
     const code = prompt("Entrez le code d'accès pour confirmer la suppression :");
 
     if (!code) {
@@ -72,7 +71,7 @@ function supprimerCourrierDepart(depart) {
         return;
     }
 
-    router.delete(route('instancedepart.destroy', depart.id), {
+    router.delete(route('instancevisite.destroy', visite.id), {
         data: { code_acces: code }, // ✅ on envoie le code au backend
         preserveScroll: true,
         onSuccess: () => {
@@ -110,15 +109,15 @@ function supprimerCourrierDepart(depart) {
         <div class="py-12">
             <div class="flex justify-center">
                 <div class="w-full max-w-8xl">
-                    <div class="bg-white shadow-md rounded-xl"> <br> 
+                    <div class="bg-white shadow-md rounded-lg "> <br> 
                         <div class="mx-auto max-w-8xl sm:px-8 lg:px-12 mt-4 mb-4">
                             <div class="card-header">
-                                <div class="p-4 border-b bg-primary sm:rounded-xl">
+                                <div class="p-4 border-b bg-primary sm:rounded-lg">
                                     <h1 class="text-3xl text-white font-bold font-bold text-center">Base de donnée des Courriers Départs</h1>
                                 </div>
                             </div> 
                              
-                            <div class="relative overflow-x-auto p-4 border-b bg-primary-form sm:rounded-xl mt-8">
+                            <div class="relative overflow-x-auto p-4 border-b bg-primary-form sm:rounded-lg mt-8">
                                 <div class="flex justify-between items-center"> 
                                     <h1 class="text-1xl text-primary-txt font-bold">
                                         Liste des Courriers Départs : 
@@ -131,7 +130,7 @@ function supprimerCourrierDepart(depart) {
                                     </h1>  
 
                                     <form @submit.prevent class="flex items-center ">
-                                        <div  class="flex items-start space-x-2">
+                                        <div  class="flex items-start space-x-4">
                                             <div>
                                                 <input 
                                                     v-model="annee"
@@ -139,36 +138,22 @@ function supprimerCourrierDepart(depart) {
                                                     maxlength="4"
                                                     id="default-search"
                                                     aria-label="Rechercher"
-                                                    class="h-9 block w-20 rounded-xl bg-white px-3 py-1.5 text-base text-gray-900 
+                                                    class="h-9 block w-20 rounded-md bg-white px-3 py-1.5 text-base text-gray-900 
                                                         border border-primary-menu  placeholder:text-gray-400 
                                                         focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    placeholder="année"
+                                                    placeholder="Date Visite"
                                                 /> 
-                                            </div>
-                                        
+                                            </div> 
                                             <div>
                                                 <input 
-                                                    v-model="numeroCD"
+                                                    v-model="refPrenomNom"
                                                     type="search"
                                                     id="default-search"
                                                     aria-label="Rechercher"
-                                                    class="h-9 block w-25 rounded-xl bg-white px-3 py-1.5 text-base text-gray-900 
+                                                    class="h-9 block w-25 rounded-md bg-white px-3 py-1.5 text-base text-gray-900 
                                                         border border-primary-menu  placeholder:text-gray-400 
                                                         focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    placeholder="Entrez numéro courrier"
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <input 
-                                                    v-model="refCourrierArrivee"
-                                                    type="search"
-                                                    id="default-search"
-                                                    aria-label="Rechercher"
-                                                    class="h-9 block w-25 rounded-xl bg-white px-3 py-1.5 text-base text-gray-900 
-                                                        border border-primary-menu  placeholder:text-gray-400 
-                                                        focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    placeholder="Désignation"
+                                                    placeholder="Prénom Nom"
                                                 />
                                             </div>
                                         </div>
@@ -176,7 +161,7 @@ function supprimerCourrierDepart(depart) {
                                 </div>
                             </div>
 
-                            <div class="max-h-[600px] overflow-y-auto shadow-md sm:rounded-xl mt-8">
+                            <div class="max-h-[600px] overflow-y-auto shadow-md sm:rounded-lg mt-8">
                                 <div class="container"> 
                                     <div class="card"> 
                                         <div class="card-body">
@@ -186,68 +171,29 @@ function supprimerCourrierDepart(depart) {
                                                         bg-primary-form bg-gray-50 dark:bg-gray-700 dark:text-gray-400 whitespace-nowrap">
                                                     <tr class="h-20">
                                                         <th scope="col" class="sticky left-0 z-30 px-6 py-3 border-l border-primary-only">N°</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Bordereau</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">N° d'ordre départ</th> 
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Caractère</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Date Courrier</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Categorie</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Référence C.Arrivée</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Nombre Pièce</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Référence</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Prénom</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Nom</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">N° Lot</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Superficie</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Situation</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">NICAD</th>
+                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Numero</th>
+                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Prenom & Nom</th> 
+                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Telephone</th>
                                                         <th scope="col" class="px-6 py-3 border-l border-primary-only">Objet</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Destinataire</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Date Envoi</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Référence Réception</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Observation</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Durée Traitement</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Fichier</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">ACTIONS</th>
-
+                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Traitement</th> 
+                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Date visite</th>  
+                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Action</th>   
                                                     </tr>
                                                 </thead>
                                                         
-                                                <tbody sortedDeparts>
-                                                    <tr v-for="(depart, index) in filtereDeparts" :key="depart.id"  
+                                                <tbody sortedVisites>
+                                                    <tr v-for="(visite, index) in filtereVisites" :key="visite.id"  
                                                         class="h-20 bg-white text-primary-txt text-center font-bold whitespace-nowrap hover:bg-primary-form dark:hover:bg-primary-form">
                                                         <td scope="col" class="sticky left-0 z-0 border border-primary-only bg-white px-6 py-3 ">{{ index + 1 }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_bordereaucd || '-'}}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_numdordrecd  || '-'}}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_caracterecd || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ formatDate(depart.dt_datecouriercd) || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_categoriecd || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_referencecourierarriveecd || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_nombrepiececd || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_referencecd || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_prenomcd || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_nomcd || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_numLotcd || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_surfacecd || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_situationcd || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_nicadcd || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_objetcd || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_destinatairecd || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ formatDate(depart.dt_dateenvoicd) || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_referencereceptioncd || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_observationcd || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_dureetraitementcd || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only"> 
-                                                            <div v-if="depart.fichierPDFcd">
-                                                                <a :href="`/storage/${depart.fichierPDFcd}`" target="_blank" class="text-blue-600 underline">
-                                                                    Voir PDF
-                                                                </a>
-                                                            </div>
-                                                            <div v-else class="text-gray-400 italic">Aucun fichier PDF</div>
-                                                        </td>
-                                                
+                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ visite.txt_numdordreVisite || '-'}}</td>
+                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ visite.txt_prenomVisite  || '-'}}</td>
+                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ visite.txt_telVisite || '-' }}</td>
+                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ visite.txt_objetVisite || '-' }}</td>
+                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ visite.txt_traitementVisite || '-' }}</td> 
+                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ formatDate(visite.dt_visite) || '-' }}</td> 
                                                         <td class="flex items px-6 py-3">
                                                             <div class="mt-2">
-                                                                <InertiaLink :href="`/depart/editdepart/${depart.id}`">
+                                                                <InertiaLink :href="`/visite/editvisite/${visite.id}`">
                                                                     <MazBtn 
                                                                         color="white" pastel size="sm"
                                                                         class="h-8 w-28 text-white bg-gradient-to-r from-green-400 via-green-500 
@@ -266,7 +212,7 @@ function supprimerCourrierDepart(depart) {
                                                             <div class="mt-2">
                                                                 <MazBtn 
                                                                     color="danger" size="sm"   
-                                                                    @click="() => supprimerCourrierDepart(depart)"
+                                                                    @click="() => supprimerVisite(visite)"
                                                                     class="h-8 w-28 text-white bg-gradient-to-r from-danger-500 via-danger-600 
                                                                     to-danger-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none 
                                                                     focus:ring-danger-300 dark:focus:ring-danger-800 shadow-lg shadow-danger-500/50 
@@ -277,13 +223,14 @@ function supprimerCourrierDepart(depart) {
                                                                 </MazBtn>
                                                             </div>
                                                         </td> 
+                                                     
                                                     </tr>
                                                 </tbody>
                                             </table>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div><br>
                         </div>
                     </div>
                 </div>

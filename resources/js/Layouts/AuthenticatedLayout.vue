@@ -37,58 +37,59 @@ onMounted(() => {
     }
 });
 
-// --- SCREEN & MENU HANDLING ---
+// --- GESTION DE L'ÉCRAN ET DU MENU ---
 function checkScreenSize() {
     isDesktop.value = window.innerWidth >= 768;
+    // Sur desktop, on peut rouvrir le menu si c'était l'état précédent
+    if (isDesktop.value) {
+        const savedMenuState = localStorage.getItem('menuOpen');
+        if (savedMenuState === 'true') {
+            isMenuOpen.value = true;
+        }
+    }
 }
 
 function toggleMenu() {
-  isMenuOpen.value = !isMenuOpen.value;
+    isMenuOpen.value = !isMenuOpen.value;
+    // Sauvegarde la préférence utilisateur
+    localStorage.setItem('menuOpen', isMenuOpen.value.toString());
 }
 
 onMounted(() => {
-  checkScreenSize();
-  window.addEventListener('resize', checkScreenSize);
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
 
-  if (window.__menuOpenTemp === true) {
-    isMenuOpen.value = true;
-  }
-  window.__menuOpenTemp = false;
+    // Récupère l'état sauvegardé ou utilise l'état par défaut
+    const savedMenuState = localStorage.getItem('menuOpen');
+    if (savedMenuState !== null) {
+        isMenuOpen.value = savedMenuState === 'true';
+    } else {
+        // Par défaut : ouvert sur desktop, fermé sur mobile
+        isMenuOpen.value = window.innerWidth >= 768;
+    }
 });
 
 onUnmounted(() => {
-  window.removeEventListener('resize', checkScreenSize);
+    window.removeEventListener('resize', checkScreenSize);
 });
 
-// --- PERSIST MENU STATE ---
-watch(isMenuOpen, (val) => {
-  window.__menuOpenTemp = val;
+// --- PERSISTANCE AUTOMATIQUE ---
+watch(isMenuOpen, (newValue) => {
+    localStorage.setItem('menuOpen', newValue.toString());
 });
-
-
+ 
 // Charger le total des messages non lus au montage
 onMounted(async () => {
-  try {
-    const res = await axios.get("/messages/unread-total");
-    unreadTotal.value = res.data.total;
-  } catch (e) {
-    console.error("Erreur fetch unread:", e);
-  }
+    try {
+        const res = await axios.get("/messages/unread-total");
+        unreadTotal.value = res.data.total;
+    } catch (e) {
+        console.error("Erreur fetch unread:", e);
+    }
 });
-
-// --- MENU ITEMS ---
-// const menuItems = [
-//   { label: 'Dashboard', href: route('dashboard'), active: 'dashboard' },
-//   { label: 'Enregistrement Arrivées', href: route('arrivee.create'), active: 'arrivee.create' },
-//   { label: 'Enregistrement Départs', href: route('depart.create'), active: 'depart.create' },
-//   { label: 'Instances', href: route('instance.create'), active: 'instance.create' }, 
-//   { label: 'Liste des Arrivées', href: route('instancearrivee.create'), active: 'instancearrivee.create' }, 
-//   { label: 'Liste des Départs', href: route('instancedepart.create'), active: 'instancedepart.create' }, 
-// ];
-
+ 
 </script>
-
-
+ 
 <template>
  
     <div class="flex min-h-screen bg-primary-layout">
@@ -103,87 +104,113 @@ onMounted(async () => {
             </div>
 
             <!-- Navigation Links -->
-            <div class="flex flex-col space-y-4">
+            <div class="flex flex-col space-y-1">
                 <!-- Bouton d'ouverture/fermeture -->
                 <button @click="toggleMenu" class="p-2 bg-primary text-white rounded shadow-md">
                     ☰ Menu
                 </button>
                 <transition name="slide">
                     
-                        <nav v-if="isMenuOpen || !isDesktop" class="flex flex-col space-y-4" >
+                        <nav v-if="isMenuOpen || !isDesktop" class="flex flex-col space-y-1" >
                             <!-- Navigation Links -->
-                            <div class="flex flex-col space-y-4">
+                            <div class="flex flex-col space-y-1">
                               
                                 <NavLink :href="route('dashboard')" :active="route().current('dashboard')" 
-                                    class="hover:bg-primary-menu hover:border hover:text-white hover:font-bold hover:text-1xl p-3 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                    :class="{'border-primary-menu': route().current('dashboard')}">
-                                    <svg class="w-6 h-5 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M3 10l9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V10z" />
+                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
+                                    :class="{'border-primary-dark': route().current('dashboard')}">
+                                    <svg class="hover:white w-6 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                                     </svg>
                                     Acceuil
                                 </NavLink>
                                 <NavLink :href="route('arrivee.create')" :active="route().current('arrivee.create')" 
-                                    class="hover:bg-primary-menu hover:border hover:text-white hover:font-bold hover:text-1xl p-3 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                    :class="{'border-primary-menu': route().current('arrivee.create')}">
-                                    <svg class="w-6 h-5 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M8 7V3m8 4V3m-9 14h10m-5-5a3 3 0 0 1-6 0m12 5V10a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8" />
+                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
+                                    :class="{'border-primary-dark': route().current('arrivee.create')}">
+                                    <svg class="hover:white w-6 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 12v3m0 0l-2-2m2 2l2-2" />
                                     </svg>
                                     Enregistrement Arrivées
                                 </NavLink>
                                 <NavLink :href="route('depart.create')" :active="route().current('depart.create')" 
-                                    class="hover:bg-primary-menu hover:border hover:text-white hover:font-bold hover:text-1xl p-3 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                    :class="{'border-primary-menu': route().current('depart.create')}">
-                                    <svg class="w-6 h-5 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 3v18m9-9H3" />
+                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
+                                    :class="{'border-primary-dark': route().current('depart.create')}">
+                                    <svg class="hover:white w-6 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M16 5l3 3m0 0l-3 3m3-3H13" />
                                     </svg>
                                     Enregistrement Départs
+                                </NavLink>
+                                <NavLink :href="route('visite.create')" :active="route().current('visite.create')" 
+                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
+                                    :class="{'border-primary-dark': route().current('visite.create')}">                                    
+                                    <svg class="hover:white w-6 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                    </svg>
+                                     Enregistrer Visiteur
                                 </NavLink> 
                                 <NavLink :href="route('instance.create')" :active="route().current('instance.create')" 
-                                    class="hover:bg-primary-menu hover:border hover:text-white hover:font-bold hover:text-1xl p-3 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                    :class="{'border-primary-menu': route().current('instance.create')}">
-                                    <svg class="w-5 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#5f2e01">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 6h16M4 12h16m-7 6h7" />
+                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
+                                    :class="{'border-primary-dark': route().current('instance.create')}">
+                                    <svg class="hover:white w-6 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#5f2e01">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
                                     </svg>
                                     Instances 
                                 </NavLink>
                                 <NavLink :href="route('instancearrivee.create')" :active="route().current('instancearrivee.create')" 
-                                    class="hover:bg-primary-menu hover:border hover:text-white hover:font-bold hover:text-1xl p-3 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                    :class="{'border-primary-menu': route().current('instancearrivee.create')}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-txt mr-2" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
+                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
+                                    :class="{'border-primary-dark': route().current('instancearrivee.create')}">
+                                    <svg class="hover:white h-6 w-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m0 8a2 2 0 01-2 2H5a2 2 0 01-2-2V8m16 0V6a2 2 0 00-2-2H5a2 2 0 00-2 2v2" />
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 12v6m0 0l-2-2m2 2l2-2" />
+                                            d="M10 14H8m0 0l2-2m-2 2l2 2" />
                                     </svg>
                                     Liste des Arrivées
                                 </NavLink>
                                 <NavLink :href="route('instancedepart.create')" :active="route().current('instancedepart.create')" 
-                                    class="hover:bg-primary-menu hover:border hover:text-white hover:font-bold hover:text-1xl p-3 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                    :class="{'border-primary-menu': route().current('instancedepart.create')}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-txt mr-2" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
+                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
+                                    :class="{'border-primary-dark': route().current('instancedepart.create')}">
+                                    <svg class="hover:white h-6 w-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m0 8a2 2 0 01-2 2H5a2 2 0 01-2-2V8m16 0V6a2 2 0 00-2-2H5a2 2 0 00-2 2v2" />
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 12V6m0 0l-2 2m2-2l2 2" />
+                                            d="M14 12l3-3m0 0l3 3m-3-3v9" />
                                     </svg>
                                     Liste des Départs
                                 </NavLink>
+                                <NavLink :href="route('instancevisite.create')" :active="route().current('instancevisite.create')" 
+                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
+                                    :class="{'border-primary-dark': route().current('instancevisite.create')}">
+                                    <svg class="hover:white w-6 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                    </svg>
+                                     liste Visiteurs 
+                                </NavLink>
                                 <NavLink :href="route('trimestre.create')" :active="route().current('trimestre.create')" 
-                                    class="hover:bg-primary-menu hover:border hover:text-white hover:font-bold hover:text-1xl p-3 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                    :class="{'border-primary-menu': route().current('trimestre.create')}">
-                                    <svg class="w-6 h-5 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
+                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
+                                    :class="{'border-primary-dark': route().current('trimestre.create')}">
+                                    <svg class="hover:white w-6 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M8 7V3m8 4V3m-9 8h10m-12 9h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v11a2 2 0 002 2z" />
+                                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                     </svg>
                                     Rapport Trimestre 
-                                </NavLink>
+                                </NavLink> 
                                 <NavLink :href="route('message.create')" 
                                         :active="route().current('message.create')" 
-                                        class="relative hover:bg-primary-menu hover:border hover:text-white hover:font-bold hover:text-1xl p-3 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                        :class="{'border-primary-menu': route().current('message.create')}">
-                                    <svg class="w-5 h-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"/>
-                                    </svg> 
+                                        class="relative hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
+                                        :class="{'border-primary-dark': route().current('message.create')}">
+                                        <svg class="hover:white w-6 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3 12H7v-2h10v2zm0-3H7V9h10v2zm0-3H7V6h10v2z"/>
+                                        </svg>
                                     Discussion
                                     <span v-if="unreadTotal > 0" class="ml-2 px-2 py-1 text-xs bg-green-500 text-white rounded-full">
                                         {{ unreadTotal }}
@@ -195,7 +222,7 @@ onMounted(async () => {
                 </transition>
             </div>
             <footer class="bg-white border-t border-primary-only text-center text-sm text-primary-txt mt-auto py-4">
-                <b>CENTRE DES SERVICES FISCAUX</b> CADASTRE KÉDOUGOU
+                <b>CENTRE DES SERVICES FISCAUX</b> CADASTRE MBOUR
             </footer>
  
         </nav>

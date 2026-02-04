@@ -45,6 +45,7 @@ function handleFileUpload(event) {
 // Formulaire 
 const form = useForm({
     //  courrierarrivee
+    txt_bordereau:"",
     txt_numdordre:"", 
     txt_caractere:"",
     dt_datearrivee: "",
@@ -58,14 +59,19 @@ const form = useForm({
     txt_lieu:"",
     txt_nombrepiece:"",
     txt_objet:"",
+    txt_nicad:"",
+    txt_situation:"", 
+    txt_prenom:"",
+    txt_nom:"",
+    txt_surface:"",
+    txt_numLot:"",
     txt_expediteur:"",
     txt_agenttraiteur:"",
     txt_observation:"",
     fichierPDF: null,
 
 });
- 
- 
+  
 // Génération automatique du numéro d'ordre
 const fetchNextDossier = async (annee) => {
     try {
@@ -104,13 +110,21 @@ watch(() => form.dt_datearrivee, (nouvelleDate) => {
 });
 
 
-// Afficher ou cacher les champs de la catégorie "Convocation - Invitation" 
+// Afficher ou cacher les champs 
+const choix = [
+    "Convocation - Invitation",
+    "Information",
+    "Réclamation - Signalement",
+    "Réquisition - Instruction"
+];
 const show = ref(false);
 const handleCategorieChange = () => {
-    show.value = form.txt_categorie === "Convocation - Invitation";
+    //show.value = form.txt_categorie === "Convocation - Invitation";
+      show.value = choix.includes(form.txt_categorie);
 };
 watch(() => form.txt_categorie, (newValue) => {
-    show.value = newValue === "Convocation - Invitation";
+    //show.value = newValue === "Convocation - Invitation";
+      show.value = choix.includes(newValue);
 });
  
 // récuperer les categories de courrier arrivee
@@ -122,12 +136,12 @@ const categories = {
     "5": "Réquisition - Instruction" 
 };
 const designationsParCategirie = {
-    'Demande SERVICES': ['Morcellements', 'Réquisition d\'immatriculation', 'Demande Avis Technique', 'Demande de terrain / Echange', 'Prospection de terrain', 
-        'Autorisation de construction', 'Autorisation de lotir', 'Demande d\'états des lieux', 'Demande de délimitation', 'Demande de reconstruction', 
-        'Réquisition DSCOS', 'Tribunal', 'Litiges','Demande de situation foncière', 'Demande de Cession définitive',
+    'Demande SERVICES': ['Morcellements', 'Réquisition d\'immatriculation', 'Demande Avis Technique', 'Demande de terrain/Echange', 'Prospection de terrain', 
+        'Autorisation de construction', 'Demande d\'extraits de plan', 'Autorisation de lotir', 'Demande d\'états des lieux', 'Demande de délimitation', 'Demande de reconstruction', 
+        'Réquisition DSCOS', 'Tribunal', 'Litiges','Demande de situation foncière', 'Demande de Cession définitive', 'Demande d\'évaluation',
         'Demande de Cession définitive a Titre Gratuit', 'Demande de Régularisation', 'Demande d\'attestation du Cadastre', 
         'Réceptions de lotissements', 'Demande de CIC', 'Duplication de CIC', 'Demande de Titre foncier', 
-        'Autirisationde morceler'
+        'Autirisationde morceler', 'Autre'
     ],
     'Convocation - Invitation': ['Réunion', 'Audience Publique', 'Alerte', 'Visite de site', 
         'Rencontre', 'Randonnée', 'Marche', 'Session', 'Congré', 'Cérémonie', 'Inauguration',
@@ -200,10 +214,10 @@ const submitForm = function () {  // Ajoutez `async` ici
 
         <div class="py-12">
             <div class="flex justify-center">
-                <div class="w-full border border-primary-only max-w-7xl">
-                    <div class="bg-white shadow-md rounded-lg">
+                <div class="w-full border border-primary-only max-w-8xl rounded-xl">
+                    <div class="bg-white shadow-md-64 sm:rounded-xl">
                         <!-- En-tête du formulaire -->
-                        <div   class="p-4 border-b bg-primary">
+                        <div   class="p-4 border-b bg-primary sm:rounded-t-xl">
                             <h1 class="text-lg text-white font-semibold">Formulaire d'enregistrement des Courriers Arrivés</h1>
                         </div>
                         <!-- Corps du formulaire -->
@@ -214,22 +228,21 @@ const submitForm = function () {  // Ajoutez `async` ici
                                     <div
                                         class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4"
                                     > 
-                                        <div class="sm:col-span-2">
+                                        <div v-if="!show" class="sm:col-span-2">
                                             <div class="sm:col-span-2">
                                                 <label 
-                                                    for="txt_numdordre"
+                                                    for="txt_bordereau"
                                                     class="block text-sm/6 font-medium text-primary-txt">
-                                                    N° Dordre Arrivée
+                                                    N° BE
                                                 </label>
                                                 <div class="mt-2">
                                                     <input
                                                         type="text"
-                                                        name="txt_numdordre"  
-                                                        readonly
-                                                        required
-                                                        v-model="form.txt_numdordre"  
-                                                        id="txt_numdordre"
-                                                        class="h-8 block w-full bg-gray-100 cursor-not-allowed rounded-md bg-white px-3 py-1.5
+                                                        name="txt_bordereau"  
+                                                        v-model="form.txt_bordereau"  
+                                                        id="txt_bordereau"
+                                                        autocomplete="on"
+                                                        class="h-8 block w-full bg-gray-100 rounded-md bg-white px-3 py-1.5
                                                             text-base text-primary outline outline-1 -outline-offset-1 outline-primary-only 
                                                             placeholder:text-primary-dark focus:outline focus:outline-2 focus:-outline-2 
                                                             focus:outline-primary sm:text-sm/6" 
@@ -237,6 +250,11 @@ const submitForm = function () {  // Ajoutez `async` ici
                                                 </div>
                                             </div>
                                         </div>
+                                    </div><br>
+
+                                    <div
+                                        class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4"
+                                    > 
                                         <div class="sm:col-span-1">
                                             <div class="sm:col-span-1">
                                                 <label 
@@ -253,19 +271,37 @@ const submitForm = function () {  // Ajoutez `async` ici
                                                         required
                                                         id="dt_datearrivee"
                                                         autocomplete="off"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-primary 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6" 
+                                                        class="h-8  scrollbar-thin scrollbar-thumb-primary block w-full rounded-md bg-white 
+                                                            px-3 py-1.5 text-base text-primary-txt outline outline-1 -outline-offset-1 outline-primary-only 
+                                                            placeholder:text-primary-dark focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/" 
                                                     />
                                                 </div>
                                             </div>
                                         </div> 
-                                    </div>
-                                    <br />
-                                    <div
-                                        class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4"
-                                    >
-
+                                        
+                                        <div class="sm:col-span-1">
+                                            <div class="sm:col-span-2">
+                                                <label 
+                                                    for="txt_numdordre"
+                                                    class="block text-sm/6 font-medium text-primary-txt">
+                                                    N° Arrivée
+                                                </label>
+                                                <div class="mt-2">
+                                                    <input
+                                                        type="text"
+                                                        name="txt_numdordre"   
+                                                        required
+                                                        v-model="form.txt_numdordre"  
+                                                        id="txt_numdordre"
+                                                        class="h-8 block w-full bg-gray-100 rounded-md bg-white px-3 py-1.5
+                                                            text-base text-primary outline outline-1 -outline-offset-1 outline-primary-only 
+                                                            placeholder:text-primary-dark focus:outline focus:outline-2 focus:-outline-2 
+                                                            focus:outline-primary sm:text-sm/6" 
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                 
                                         <div class="sm:col-span-1">
                                             <div class="sm:col-span-1">
                                                 <label
@@ -364,45 +400,11 @@ const submitForm = function () {  // Ajoutez `async` ici
                                                             option-class="custom-option"   
                                                             option-selected-class="bg-primary text-white  "
                                                         
-                                                    /> 
-                                                        <!-- <option selected disabled>Choisis Catégorie</option>
-                                                        <option value="Demande SERVICES">Demande SERVICES</option>
-                                                        <option value="Convocation - Invitation">Convocation - Invitation</option>
-                                                        <option value="Information">Information</option>
-                                                        <option value="Réclamation - Signalement">Réclamation - Signalement</option>
-                                                        <option value="Réquisition - Instruction">Réquisition - Instruction</option> -->
-                                                 
+                                                    />   
                                                 </div>
                                             </div>
-                                        </div>
-                                        <!-- <div class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_designation"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Designation</label
-                                                >
-                                                <div class="mt-1">
-                                                    <select
-                                                        type="select"
-                                                        name="txt_designation"
-                                                        v-model="form.txt_designation" 
-                                                        required
-                                                        id="txt_designation"
-                                                        autocomplete="off"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-primary-dark 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6
-                                                            scrollbar-thin scrollbar-thumb-primary scrollbar-track-primary-darlk"
-                                                    >
-                                                        <option selected disabled>Choisis catégorie d'abord</option>
-                                                        <option v-for="(designation, index) in designations" :key="index" :value="designation">
-                                                            {{ designation }}
-                                                        </option> 
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div> -->
+                                        </div> 
+
                                         <div class="sm:col-span-2">
                                             <div class="sm:col-span-1">
                                                 <label
@@ -462,7 +464,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                                 >
                                                 <div class="mt-2">
                                                     <input
-                                                        type="text"
+                                                        type="time"
                                                         name="txt_heure"
                                                         v-model="form.txt_heure" 
                                                         id="txt_heure"
@@ -500,7 +502,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                                 <label
                                                     for="txt_nombrepiece"
                                                     class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Nbre Pièce</label
+                                                    >Nombre de Dossier</label
                                                 >
                                                 <div class="mt-2">
                                                     <input
@@ -538,7 +540,146 @@ const submitForm = function () {  // Ajoutez `async` ici
                                                     />
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> 
+                                        <div v-if="!show" class="sm:col-span-1">
+                                            <div class="sm:col-span-1">
+                                                <label
+                                                    for="txt_numLot"
+                                                    class="block text-sm/6 font-medium text-primary-txt"
+                                                    >Numéro Lot</label
+                                                >
+                                                <div class="mt-2">
+                                                    <input
+                                                        type="text"
+                                                        name="txt_numLot" 
+                                                        v-model="
+                                                            form.txt_numLot
+                                                        " 
+                                                        id="txt_numLot"
+                                                            autocomplete="off"
+                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
+                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
+                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
+                                                    />  
+                                                </div>
+                                            </div>
+                                        </div>  
+                                        <div v-if="!show" class="sm:col-span-1">
+                                            <div class="sm:col-span-1">
+                                                <label
+                                                    for="txt_surface"
+                                                    class="block text-sm/6 font-medium text-primary-txt"
+                                                    >Superficie</label
+                                                >
+                                                <div class="mt-2">
+                                                    <input
+                                                        type="nomber"
+                                                        step="0.01" min="0" 
+                                                        name="txt_surface"
+                                                        v-model="
+                                                            form.txt_surface
+                                                        " 
+                                                        id="txt_surface"
+                                                            autocomplete="off"
+                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
+                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
+                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
+                                                    />  
+                                                </div>
+                                            </div>
+                                        </div> 
+                                        <div v-if="!show" class="sm:col-span-2">
+                                            <div class="sm:col-span-1">
+                                                <label
+                                                    for="txt_prenom"
+                                                    class="block text-sm/6 font-medium text-primary-txt"
+                                                    >Prénom</label
+                                                >
+                                                <div class="mt-2">
+                                                    <input
+                                                        type="text"
+                                                        name="txt_prenom"
+                                                        v-model="
+                                                            form.txt_prenom
+                                                        " 
+                                                        id="txt_prenom"
+                                                            autocomplete="address-level2"
+                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
+                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
+                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
+                                                    />  
+                                                </div>
+                                            </div>
+                                        </div> 
+                                         <div v-if="!show" class="sm:col-span-2">
+                                            <div class="sm:col-span-1">
+                                                <label
+                                                    for="txt_nom"
+                                                    class="block text-sm/6 font-medium text-primary-txt"
+                                                    >Nom</label
+                                                >
+                                                <div class="mt-2">
+                                                    <input
+                                                        type="text"
+                                                        name="txt_nom"
+                                                        v-model="
+                                                            form.txt_nom
+                                                        " 
+                                                        id="txt_nom"
+                                                            autocomplete="address-level2"
+                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
+                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
+                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
+                                                    />  
+                                                </div>
+                                            </div>
+                                        </div> 
+                                        <div v-if="!show" class="sm:col-span-2">
+                                            <div class="sm:col-span-1">
+                                                <label
+                                                    for="txt_situation"
+                                                    class="block text-sm/6 font-medium text-primary-txt"
+                                                    >Situation</label
+                                                >
+                                                <div class="mt-2">
+                                                    <input
+                                                        type="text"
+                                                        name="txt_situation"
+                                                        v-model="
+                                                            form.txt_situation
+                                                        " 
+                                                        id="txt_situation"
+                                                            autocomplete="address-level2"
+                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
+                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
+                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
+                                                    />  
+                                                </div>
+                                            </div>
+                                        </div> 
+                                        <div v-if="!show" class="sm:col-span-2">
+                                            <div class="sm:col-span-1">
+                                                <label
+                                                    for="txt_nicad"
+                                                    class="block text-sm/6 font-medium text-primary-txt"
+                                                    >NICAD</label
+                                                >
+                                                <div class="mt-2">
+                                                    <input
+                                                        type="text"
+                                                        name="txt_nicad"
+                                                        v-model="
+                                                            form.txt_nicad
+                                                        " 
+                                                        id="txt_nicad"
+                                                            autocomplete="off"
+                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
+                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
+                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
+                                                    />  
+                                                </div>
+                                            </div>
+                                        </div> 
                                         <div class="sm:col-span-2">
                                             <div class="sm:col-span-1">
                                                 <label
@@ -570,49 +711,48 @@ const submitForm = function () {  // Ajoutez `async` ici
                                                 >
                                                 <div class="mt-2">
                                                     <MazSelect
-                                                    type="select"
-                                                    name="txt_agenttraiteur"
-                                                    v-model="form.txt_agenttraiteur" 
-                                                    required
-                                                    id="txt_agenttraiteur"
-                                                    autocomplete="off"
-                                            
+                                                        type="select"
+                                                        name="txt_agenttraiteur"
+                                                        v-model="form.txt_agenttraiteur" 
+                                                        required
+                                                        id="txt_agenttraiteur"
+                                                        autocomplete="off"
                                                         :options="[
-                                                            'Saliou FAYE',
-                                                            'Assane Aidara DIOP',
-                                                            'El Hadji Malick GUEYE',
-                                                            'Moustapha Diop',
-                                                            'Daouda Ndiaye',
-                                                            'Abdoulaye Camara',
-                                                            'Oumar Diop'
+                                                            'Abdoul Karim KANE',
+                                                            'Lamine DIAGNE',
+                                                            'Cheikh Tidiane WADE',
+                                                            'Sokhna Arame BA',
+                                                            'Moustapha MBENGUE',
+                                                            'Makhtar CISSE',
+                                                            'Daouda LEYE',
+                                                            'Cheikh DIOP',
+                                                            'Tening',
+                                                            'Suzanne',
+                                                            'Khady THIADOUM',
+                                                            'Rokhaya S. SIDIBE',
+                                                            'Aly FAYE',
+                                                            'Baidy BA',
+                                                            'Elhadj Senghane THIAM',
+                                                            'Mamadou DIOUF',
+                                                            'Matalibé DIALLO',
+                                                            'Mouhamed SOW',
+                                                            'Oumar NDIAYE',
+                                                            'Mme TOURE',
+                                                            'Dorine DIOP',
+                                                            'Pape DIALLO',
+                                                            'Alioune NIANG',
+                                                            'Boly DIOP',
+                                                            'Djiby THIANDUM',
+                                                            'Awa SOW'
                                                         ]" 
-                                                        class="h-8  w-full block w-full rounded-md bg-white px-2 py-1.5 text-base text-primary-txt 
+                                                        class="h-8 w-full block w-full rounded-md bg-white px-2 py-1.5 text-base text-primary-txt 
                                                         outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-primary-dark 
                                                         focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6
                                                         scrollbar-thin scrollbar-thumb-primary scrollbar-track-primary-darlk"
                                                         option-class="custom-option"   
-                                                        option-selected-class="bg-primary text-white  "
-                                                    
+                                                        option-selected-class="bg-primary text-white"
                                                     /> 
-                                                </div>
-                                               
-                                                <!-- <div class="mt-2">
-                                                    <select
-                                                        type="select"
-                                                        name="txt_agenttraiteur"
-                                                        v-model="form.txt_agenttraiteur"
-                                                        required
-                                                        id="txt_agenttraiteur"
-                                                        autocomplete="off"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-primary-dark 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    >
-                                                        <option value="Saliou FAYE">Saliou FAYE</option>
-                                                        <option value="Assane Aidara DIOP">Assane Aidara DIOP</option>
-                                                        <option value="El Hadji Malick GUEYE">El Hadji Malick GUEYE</option> 
-                                                    </select>
-                                                </div> -->
+                                                </div> 
                                             </div>
                                         </div> 
                                         <div class="sm:col-span-2">
@@ -631,35 +771,18 @@ const submitForm = function () {  // Ajoutez `async` ici
                                                     autocomplete="off"
                                                     placeholder="Choisis Caractère"
                                                         :options="[
+                                                            'Ordinaire',
                                                             'Confidentiel',
                                                             'Urgent',
                                                             'Secret'
                                                         ]" 
                                                         class="h-8  w-full block w-full rounded-md bg-white px-2 py-1.5 text-base text-primary-txt 
-                                                        outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-primary-dark 
-                                                        focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6
-                                                        scrollbar-thin scrollbar-thumb-primary scrollbar-track-primary-darlk"
-                                                        option-class="custom-option"   
-                                                        option-selected-class="bg-primary text-white  "
-                                                    
-                                                    /> 
-                                                    <!-- <select
-                                                        type="select"
-                                                        name="txt_caractere"
-                                          
-                                                        readonly
-                                                        v-model="form.txt_caractere"  
-                                                        autocomplete="off"
-                                                        id="txt_caractere"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
                                                             outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-primary-dark 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6" 
-                                                    >
-                                                        <option selected disabled>Choisis Caractères</option>
-                                                        <option value="Confidentiel">Confidentiel</option>
-                                                        <option value="Urgent">Urgent</option>
-                                                        <option value="Secret">Secret</option>
-                                                    </select> -->
+                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6
+                                                            scrollbar-thin scrollbar-thumb-primary scrollbar-track-primary-darlk"
+                                                            option-class="custom-option"   
+                                                            option-selected-class="bg-primary text-white" 
+                                                    />  
                                                 </div>
                                             </div>
                                         </div>
@@ -715,12 +838,15 @@ const submitForm = function () {  // Ajoutez `async` ici
                                 <!-- Bouton de soumission -->
 
                                 <div class="sm:col-span-6 flex justify-center">
-                                    <MazBtn type="submit" no-shadow no-hover-effect
-                                            class="bg-gradient-to-r from-primary via-primary-light to-primary-dark 
-                                                hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-primary 
-                                                dark:focus:ring-primary-dark shadow-lg shadow-primary/50 
-                                                dark:shadow-lg dark:shadow-primary-dark font-medium rounded-lg text-sm 
-                                                px-5 py-2.5 text-center">
+                                    <MazBtn 
+                                        type="submit" no-shadow no-hover-effect
+                                        class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-dark 
+                                            to-primary hover:bg-gradient-to-br focus:ring-4 focus:outline-none 
+                                            focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 
+                                            dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 
+                                            py-2.5 text-center me-2 mb-2"
+                                            size="medium"
+                                    > 
                                         Enregistrer
                                     </MazBtn>
                                 </div>

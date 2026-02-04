@@ -29,117 +29,90 @@ class TrimestreController extends Controller
      
     public function create()
     {
-        // 
- 
         $trimestres = Trimestre::orderBy('id')->get(); 
-
+ 
         $now = Carbon::now();
-            $currentQuarter = $now->quarter;
-            $year = $now->year;
+        $currentQuarter = $now->quarter;
+        $year = $now->year;
 
         $startOfQuarter = Carbon::createFromDate($year, (($currentQuarter - 1) * 3) + 1, 1)->startOfDay();
         $endOfQuarter = (clone $startOfQuarter)->addMonths(3)->subDay()->endOfDay();
+
+        // Récupérer toutes les arrivées de catégorie "Demande SERVICES"
+        $courriersRetourners = Depart::where('txt_caracterecd', 'Dossier Retourne')
+            ->whereBetween('dt_datecouriercd', [$startOfQuarter, $endOfQuarter])
+            ->count();
  
         $designations = [
             "Morcellements",
             "Réquisition d\'immatriculation",
-            "Demande de terrain / Echange",
+            'Demande Avis Technique',
+            "Demande de terrain/Echange",
             "Prospection de terrain",
             "Autorisation de construction",
             "Autorisation de lotir",
             "Demande d\'états des lieux",
-            "Demande de délimitation/reconstruction",
-            "Réquisition DSCOS, Tribunal, Litiges",
-            "Demande d’extraits de plan",
-            "Demande de situation foncière",
-            "Demande de Cession définitive",
+            "Demande de délimitation",
+            "Demande de reconstruction",
+            "Réquisition DSCOS", 
+            "Tribunal", 
+            "Litiges",
+            "Demande d\'extraits de plan",
+            "Demande de situation foncière", 
             "Demande de Cession définitive a Titre Gratuit",
             "Demande de Régularisation",
             "Demande d\'attestation du Cadastre",
             "Projets de Lotissements reçus",
             "Réceptions de lotissements",
             "Lotissements réalisés sans respect des procédures",
-            "Demande de CIC",
+            "Duplication de CIC",
             "Demande de Titre foncier",
             "Autirisationde morceler",
-            "Demande d’évaluation",
+            "Demande d\'évaluation",
             "Nombre de fiches de mise à jour reçues",
-            "Nombre de dossiers techniques en attente de fiches de mise à jour"
+            "Nombre de dossiers techniques en attente de fiches de mise à jour",
         ];
- 
-        // Pour chaque désignation, compter les enregistrements dans le
-        $countsByTrimestre = [];
-
-        foreach ($designations as $designation) {
-            $countsByTrimestre[$designation] = Arrivee::where('txt_designation', 'like', "%{$designation}%")
-                ->whereBetween('dt_datearrivee', [$startOfQuarter, $endOfQuarter])
-                ->count();
-        }
-
-        // Pour chaque désignation, compter les traiter 
-        $arriveeRefCol = 'txt_reference'; 
- 
-        $countsTraiterByTrimestre = []; 
-        foreach ($designations as $designation) {
-            // Nombre reçus (Arrivées qui contiennent la désignation)
-            $countsByTrimestre[$designation] = Arrivee::where('txt_designation', 'like', "%{$designation}%")
-                ->whereBetween('dt_datearrivee', [$startOfQuarter, $endOfQuarter])
-                ->count();
-
-            // Nombre traités : on compte les ARRIVÉES pour lesquelles il existe au moins un DEPART 
-            $countsTraiterByTrimestre[$designation] = Arrivee::where('txt_designation', 'like', "%{$designation}%")
-                ->whereBetween('dt_datearrivee', [$startOfQuarter, $endOfQuarter])
-                ->whereExists(function ($query) use ($startOfQuarter, $endOfQuarter, $arriveeRefCol) {
-                    $query->select(DB::raw(1))
-                        ->from('departs')
-                        ->whereRaw("departs.txt_referencecourierarriveecd LIKE CONCAT('%', arrivees.{$arriveeRefCol}, '%')")
-                        ->where('departs.txt_categoriecd', 'Reponse à un Courrier arrivé')
-                        ->whereBetween('departs.dt_datecouriercd', [$startOfQuarter, $endOfQuarter]);
-                })
-                ->count();
-        }
-
-        // Pour chaque désignation, calculer le stockfin
+  
+        // 1. Stock Fin Précédent (correct)
         $stockFin = []; 
         foreach ($designations as $designation) {
-            // Total des reçus avant le trimestre courant
-            $totalRecusAvant = Arrivee::where('txt_designation', 'like', "%{$designation}%")
+            $stockFin[$designation] = Arrivee::where('txt_designation', 'like', "%{$designation}%")
                 ->where('dt_datearrivee', '<', $startOfQuarter)
                 ->count(); 
-
-            // Stock fin = cumul avant le trimestre courant
-            $stockFin[$designation] = $totalRecusAvant;
         }
 
-        // Calculer les instances restantes
-        $instancesRestantes = []; 
+        // 2. Reçus du trimestre (correct)
+        $countsByTrimestre = [];
         foreach ($designations as $designation) {
-            // Total des reçus avant le trimestre courant
-            $totalRecusInstance = Arrivee::where('txt_designation', 'like', "%{$designation}%")
+            $countsByTrimestre[$designation] = Arrivee::where('txt_designation', 'like', "%{$designation}%")
                 ->whereBetween('dt_datearrivee', [$startOfQuarter, $endOfQuarter])
                 ->count();
+        }
 
-            // Total des reçus avant le trimestre courant
-            $totalRecusAvantInstance = Arrivee::where('txt_designation', 'like', "%{$designation}%")
-                ->where('dt_datearrivee', '<', $startOfQuarter)
-                ->count(); 
-            
-            $recuInstance = $totalRecusInstance + $totalRecusAvantInstance;
-
-            // Total des traités avant le trimestre courant
-            $totalTraitesAvant = Arrivee::where('txt_designation', 'like', "%{$designation}%")
+        // 3. Traités du trimestre (correct)
+        $arriveeRefCol = 'txt_reference'; 
+        $countsTraiterByTrimestre = [];  
+        foreach ($designations as $designation) {
+            $countsTraiterByTrimestre[$designation] = Arrivee::where('txt_designation', 'like', "%{$designation}%")
                 ->whereBetween('dt_datearrivee', [$startOfQuarter, $endOfQuarter])
-                ->whereExists(function ($query) use ($startOfQuarter, $endOfQuarter, $arriveeRefCol) {
+                ->whereExists(function ($query) use ($arriveeRefCol) {
                     $query->select(DB::raw(1))
                         ->from('departs')
-                        ->whereRaw("departs.txt_referencecourierarriveecd LIKE CONCAT('%', arrivees.{$arriveeRefCol}, '%')")
-                        ->where('departs.txt_categoriecd', 'Reponse à un Courrier arrivé')
-                        ->whereBetween('departs.dt_datecouriercd', [$startOfQuarter, $endOfQuarter]);
+                        ->whereColumn("departs.txt_referencecourierarriveecd", "arrivees.{$arriveeRefCol}");
                 })
                 ->count();
-  
-            // Stock fin = cumul avant le trimestre courant
-            $instancesRestantes[$designation] = $recuInstance - $totalTraitesAvant;
+        }
+
+        // 4. INSTANCES RESTANTES - CALCUL CORRIGÉ
+        $instancesRestantes = []; 
+        foreach ($designations as $designation) {
+            // Calcul cohérent : Stock Fin = Stock Initial + Reçus - Traités
+            $instancesRestantes[$designation] = $stockFin[$designation] + $countsByTrimestre[$designation] - $countsTraiterByTrimestre[$designation];
+            
+            // Éviter les valeurs négatives
+            if ($instancesRestantes[$designation] < 0) {
+                $instancesRestantes[$designation] = 0;
+            }
         }
 
         return Inertia::render('trimestre/create', [ 
@@ -147,8 +120,8 @@ class TrimestreController extends Controller
             'countsByTrimestre' => $countsByTrimestre,
             'countsTraiterByTrimestre' => $countsTraiterByTrimestre,
             'stockFin' => $stockFin,
+            'courriersRetourners' => $courriersRetourners,
             'instancesRestantes' => $instancesRestantes
-
         ]);
     }
 

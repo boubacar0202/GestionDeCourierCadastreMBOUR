@@ -96,7 +96,7 @@ function handleImageError() {
                                 class="relative flex items-center gap-6 lg:items-end"
                             >
                             
-                                <h1 class="sm:text-4xl text-primary-txt font-bold text-center">CADASTRE KEDOUGOU </h1>
+                                <h1 class="sm:text-4xl text-primary-txt font-bold text-center">CADASTRE MBOUR</h1>
                                
                                 <svg
                                     class="size-6 shrink-0 stroke-primary"
@@ -120,7 +120,7 @@ function handleImageError() {
                 <footer
                     class="py-16 text-center text-sm text-primary-txt font-bold dark:text-white/70 mt-8"
                 >
-                   Programme de Gestion de Courriers <b>v-1</b> 
+                   Programme de Gestion de Courriers <b>MB.01</b> 
                 </footer>
             </div>
         </div>

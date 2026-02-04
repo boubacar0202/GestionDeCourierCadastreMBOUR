@@ -256,7 +256,7 @@ function cancelEdit() {
 
     <div class="py-12" v-if="user">
       <div class="flex justify-center">
-        <div class="w-full max-w-7xl">
+        <div class="w-full max-w-8xl">
           <div class="bg-white shadow-md h-[600px] flex">
             
             <!-- Sidebar utilisateurs -->
@@ -273,14 +273,14 @@ function cancelEdit() {
                   :class="activeUserClass(u.id)"
                 >
                   <!-- Avatar + Nom -->
-                  <div class="flex items-center">
+                  <div class="flex items-center mr-4">
                     <div class="w-8 h-8 flex-shrink-0 flex items-center justify-center mr-3 rounded-full bg-primary text-white font-bold">
                       {{ u.name.split(' ').map(n => n[0]).join('').toUpperCase() }}
                     </div>
                     <span>{{ u.name }}</span>
 
                     <!-- Badge rouge pour nombre -->
-                    <span v-if="u.unread > 0" class="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2">
+                    <span v-if="u.unread > 0" class="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2 mr-2">
                       {{ u.unread }}
                     </span>
 

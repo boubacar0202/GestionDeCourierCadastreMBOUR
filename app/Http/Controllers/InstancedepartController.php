@@ -34,7 +34,7 @@ class InstancedepartController extends Controller
         ]);
     }
 
-    public function destroyDepart($id)
+    public function destroy($id)
     {
         $depart = Depart::findOrFail($id);
         $depart->delete();

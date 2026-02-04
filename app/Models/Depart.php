@@ -13,6 +13,7 @@ class Depart extends Model
     // Nom de la table (si Laravel ne devine pas automatiquement)
     protected $table = 'departs';
     protected $fillable = [
+            'txt_bordereaucd',
             'txt_numdordrecd',
             'txt_caracterecd',
             'dt_datecouriercd',
@@ -22,6 +23,14 @@ class Depart extends Model
             'txt_nombrepiececd',
             'txt_referencecd',
             'txt_objetcd',
+
+            'txt_nicadcd', 
+            'txt_situationcd',
+            'txt_prenomcd', 
+            'txt_nomcd',
+            'txt_surfacecd', 
+            'txt_numLotcd',
+
             'txt_destinatairecd',
             'dt_dateenvoicd',
             'txt_referencereceptioncd',

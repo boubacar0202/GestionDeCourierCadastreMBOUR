@@ -19,6 +19,7 @@ const props = defineProps({
     countsByTrimestre: Object,
     countsTraiterByTrimestre: Object,
     stockFin: Object,
+    courriersRetourners: Object,
     instancesRestantes: Object,
  
 });
@@ -26,60 +27,33 @@ const props = defineProps({
 const designations = [
     "Morcellements",
     "Réquisition d\'immatriculation",
-    "Demande de terrain / Echange",
+    'Demande Avis Technique',
+    "Demande de terrain/Echange",
     "Prospection de terrain",
     "Autorisation de construction",
     "Autorisation de lotir",
     "Demande d\'états des lieux",
-    "Demande de délimitation/reconstruction",
-    "Réquisition DSCOS, Tribunal, Litiges",
-    "Demande d’extraits de plan",
-    "Demande de situation foncière",
-    "Demande de Cession définitive",
+    "Demande de délimitation",
+    "Demande de reconstruction",
+    "Réquisition DSCOS", 
+    "Tribunal",
+    "Litiges",
+    "Demande d\'extraits de plan",
+    "Demande de situation foncière", 
     "Demande de Cession définitive a Titre Gratuit",
     "Demande de Régularisation",
     "Demande d\'attestation du Cadastre",
     "Projets de Lotissements reçus",
     "Réceptions de lotissements",
     "Lotissements réalisés sans respect des procédures",
-    "Demande de CIC",
+    "Duplication de CIC",
     "Demande de Titre foncier",
     "Autirisationde morceler",
-    "Demande d’évaluation",
+    "Demande d\'évaluation",
     "Nombre de fiches de mise à jour reçues",
-    "Nombre de dossiers techniques en attente de fiches de mise à jour"
-];
-
-const counts = computed(() => {
-    const res = {};
-    designations.forEach(d => res[d] = { recus: 0, traites: 0 });
-
-    // sécuriser pour éviter l'erreur si props.arrivees ou props.departs est undefined
-    const arrivees = props.arrivees ?? [];
-    const departs = props.departs ?? [];
-
-    arrivees.forEach(a => {
-        for (const d of designations) {
-        if (a.txt_designation && a.txt_designation.toLowerCase().includes(d.toLowerCase())) {
-            res[d].recus++;
-
-            const ref = (a.txt_reference ?? a.txt_reference ?? a.id ?? '').toString().trim();
-            const estTraite = ref && departs.some(dep =>
-            dep.txt_referencecourierarriveecd &&
-            dep.txt_referencecourierarriveecd.toString().includes(ref) &&
-            dep.txt_categoriecd === 'Reponse à un Courrier arrivé'
-            );
-
-            if (estTraite) res[d].traites++;
-            break;
-        }
-        }
-    });
-
-    return res;
-});
- 
-
+    "Nombre de dossiers techniques en attente de fiches de mise à jour",
+]; 
+  
 // Fonction pour obtenir le trimestre d’un mois
 const currentTrimestre = (mois) => {
     if ([1, 2, 3].includes(mois)) return '1er trimestre';
@@ -93,53 +67,6 @@ const currentTrimestre = (mois) => {
 // Trimestre actuel (ex: "2ème trimestre")
 const currentMonth = new Date().getMonth() + 1;
 const trimestreLabel = computed(() => currentTrimestre(currentMonth));
-
-// Groupe les éléments par trimestre
-const groupedByTrimestre = computed(() => {
-    return props.trimestres.reduce((acc, t) => {
-        const mois = new Date(t.dt_datearrivee).getMonth() + 1;
-        const trimestre = currentTrimestre(mois);
-
-        if (!acc[trimestre]) acc[trimestre] = [];
-        acc[trimestre].push(t);
-
-        return acc;
-    }, {});
-});
-
-// Filtre
-const filteredTrimestres = computed(() => {
-  return props.trimestres.filter(t => t.isOverdue);
-});
-
-// Formateur de dates
-const formatDate = (dateString) => {
-  if (!dateString) return '-';
-  return new Date(dateString).toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-};
-
-// Debug (corrigé)
-console.log('trimestres :', props.trimestres);
-console.log('morcellementsCount :', props.morcellementsCount);
- 
-
-// Compte combien de morcellements par trimestre
-const countsByTrimestre = computed(() => {
-    return props.trimestres.reduce((acc, t) => {
-        const mois = new Date(t.dt_datearrivee).getMonth() + 1;
-        const trimestre = currentTrimestre(mois);
-
-        if (!acc[trimestre]) acc[trimestre] = 0;
-        acc[trimestre]++;
-
-        return acc;
-    }, {});
-});
-
   
 </script>
 
@@ -154,7 +81,7 @@ const countsByTrimestre = computed(() => {
         </template>
 
         <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="max-w-8xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                     <div>
                         <h2 class="font-bold text-lg text-primary-txt mb-2"> Timestre : {{ trimestreLabel }}</h2>
@@ -173,23 +100,16 @@ const countsByTrimestre = computed(() => {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="(designation, index) in designations" :key="index" class="border-t">
+                            <tr v-for="(designation, index) in designations" :key="index" 
+                                class="border-t hover:bg-primary-form dark:hover:bg-primary-form">
                                 <td class="px-4 py-2 text-left border border-b text-primary-txt text-sm">{{ index + 1 }}</td>
                                 <td class="px-4 py-2 text-left border border-b text-primary-txt text-sm "> {{ designation }}</td>
-                                <td class="px-4 py-2 border border-b text-primary-txt font-bold text-sm text-center">
-                                    {{ props.stockFin[designation] ?? 0 }}
-                                </td>
+                                <td class="px-4 py-2 border border-b text-primary-txt font-bold text-sm text-center">{{ props.stockFin[designation] ?? 0 }}</td>
                                 <!-- 👇 On met la valeur trouvée ou 0 si absente -->
-                                <td class="px-4 py-2 border border-b text-primary-txt font-bold text-sm text-center">
-                                    {{ props.countsByTrimestre[designation] ?? 0 }}
-                                </td>                                
-                                <td class="px-4 py-2 border border-b text-primary-txt font-bold text-sm text-center">
-                                    {{ props.countsTraiterByTrimestre[designation] ?? 0 }}
-                                </td>
-                                <td class="px-4 py-2 border border-b text-primary-txt text-sm text-center"> A.complèter</td>
-                                <td class="px-4 py-2 border border-b text-primary-txt font-bold text-sm text-center">
-                                    {{props.instancesRestantes[designation] ?? 0}}
-                                </td>
+                                <td class="px-4 py-2 border border-b text-primary-txt font-bold text-sm text-center">{{ props.countsByTrimestre[designation] ?? 0 }}</td>                                
+                                <td class="px-4 py-2 border border-b text-primary-txt font-bold text-sm text-center">{{ props.countsTraiterByTrimestre[designation] ?? 0 }}</td>
+                                <td class="px-4 py-2 border border-b text-primary-txt font-bold text-sm text-center">{{ props.courriersRetourners[designation] ?? 0 }}</td>
+                                <td class="px-4 py-2 border border-b text-primary-txt font-bold text-sm text-center">{{ props.instancesRestantes[designation] ?? 0 }}</td>
                             </tr>
                         </tbody>
                     </table>

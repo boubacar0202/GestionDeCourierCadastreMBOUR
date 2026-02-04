@@ -19,6 +19,7 @@ const { arrivees } = defineProps({
  
 const form = useForm({
     //  courrierarrivee
+    txt_bordereau: arrivees?.txt_bordereau || '',
     txt_numdordre: arrivees?.txt_numdordre || '',
     dt_datearrivee: arrivees?.dt_datearrivee || '',  
     txt_caractere: arrivees?.txt_caractere || '', 
@@ -32,11 +33,16 @@ const form = useForm({
     txt_lieu: arrivees?.txt_lieu || '',
     txt_nombrepiece: arrivees?.txt_nombrepiece || '',
     txt_objet: arrivees?.txt_objet || '',
+    txt_nicad: arrivees?.txt_nicad || '',
+    txt_situation: arrivees?.txt_situation || '',
+    txt_prenom: arrivees?.txt_prenom || '',
+    txt_nom: arrivees?.txt_nom || '',
+    txt_surface: arrivees?.txt_surface || '',
+    txt_numLot: arrivees?.txt_numLot || '',
     txt_expediteur: arrivees?.txt_expediteur || '',
     txt_agenttraiteur: arrivees?.txt_agenttraiteur || '',
     txt_observation: arrivees?.txt_observation || '',
-    fichierPDF: arrivees?.fichierPDF || null,
-
+    fichierPDF: arrivees?.fichierPDF || null, 
 }); 
  
 const show = ref(false);
@@ -56,7 +62,7 @@ const categories = {
     "5": "Réquisition - Instruction"
 };
 const designationsParCategorie = {
-    'Demande SERVICES': ['Morcellements', 'Réquisition d\'immatriculation', 'Demande de terrain / Echange', 'Prospection de terrain', 
+    'Demande SERVICES': ['Morcellements', 'Réquisition d\'immatriculation',  'Demande Avis Technique',  'Demande de terrain / Echange', 'Prospection de terrain', 
         'Autorisation de construction', 'Autorisation de lotir', 'Demande d\états des lieux', 'Deamnde de délimitation/reconstruction', 
         'Réquisition DSCOS, Tribunal, Litiges','Demande de situation foncière', 'Demande de Cession définitive',
         'Demande de Cession définitive a Titre Gratuit', 'Demande de Régularisation', 'Demande d\'attestation du Cadastre', 
@@ -125,6 +131,29 @@ function handleFileChange(event) {
     }
 }
 
+//  suppression fichier PDF 
+const deleteFile = (arrivee) => {
+    if (!arrivee?.id) {
+            toast.error('Aucun courrier sélectionné pour suppression ❌');
+        return;
+    }
+
+    const confirmation = confirm('Voulez-vous vraiment supprimer ce fichier PDF ?');
+    if (!confirmation) return;
+
+    router.delete(`/arrivee/delete-pdf/${arrivee.id}`, {
+        onSuccess: () => {
+            arrivee.fichierPDF = null; // mettre à jour la vue
+            toast.success('Fichier PDF supprimé avec succès ✅');
+        },
+        onError: (error) => {
+            console.error('Erreur lors de la suppression du PDF :', error);
+            toast.error(error?.message || 'Erreur lors de la suppression du fichier ❌');
+        }
+    });
+}
+
+  
 async function submit() {
     try {
         console.log("📤 Envoi avec axios...");
@@ -133,6 +162,7 @@ async function submit() {
         
         // Ajouter tous les champs UNE SEULE FOIS
         formData.append('_method', 'PUT'); // Important pour Laravel
+        formData.append('txt_bordereau', form.txt_bordereau);
         formData.append('txt_numdordre', form.txt_numdordre);
         formData.append('dt_datearrivee', form.dt_datearrivee);
         formData.append('txt_caractere', form.txt_caractere);
@@ -146,6 +176,12 @@ async function submit() {
         formData.append('txt_lieu', form.txt_lieu);
         formData.append('txt_nombrepiece', form.txt_nombrepiece);
         formData.append('txt_objet', form.txt_objet);
+        formData.append('txt_nicad', form.txt_nicad);
+        formData.append('txt_situation', form.txt_situation);
+        formData.append('txt_prenom', form.txt_prenom)
+        formData.append('txt_nom', form.txt_nom);
+        formData.append('txt_surface', form.txt_surface);
+        formData.append('txt_numLot', form.txt_numLot);
         formData.append('txt_expediteur', form.txt_expediteur);
         formData.append('txt_agenttraiteur', form.txt_agenttraiteur);
         formData.append('txt_observation', form.txt_observation);
@@ -180,8 +216,7 @@ async function submit() {
         }
     }
 }
-
-
+ 
 </script>
 
 <template>
@@ -197,10 +232,10 @@ async function submit() {
 
         <div class="py-12">
             <div class="flex justify-center">
-                <div class="w-full max-w-6xl">
-                    <div class="bg-white shadow-md rounded-lg">
+                <div class="w-full max-w-8xl rounded-xl">
+                    <div class="bg-white shadow-md rounded-xl">
                         <!-- En-tête du formulaire -->
-                        <div   class="p-4 border-b bg-primary">
+                        <div   class="p-4 border-b bg-primary rounded-t-xl">
                             <h1 class="text-lg text-white font-semibold">Formulaire de Modification des Courriers Arrivées</h1>
                         </div>
                         <!-- Corps du formulaire -->
@@ -208,7 +243,7 @@ async function submit() {
                             <div class="p-6">
                                 <!-- Section Parcelle -->
                                 <h5 class="text-lg text-primary-txt font-bold">
-                                    Modification du Courrier N° : {{ arrivees.txt_reference }}
+                                    Modification du Courrier N° : {{ arrivees.txt_numdordre }}
                                 </h5>
                                 <br />
                                 <div class="mb-6">
@@ -216,6 +251,32 @@ async function submit() {
                                         class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4"
                                     > 
                                         <div class="sm:col-span-2">
+                                            <div class="sm:col-span-2">
+                                                <label 
+                                                    for="txt_bordereau"
+                                                    class="block text-sm/6 font-medium text-primary-txt">
+                                                    N° BE
+                                                </label>
+                                                <div class="mt-2">
+                                                    <input
+                                                        type="text"
+                                                        name="txt_bordereau"  
+                                                        v-model="form.txt_bordereau"  
+                                                        id="txt_bordereau"
+                                                        autocomplete="on"
+                                                        class="h-8 block w-full bg-gray-100 rounded-md bg-white px-3 py-1.5
+                                                            text-base text-primary outline outline-1 -outline-offset-1 outline-primary-only 
+                                                            placeholder:text-primary-dark focus:outline focus:outline-2 focus:-outline-2 
+                                                            focus:outline-primary sm:text-sm/6" 
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div><br>
+                                    <div
+                                        class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4"
+                                    > 
+                                        <div class="sm:col-span-1">
                                             <div class="sm:col-span-2">
                                                 <label 
                                                     for="txt_numdordre"
@@ -229,6 +290,7 @@ async function submit() {
                                                         required
                                                         v-model="form.txt_numdordre"  
                                                         id="txt_numdordre"
+                                                        autocomplete="off"
                                                         class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
                                                             outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
                                                             focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6" 
@@ -257,12 +319,7 @@ async function submit() {
                                                 </div>
                                             </div>
                                         </div> 
-                                    </div>
-                                    <br />
-                                    <div
-                                        class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4"
-                                    >
-
+                       
                                         <div class="sm:col-span-1">
                                             <div class="sm:col-span-1">
                                                 <label
@@ -277,7 +334,7 @@ async function submit() {
                                                         v-model="form.txt_numcourier"
                                                         required
                                                         id="txt_numcourier"
-                                                        autocomplete="address-level2"
+                                                        autocomplete="off"
                                                         class="h-8  scrollbar-thin scrollbar-thumb-primary scrollbar-track-gray-300 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
                                                             outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
                                                             focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
@@ -299,7 +356,7 @@ async function submit() {
                                                         v-model="form.dt_datecourier"
                                                         required
                                                         id="dt_datecourier"
-                                                        autocomplete="address-level2"
+                                                        autocomplete="off"
                                                         class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
                                                             outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
                                                             focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
@@ -321,7 +378,7 @@ async function submit() {
                                                         v-model="form.txt_reference"
                                                         required
                                                         id="txt_reference"
-                                                        autocomplete="address-level2"
+                                                        autocomplete="off"
                                                         class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
                                                             outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
                                                             focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
@@ -341,11 +398,10 @@ async function submit() {
                                                         type="select"
                                                         name="txt_categorie"
                                                         v-model="form.txt_categorie"
-                                                        @change="handleCategorieChange"
-                                                       
+                                                        @change="handleCategorieChange" 
                                                         required
                                                         id="txt_categorie"
-                                                        autocomplete="address-level2"
+                                                        autocomplete="off"
                                                         class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
                                                             outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
                                                             focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
@@ -375,7 +431,7 @@ async function submit() {
                                                         v-model="form.txt_designation" 
                                                         required
                                                         id="txt_designation"
-                                                        autocomplete="address-level2"
+                                                        autocomplete="off"
                                                         class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
                                                             outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
                                                             focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
@@ -403,7 +459,7 @@ async function submit() {
                                                         name="dt_date"
                                                         v-model="form.dt_date"  
                                                         id="dt_date"
-                                                        autocomplete="address-level2"
+                                                        autocomplete="off"
                                                         class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
                                                             outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
                                                             focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
@@ -420,11 +476,11 @@ async function submit() {
                                                 >
                                                 <div class="mt-2">
                                                     <input
-                                                        type="txt"
+                                                        type="time"
                                                         name="txt_heure"
                                                         v-model="form.txt_heure" 
                                                         id="txt_heure"
-                                                        autocomplete="address-level2"
+                                                        autocomplete="off"
                                                         class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
                                                             outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
                                                             focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
@@ -452,7 +508,146 @@ async function submit() {
                                                     />
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> 
+                                        <div class="sm:col-span-1">
+                                            <div class="sm:col-span-1">
+                                                <label
+                                                    for="txt_numLot"
+                                                    class="block text-sm/6 font-medium text-primary-txt"
+                                                    >N° Lot</label
+                                                >
+                                                <div class="mt-2">
+                                                    <input
+                                                        type="text"
+                                                        name="txt_numLot"
+                                                        v-model="
+                                                            form.txt_numLot
+                                                        " 
+                                                        id="txt_numLot"
+                                                        autocomplete="off"
+                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
+                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
+                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
+                                                    />  
+                                                </div>
+                                            </div>
+                                        </div>  
+                                        <div class="sm:col-span-2">
+                                            <div class="sm:col-span-1">
+                                                <label
+                                                    for="txt_surface"
+                                                    class="block text-sm/6 font-medium text-primary-txt"
+                                                    >Superficie</label
+                                                >
+                                                <div class="mt-2">
+                                                    <input
+                                                        type="number"
+                                                        step="0.01" min="0" 
+                                                        name="txt_surface"
+                                                        v-model="
+                                                            form.txt_surface
+                                                        " 
+                                                        id="txt_surface"
+                                                        autocomplete="off"
+                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
+                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
+                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
+                                                    />  
+                                                </div>
+                                            </div>
+                                        </div> 
+                                        <div class="sm:col-span-2">
+                                            <div class="sm:col-span-1">
+                                                <label
+                                                    for="txt_prenom"
+                                                    class="block text-sm/6 font-medium text-primary-txt"
+                                                    >Prénom</label
+                                                >
+                                                <div class="mt-2">
+                                                    <input
+                                                        type="text"
+                                                        name="txt_prenom"
+                                                        v-model="
+                                                            form.txt_prenom
+                                                        " 
+                                                        id="txt_prenom"
+                                                        autocomplete="off"
+                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
+                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
+                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
+                                                    />  
+                                                </div>
+                                            </div>
+                                        </div> 
+                                        <div class="sm:col-span-2">
+                                            <div class="sm:col-span-1">
+                                                <label
+                                                    for="txt_nom"
+                                                    class="block text-sm/6 font-medium text-primary-txt"
+                                                    >Nom</label
+                                                >
+                                                <div class="mt-2">
+                                                    <input
+                                                        type="text"
+                                                        name="txt_nom"
+                                                        v-model="
+                                                            form.txt_nom
+                                                        " 
+                                                        id="txt_nom"
+                                                        autocomplete="off"
+                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
+                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
+                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
+                                                    />  
+                                                </div>
+                                            </div>
+                                        </div> 
+                                        <div class="sm:col-span-2">
+                                            <div class="sm:col-span-1">
+                                                <label
+                                                    for="txt_situation"
+                                                    class="block text-sm/6 font-medium text-primary-txt"
+                                                    >Situation</label
+                                                >
+                                                <div class="mt-2">
+                                                    <input
+                                                        type="text"
+                                                        name="txt_situation"
+                                                        v-model="
+                                                            form.txt_situation
+                                                        " 
+                                                        id="txt_situation"
+                                                        autocomplete="off"
+                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
+                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
+                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
+                                                    />  
+                                                </div>
+                                            </div>
+                                        </div> 
+                                        <div class="sm:col-span-2">
+                                            <div class="sm:col-span-1">
+                                                <label
+                                                    for="txt_nicad"
+                                                    class="block text-sm/6 font-medium text-primary-txt"
+                                                    >NICAD</label
+                                                >
+                                                <div class="mt-2">
+                                                    <input
+                                                        type="text"
+                                                        name="txt_nicad"
+                                                        v-model="
+                                                            form.txt_nicad
+                                                        " 
+                                                        id="txt_nicad"
+                                                        autocomplete="off"
+                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
+                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
+                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
+                                                    />  
+                                                </div>
+                                            </div>
+                                        </div> 
                                         <div class="sm:col-span-2">
                                             <div class="sm:col-span-1">
                                                 <label
@@ -467,7 +662,7 @@ async function submit() {
                                                         v-model="form.txt_nombrepiece"
                                                         required
                                                         id="txt_nombrepiece"
-                                                        autocomplete="address-level2"
+                                                        autocomplete="off"
                                                         class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
                                                             outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
                                                             focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
@@ -489,7 +684,7 @@ async function submit() {
                                                         v-model="form.txt_objet"
                                                         required
                                                         id="txt_objet"
-                                                        autocomplete="address-level2"
+                                                        autocomplete="off"
                                                         class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
                                                             outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
                                                             focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
@@ -511,7 +706,7 @@ async function submit() {
                                                         v-model="form.txt_expediteur"
                                                         required
                                                         id="txt_expediteur"
-                                                        autocomplete="address-level2"
+                                                        autocomplete="off"
                                                         class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
                                                             outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
                                                             focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
@@ -533,18 +728,35 @@ async function submit() {
                                                         v-model="form.txt_agenttraiteur"
                                                         required
                                                         id="txt_agenttraiteur"
-                                                        autocomplete="address-level2"
+                                                        autocomplete="off"
                                                         class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
                                                             outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
                                                             focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    >
-                                                        <option value="Saliou FAYE">Saliou FAYE</option>
-                                                        <option value="Assane Aidara DIOP">Assane Aidara DIOP</option>
-                                                        <option value="El Hadji Malick GUEYE">El Hadji Malick GUEYE</option> 
-                                                        <option value="Moustapha Diop">Moustapha Diop</option>
-                                                        <option value="Daouda Ndiaye">Daouda Ndiaye</option>
-                                                        <option value="Abdoulaye Camara">Abdoulaye Camara</option>
-                                                        <option value="Oumar Diop">Oumar Diop</option>
+                                                    > 
+                                                        <option value='Abdoul Karim KANE'>Abdoul Karim KANE</option>,
+                                                        <option value="Lamine DIAGNE">Lamine DIAGNE</option>,
+                                                        <option value="Cheikh Tidiane WADE">Cheikh Tidiane WADE</option>
+                                                        <option value="Sokhna Arame BA">Sokhna Arame BA</option>
+                                                        <option value="Moustapha MBENGUE">Moustapha MBENGUE</option>
+                                                        <option value="Makhtar CISSE">Makhtar CISSE</option>
+                                                        <option value="Daouda LEYE">Daouda LEYE</option>
+                                                        <option value="Cheikh DIOP">Cheikh DIOP</option>
+                                                        <option value="Tening">Tening</option>,
+                                                        <option value="Suzanne">Suzanne</option>,
+                                                        <option value="Khady THIADOUM">Khady THIADOUM</option>,
+                                                        <option value="Rokhaya S. SIDIBE">Rokhaya S. SIDIBE</option>,
+                                                        <option value="Aly FAYE">Aly FAYE</option>,
+                                                        <option value="Baidy BA">Baidy BA</option>,
+                                                        <option value="Elhadj Senghane THIAM">Elhadj Senghane THIAM</option>,
+                                                        <option value="Mamadou DIOUF">Mamadou DIOUF</option>,
+                                                        <option value="Matalibé DIALLO">Matalibé DIALLO</option>,
+                                                        <option value="Mouhamed SOW">Mouhamed SOW</option>,
+                                                        <option value="Oumar NDIAYE">Oumar NDIAYE</option>,
+                                                        <option value="Mme TOURE">Mme TOURE</option>,
+                                                        <option value="Dorine DIOP">Dorine DIOP</option>,
+                                                        <option value="Pape DIALLO">Pape DIALLO</option>,
+                                                        <option value="Alioune NIANG">Alioune NIANG</option>,
+                                                        <option value="Boly DIOP">Boly DIOP</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -559,8 +771,7 @@ async function submit() {
                                                 <div class="mt-2">
                                                     <select
                                                         type="txt"
-                                                        name="txt_caractere"
-                                                        required
+                                                        name="txt_caractere" 
                                                         readonly
                                                         v-model="form.txt_caractere"  
                                                         id="txt_caractere"
@@ -589,7 +800,7 @@ async function submit() {
                                                         name="txt_observation"
                                                         v-model="form.txt_observation"  
                                                         id="txt_observation"
-                                                        autocomplete="address-level2"
+                                                        autocomplete="off"
                                                         class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
                                                             outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
                                                             focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
@@ -623,7 +834,7 @@ async function submit() {
                                                     class="text-blue-600 underline text-sm">
                                                         📄 Voir le PDF
                                                     </a>
-                                                    <button @click="deleteFile" 
+                                                    <button @click="deleteFile(arrivees)" 
                                                             class="text-red-600 text-sm hover:text-red-800">
                                                         🗑️ Supprimer
                                                     </button>
@@ -639,12 +850,15 @@ async function submit() {
                                 <!-- Bouton de soumission -->
 
                                 <div class="sm:col-span-6 flex justify-center">
-                                    <MazBtn type="submit" no-shadow no-hover-effect
-                                            class="bg-gradient-to-r from-primary via-primary-light to-primary-dark 
-                                                hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-primary 
-                                                dark:focus:ring-primary-dark shadow-lg shadow-primary/50 
-                                                dark:shadow-lg dark:shadow-primary-dark font-medium rounded-lg text-sm 
-                                                px-5 py-2.5 text-center">
+                                    <MazBtn 
+                                        type="submit" no-shadow no-hover-effect
+                                        class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-dark 
+                                            to-primary hover:bg-gradient-to-br focus:ring-4 focus:outline-none 
+                                            focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 
+                                            dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 
+                                            py-2.5 text-center me-2 mb-2"
+                                            size="medium"
+                                    >
                                         Enregistrer
                                     </MazBtn>
                                 </div>

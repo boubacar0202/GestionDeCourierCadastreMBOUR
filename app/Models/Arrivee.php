@@ -13,6 +13,7 @@ class Arrivee extends Model
     // Nom de la table (si Laravel ne devine pas automatiquement)
     protected $table = 'arrivees';
     protected $fillable = [
+        'txt_bordereau',
         'txt_numdordre', 
         'txt_caractere',
         'dt_datearrivee',
@@ -26,6 +27,12 @@ class Arrivee extends Model
         'txt_lieu',
         'txt_nombrepiece',
         'txt_objet',
+        'txt_nicad', 
+        'txt_situation',
+        'txt_prenom', 
+        'txt_nom',
+        'txt_surface', 
+        'txt_numLot',
         'txt_expediteur',
         'txt_agenttraiteur',
         'txt_observation', 
