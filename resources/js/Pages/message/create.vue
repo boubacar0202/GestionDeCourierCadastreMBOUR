@@ -260,34 +260,49 @@ function cancelEdit() {
           <div class="bg-white shadow-md h-[600px] flex">
             
             <!-- Sidebar utilisateurs -->
-            <div class="w-1/3 border-r bg-white flex flex-col">
-              <div class="p-4 border-b rounded bg-primary text-white font-semibold">
+            <!-- Sidebar utilisateurs -->
+            <div class="w-1/3 border-r bg-white flex flex-col h-full">
+
+              <!-- Header -->
+              <div class="p-4 border-b bg-primary text-white font-semibold flex-shrink-0">
                 Utilisateurs : {{ user.name }}
               </div>
-              <ul>
+
+              <!-- Liste scrollable -->
+              <ul class="flex-1 overflow-y-auto">
                 <li
                   v-for="u in otherUsersWithUnread"
                   :key="u.id"
                   @click="selectUser(u.id)"
-                  class="hover:bg-primary-only hover:text-primary-txt hover:font-semibold hover:border hover:text-white p-2 rounded flex items-center justify-between cursor-pointer"
+                  class="hover:bg-primary-only hover:text-white hover:font-semibold
+                        p-2 rounded flex items-center justify-between cursor-pointer"
                   :class="activeUserClass(u.id)"
                 >
-                  <!-- Avatar + Nom -->
-                  <div class="flex items-center mr-4">
-                    <div class="w-8 h-8 flex-shrink-0 flex items-center justify-center mr-3 rounded-full bg-primary text-white font-bold">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <!-- Avatar -->
+                    <div
+                      class="w-8 h-8 flex-shrink-0 flex items-center justify-center
+                            rounded-full bg-primary text-white font-bold"
+                    >
                       {{ u.name.split(' ').map(n => n[0]).join('').toUpperCase() }}
                     </div>
-                    <span>{{ u.name }}</span>
 
-                    <!-- Badge rouge pour nombre -->
-                    <span v-if="u.unread > 0" class="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2 mr-2">
+                    <!-- Nom (ne déborde plus) -->
+                    <span class="truncate">{{ u.name }}</span>
+
+                    <!-- Badge non lus -->
+                    <span
+                      v-if="u.unread > 0"
+                      class="bg-green-500 text-white text-xs font-bold
+                            px-2 py-0.5 rounded-full ml-auto"
+                    >
                       {{ u.unread }}
                     </span>
-
-                  </div> 
+                  </div>
                 </li>
-              </ul> 
-            </div> 
+              </ul>
+            </div>
+
             <!-- Zone discussion -->
             <div class="w-2/3 flex flex-col">
               <!-- Header discussion -->
