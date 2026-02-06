@@ -5,13 +5,12 @@ import MazBtn from "maz-ui/components/MazBtn";
 import MazRadio from "maz-ui/components/MazRadio";
 import { onMounted, ref, watch, watchEffect, computed  } from "vue";
 import axios from "axios";
-import { useToast } from "maz-ui"; 
+import { toast } from "@/Components/AppToast";  
 import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import { Inertia } from '@inertiajs/inertia'; 
 import { router } from '@inertiajs/vue3';
  
 defineOptions({ layout: DefaultLayout });
-const toast = useToast(); 
  
 const { arrivees } = defineProps({
     arrivees: Object,  

@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3'; 
 import NavLink from '@/Components/NavLink.vue';
-import { useToast } from 'maz-ui';
+import { toast } from "@/Components/AppToast";  
 import axios from 'axios';
 
 // --- USER & PAGE ---
@@ -29,8 +29,7 @@ onMounted(() => {
 onUnmounted(() => {
     window.removeEventListener('resize', updateScreenSize);
 });
-// --- TOAST ---
-const toast = useToast();
+// --- TOAST --- 
 onMounted(() => {
     if (page.props.flash.success) {
         toast.success(page.props.flash.success);

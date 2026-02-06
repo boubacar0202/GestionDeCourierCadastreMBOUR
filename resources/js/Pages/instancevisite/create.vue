@@ -35,7 +35,6 @@ const filtereVisites = computed(() => {
             ? normalize(visite.txt_prenomVisite)?.includes(normalize(refPrenomNom.value)) 
             : true;
  
-
         return matchNumero && matchAnnee && matchPrenomNom;
     });
 
@@ -96,11 +95,11 @@ function supprimerVisite(visite) {
             <h2
                 class="text-xl text-primary-txt font-semibold leading-tight"
             >
-                Liste des Courriers Departs
+                Liste des visiteurs
             </h2>
             
             <!-- Vérification pour afficher un message si aucune donnée -->
-            <template v-if="(!departs || departs.length === 0)">
+            <template v-if="(!visites || visites.length === 0)">
                 <p>Aucun Instance Départ n'est trouvé.</p>
             </template>
            
@@ -120,9 +119,9 @@ function supprimerVisite(visite) {
                             <div class="relative overflow-x-auto p-4 border-b bg-primary-form sm:rounded-lg mt-8">
                                 <div class="flex justify-between items-center"> 
                                     <h1 class="text-1xl text-primary-txt font-bold">
-                                        Liste des Courriers Départs : 
-                                        <span v-if="totalCourrier>0" class="text-gray-600">
-                                            ({{ totalCourrier }})
+                                        Liste des visiteurs : 
+                                        <span v-if="totalvisite>0" class="text-gray-600">
+                                            ({{ totalvisite }})
                                         </span>
                                         <span v-else class="text-red-600">
                                             Aucun enregistrement

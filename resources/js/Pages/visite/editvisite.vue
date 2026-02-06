@@ -16,71 +16,50 @@ const today = new Date().toISOString().split('T')[0];
   
 // Formulaire 
 const form = useForm({
-    //  courrierarrivee
-    dt_visite : '',
-    txt_traitementVisite :'',
-    txt_objetVisite : '',
-    txt_telVisite : '',
-    txt_prenomVisite : '',
-    txt_numdordreVisite : '',
+    //  visite edit    
+    dt_visite: visit?.dt_visite || '',
+    txt_traitementVisite: visit?.txt_traitementVisite || '',
+    txt_objetVisite: viste?.txt_objetVisite || '',
+    txt_telVisite: visite?.txt_telVisite || '',
+    txt_prenomVisite: visit?.txt_prenomVisite || '',
+    txt_numdordreVisite: visit?.txt_numdordreVisite || '',
 });
-  
-// Génération automatique du numéro d'ordre
-const fetchNextDossier = async (annee) => {
+   
+async function submit() {
     try {
-        const response = await axios.get(`/visite/next/${annee}`);
-        const numero = response.data.num_dordre;
+        console.log("📤 Envoi du formulaire départ...");
 
-        // ✅ Sécurité : si la date du formulaire est vide, on prend la date du jour
-        const date = form.dt_visite ? new Date(form.dt_visite) : new Date();
+        const formData = new FormData();
+        formData.append('_method', 'PUT'); // Laravel update 
+        formData.append('dt_visite', form.dt_visite);
+        formData.append('txt_traitementVisite', form.txt_traitementVisite);
+        formData.append('txt_objetVisite', form.txt_objetVisite);
+        formData.append('txt_telVisite', form.txt_telVisite); 
+        formData.append('txt_prenomVisite', form.txt_prenomVisite); 
+        formData.append('txt_numdordreVisite', form.txt_numdordreVisite); 
 
-        // ✅ Formatage de la date en JJ-MM-AAAA
-        const day = String(date.getDate()).padStart(2, "0");
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const year = date.getFullYear();
-        const dateFormatee = `${day}-${month}-${year}`;
+        // Debug
+        for (let [key, value] of formData.entries()) {
+            console.log(key + ':', value);
+        }
 
-        // ✅ Fusion du numéro et de la date
-        form.txt_numdordreVisite = `${numero}/${dateFormatee}`;
-        console.log("✅ Numéro généré :", form.txt_numdordreVisite);
+        await axios.post(route('visite.update', departs.id), formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        toast.success('Modification réussie !');
+        Inertia.visit(route('instancevisite.create'), { replace: true });
 
     } catch (error) {
-        console.error("❌ Erreur :", error);
-
-        const date = new Date();
-        const day = String(date.getDate()).padStart(2, "0");
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const year = date.getFullYear();
-        const dateFormatee = `${day}-${month}-${year}`;
-
-        form.txt_numdordreVisite = `00001/${dateFormatee}`;
-    }
-};
- 
-// Regeneration automatiser
-watch(() => form.dt_visite, (nouvelleDate) => {
-    if (nouvelleDate) {
-        const annee = new Date(nouvelleDate).getFullYear();
-        fetchNextDossier(annee);
-    }
-});
-  
-// Soumission du formulaire
-const submitForm = function () {  // Ajoutez `async` ici
-    console.log("📤 Envoi du formulaire :", form);
-    console.log("✅ Données finales envoyées à Laravel :", form.data()); 
-  
-    // Formulaire Laravel
-    form.post(route('visite.store'), {
-        onSuccess: () => {
-            toast.success('Enregistré avec succès')
-            Inertia.visit(route("visite.create"), { replace: true });
-        },
-        onError: (errors) => {
-            Object.values(errors).forEach(msg => toast.error(msg))
+        console.error('Erreur détaillée:', error.response?.data);
+        if (error.response?.data?.errors) {
+            Object.values(error.response.data.errors).forEach(err => toast.error(err));
+        } else {
+            toast.error('Erreur lors de la modification');
         }
-    }) 
-};
+    }
+}
+
  
 </script>
 

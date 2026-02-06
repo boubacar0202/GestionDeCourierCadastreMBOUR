@@ -4,8 +4,7 @@ import { ref, computed  } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import { defineProps, onMounted } from 'vue';
 import { router, usePage  } from '@inertiajs/vue3'
-import { Link as InertiaLink } from '@inertiajs/vue3' 
-// import { toast } from 'vue3-toastify'
+import { Link as InertiaLink } from '@inertiajs/vue3'  
  
 const props = defineProps({
     arrivee: Object,    
@@ -17,8 +16,7 @@ const annee = ref('');
 const rowRefs = ref({});
 const refCourrierArrivee = ref('');
 const refDesignation = ref('');
- 
-
+  
 // Extraire les désignations uniques depuis les données
 const uniqueDesignations = computed(() => {
   const set = new Set(props.arrivees.map(a => a.txt_designation).filter(Boolean));
