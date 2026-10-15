@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB; 
-use App\Models\Depart;
 use App\Models\Arrivee;
+use App\Models\CodeAcces;
+use App\Models\Depart;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
@@ -305,10 +306,10 @@ class DepartController extends Controller
         if (!$code) {
             return back()->withErrors(['code_acces' => 'Code d’accès invalide ou déjà utilisé.']);
         }
- 
 
-        // Supprimer le courrier
-        $depart = InstanceDepart::findOrFail($id);
+        $code->update(['utilise' => true]);
+
+        $depart = Depart::findOrFail($id);
         $depart->delete();
 
         return back()->with('success', 'Courrier supprimé avec succès.');

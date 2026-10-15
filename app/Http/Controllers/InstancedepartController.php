@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Arrivee;
+use App\Models\CodeAcces;
 use App\Models\Depart;
 
 class InstancedepartController extends Controller
@@ -34,12 +35,23 @@ class InstancedepartController extends Controller
         ]);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        $code = CodeAcces::where('code', $request->code_acces)
+            ->where('utilise', false)
+            ->first();
+
+        if (!$code) {
+            return back()->withErrors(['code_acces' => 'Code d’accès invalide ou déjà utilisé.']);
+        }
+
+        $code->update(['utilise' => true]);
+
         $depart = Depart::findOrFail($id);
+        $numero = $depart->txt_numdordrecd;
         $depart->delete();
 
-        return redirect()->back()->with('success', 'Courrier Départ N° ' . $depart->txt_numdordrecd . ' supprimé avec succès.');
+        return redirect()->back()->with('success', 'Courrier Départ N° ' . $numero . ' supprimé avec succès.');
     }
 
     

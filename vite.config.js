@@ -36,7 +36,7 @@ export default defineConfig({
         host: '0.0.0.0',
         port: 5173,
         hmr: {
-            host: 'courriers_mb.sn',
+            host: 'courriersmb.sn',
         },
         cors: true,
     }, 

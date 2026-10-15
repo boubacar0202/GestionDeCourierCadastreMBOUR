@@ -2,8 +2,8 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
-import MazSelect from "maz-ui/components/MazSelect";
-import MazRadio from "maz-ui/components/MazRadio";
+import BaseInput from "@/Components/BaseInput.vue";
+import BaseSelect from "@/Components/BaseSelect.vue";
 import { onMounted, ref, watch, watchEffect, computed  } from "vue";
 import axios from "axios";
 import { useToast } from "maz-ui"; 
@@ -76,158 +76,72 @@ async function submit() {
 
         <div class="py-12">
             <div class="flex justify-center">
-                <div class="w-full border border-primary-only max-w-8xl rounded-lg">
+                <div class="w-full max-w-8xl px-2 py-2">
                     <div class="bg-white shadow-md rounded-lg">
                         <!-- En-tête du formulaire -->
                         <div   class="p-4 border-b bg-primary rounded-t-lg">
-                            <h1 class="text-lg text-white font-semibold">Formulaire d'enregistrement des visiteurs</h1>
+                            <h2 class="text-2xl leading-tight text-white font-bold">Modification du visiteur</h2>
                         </div>
                         <!-- Corps du formulaire -->
                         <form @submit.prevent="submitForm">
                             <div class="p-6">
                                 <!-- Section Parcelle -->
                                 <div class="mb-6">
-                                    <div
-                                        class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4"
-                                    > 
-                                        <div class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="dt_visite"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Date visite</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="date"
-                                                        name="dt_visite"
-                                                        v-model="form.dt_visite"
-                                                        :max="today"
-                                                        required
-                                                        id="dt_visite"
-                                                        autocomplete="off"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-primary-dark 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    > 
-                                                </div>
-                                            </div>
-                                        </div> 
-                                        <div class="sm:col-span-2">
-                                            <div class="sm:col-span-2">
-                                                <label 
-                                                    for="txt_numdordreVisite"
-                                                    class="block text-sm/6 font-medium text-primary-txt">
-                                                    N° Arrivée du Visiteur
-                                                </label>
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="text"
-                                                        name="txt_numdordreVisite"   
-                                                        required
-                                                        v-model="form.txt_numdordreVisite"  
-                                                        id="txt_numdordreVisite"
-                                                        class="h-8 block w-full bg-gray-100 rounded-md bg-white px-3 py-1.5
-                                                            text-base text-primary outline outline-1 -outline-offset-1 outline-primary-only 
-                                                            placeholder:text-primary-dark focus:outline focus:outline-2 focus:-outline-2 
-                                                            focus:outline-primary sm:text-sm/6" 
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div> 
-                                        <div class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_prenomVisite"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Prénom & Nom</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="text"
-                                                        name="txt_prenomVisite"
-                                                        v-model="form.txt_prenomVisite"
-                                                        required
-                                                        id="txt_prenomVisite"
-                                                        autocomplete="off"
-                                                        class="h-8  scrollbar-thin scrollbar-thumb-primary block w-full rounded-md bg-white 
-                                                            px-3 py-1.5 text-base text-primary-txt outline outline-1 -outline-offset-1 outline-primary-only 
-                                                            placeholder:text-primary-dark focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    > 
-                                                </div>
-                                            </div>
-                                        </div> 
-                                        <div class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_telVisite"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >N° Telephone</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="text"
-                                                        name="txt_telVisite"
-                                                        v-model="form.txt_telVisite"
-                                                        required
-                                                        id="txt_telVisite"
-                                                        autocomplete="off"
-                                                        class="h-8  scrollbar-thin scrollbar-thumb-primary block w-full rounded-md bg-white 
-                                                            px-3 py-1.5 text-base text-primary-txt outline outline-1 -outline-offset-1 outline-primary-only 
-                                                            placeholder:text-primary-dark focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    > 
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_objetVisite"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Objet</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="text"
-                                                        name="txt_objetVisite"
-                                                        v-model="form.txt_objetVisite"
-                                                        required
-                                                        id="txt_objetVisite"
-                                                        autocomplete="address-level2"
-                                                        class="h-8  scrollbar-thin scrollbar-thumb-primary block w-full rounded-md bg-white 
-                                                            px-3 py-1.5 text-base text-primary-txt outline outline-1 -outline-offset-1 outline-primary-only 
-                                                            placeholder:text-primary-dark focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    > 
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_traitementVisite"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Traitement</label
-                                                >
-                                                <div class="mt-2">
-                                                    <select
-                                                        name="txt_traitementVisite"
-                                                        v-model="form.txt_traitementVisite"
-                                                        required
-                                                        id="txt_traitementVisite"
-                                                        class="h-8 scrollbar-thin scrollbar-thumb-primary block w-full rounded-md bg-white 
-                                                            px-3 py-1.5 text-base text-primary-txt outline outline-1 -outline-offset-1 
-                                                            outline-primary-only placeholder:text-primary-dark focus:outline focus:outline-2 
-                                                            focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    >
-                                                        <option selected desabled value="">Choisis ici</option>
-                                                        <option value="Traiter">Traiter</option>
-                                                        <option value="En Attente">En Attente</option>
-                                                        <option value="Retourner">Retourner</option>
-                                                    </select>
-                                                </div>
-
-                                            </div>
-                                        </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                                        <BaseInput
+                                            class="sm:col-span-2"
+                                            label="Date visite"
+                                            name="dt_visite"
+                                            type="date"
+                                            v-model="form.dt_visite"
+                                            :max="today"
+                                            autocomplete="off"
+                                            required
+                                        />
+                                        <BaseInput
+                                            class="sm:col-span-2"
+                                            label="N° Arrivée du Visiteur"
+                                            name="txt_numdordreVisite"
+                                            v-model="form.txt_numdordreVisite"
+                                            required
+                                        />
+                                        <BaseInput
+                                            class="sm:col-span-2"
+                                            label="Prénom & Nom"
+                                            name="txt_prenomVisite"
+                                            v-model="form.txt_prenomVisite"
+                                            autocomplete="off"
+                                            required
+                                        />
+                                        <BaseInput
+                                            class="sm:col-span-2"
+                                            label="N° Telephone"
+                                            name="txt_telVisite"
+                                            v-model="form.txt_telVisite"
+                                            autocomplete="off"
+                                            required
+                                        />
+                                        <BaseInput
+                                            class="sm:col-span-2"
+                                            label="Objet"
+                                            name="txt_objetVisite"
+                                            v-model="form.txt_objetVisite"
+                                            autocomplete="address-level2"
+                                            required
+                                        />
+                                        <BaseSelect
+                                            class="sm:col-span-2"
+                                            label="Traitement"
+                                            name="txt_traitementVisite"
+                                            v-model="form.txt_traitementVisite"
+                                            placeholder="Choisis ici"
+                                            required
+                                            :options="[
+                                                { value: 'Traiter', label: 'Traiter' },
+                                                { value: 'En Attente', label: 'En Attente' },
+                                                { value: 'Retourner', label: 'Retourner' },
+                                            ]"
+                                        />
                                     </div>
                                     <br /> 
                                 </div> 
@@ -255,16 +169,5 @@ async function submit() {
         </div>
     </AuthenticatedLayout>
 </template>
-
-
-<style scoped>
-/* ::v-deep permet de cibler les éléments dans le portal */
-::v-deep(.custom-option:hover),
-::v-deep(.custom-option:focus),
-::v-deep(.custom-option[aria-selected="true"]) {
-  background-color: #c7d2fe; /* Couleur claire type indigo-200 */
-  color: #1e293b; /* Couleur du texte, exemple slate-800 */
-}
-</style>
 
 

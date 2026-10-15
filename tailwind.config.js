@@ -14,17 +14,23 @@ export default {
 
      theme: {
         extend: {
-            colors: {
-                primary: '#6d3500', // Définir primary comme    #6d3500
-                "primary-dark": "#A35200", //   #A35200
-                "primary-txt": "#592D00",   // #592D00
-                "primary-only": "#E6C5A2", // #E6C5A2
-                "primary-menu": "#C7812E", //  #C7812E
-                "primary-form": "#f8d8b0ff", //  #fcdbb2ff
-                "primary-footer": "#fdd7a9ff",
-                "primary-layout": "#fff7ee", //#fff7ee
+            fontFamily: {
+                sans: ['Outfit', ...defaultTheme.fontFamily.sans],
+                serif: ['"Source Serif 4"', ...defaultTheme.fontFamily.serif],
             },
-            // Ajoute la personnalisation de la scrollbar
+            maxWidth: {
+                '8xl': '88rem',
+            },
+            colors: {
+                primary: '#7A3E12',
+                "primary-dark": "#A35B24",
+                "primary-txt": "#2C1810",
+                "primary-only": "#E4D0B8",
+                "primary-menu": "#8C4E1A",
+                "primary-form": "#F8EFE4",
+                "primary-footer": "#F3E4D2",
+                "primary-layout": "#F7F1EA",
+            },
             scrollbar: ['rounded'],
         },
     },

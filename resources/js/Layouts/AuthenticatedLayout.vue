@@ -2,6 +2,8 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3'; 
 import NavLink from '@/Components/NavLink.vue';
+import BaseInput from '@/Components/BaseInput.vue';
+import ChatWidget from '@/Components/ChatWidget.vue';
 import { toast } from "@/Components/AppToast";  
 import axios from 'axios';
 
@@ -13,7 +15,29 @@ const user = page.props.auth?.user;
 const isMenuOpen = ref(false);
 const isDesktop = ref(false);
 const showingNavigationDropdown = ref(false);
+const email = ref(user?.email ?? '');
+const emailInput = ref(null);
+
+function focusEmail() {
+    emailInput.value?.focus();
+}
 const unreadTotal = ref(0);
+const chatOpen = ref(false);
+
+function openChatPlugin() {
+    window.dispatchEvent(new CustomEvent('open-chat-plugin'));
+    if (isSmallScreen.value) {
+        isMenuOpen.value = false;
+    }
+}
+
+function onChatUnread(event) {
+    unreadTotal.value = Number(event.detail || 0);
+}
+
+function onChatState(event) {
+    chatOpen.value = !!event.detail;
+}
 
 const isSmallScreen = ref(false);
 
@@ -50,21 +74,24 @@ function checkScreenSize() {
 
 function toggleMenu() {
     isMenuOpen.value = !isMenuOpen.value;
-    // Sauvegarde la préférence utilisateur
     localStorage.setItem('menuOpen', isMenuOpen.value.toString());
+}
+
+function onNavClick(event) {
+    if (isSmallScreen.value && event.target.closest('a')) {
+        isMenuOpen.value = false;
+    }
 }
 
 onMounted(() => {
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
 
-    // Récupère l'état sauvegardé ou utilise l'état par défaut
-    const savedMenuState = localStorage.getItem('menuOpen');
-    if (savedMenuState !== null) {
-        isMenuOpen.value = savedMenuState === 'true';
+    if (window.innerWidth < 1024) {
+        isMenuOpen.value = false;
     } else {
-        // Par défaut : ouvert sur desktop, fermé sur mobile
-        isMenuOpen.value = window.innerWidth >= 768;
+        const savedMenuState = localStorage.getItem('menuOpen');
+        isMenuOpen.value = savedMenuState === null ? true : savedMenuState === 'true';
     }
 });
 
@@ -79,6 +106,8 @@ watch(isMenuOpen, (newValue) => {
  
 // Charger le total des messages non lus au montage
 onMounted(async () => {
+    window.addEventListener('chat-unread-total', onChatUnread);
+    window.addEventListener('chat-plugin-state', onChatState);
     try {
         const res = await axios.get("/messages/unread-total");
         unreadTotal.value = res.data.total;
@@ -86,184 +115,213 @@ onMounted(async () => {
         console.error("Erreur fetch unread:", e);
     }
 });
+
+onUnmounted(() => {
+    window.removeEventListener('chat-unread-total', onChatUnread);
+    window.removeEventListener('chat-plugin-state', onChatState);
+});
  
 </script>
  
 <template>
  
-    <div class="flex min-h-screen bg-primary-layout">
-        <!-- Sidebar -->
-        <nav class="w-64 h-screen bg-white border-r border-primary-only fixed flex flex-col p-4 overflow-y-auto">
+    <div class="app-shell flex min-h-screen" :class="{ 'is-menu-open': isMenuOpen }">
+        <div v-if="isMenuOpen && isSmallScreen" class="app-overlay" @click="isMenuOpen = false"></div>
+        <nav class="app-sidebar" :class="{ 'is-open': isMenuOpen }" @click="onNavClick">
+           
             <!-- Logo -->
             <div class="flex items-center justify-center mb-6">
                 <Link :href="route('dashboard')">
-                    <!-- <logo class="h-10 w-auto fill-current text-gray-800" /> -->
-                    <img src="/logo.jpg" alt="Logo" class="h-100 w-auto">
+                    <img src="/logo.jpg" alt="Logo" class="h-20 w-auto rounded-xl object-contain">
                 </Link>
             </div>
 
-            <!-- Navigation Links -->
             <div class="flex flex-col space-y-1">
-                <!-- Bouton d'ouverture/fermeture -->
-                <button @click="toggleMenu" class="p-2 bg-primary text-white rounded shadow-md">
-                    ☰ Menu
-                </button>
-                <transition name="slide">
-                    
-                        <nav v-if="isMenuOpen || !isDesktop" class="flex flex-col space-y-1" >
+                <nav class="flex flex-col space-y-1">
                             <!-- Navigation Links -->
                             <div class="flex flex-col space-y-1">
                               
-                                <NavLink :href="route('dashboard')" :active="route().current('dashboard')" 
-                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                    :class="{'border-primary-dark': route().current('dashboard')}">
-                                    <svg class="hover:white w-6 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                    </svg>
-                                    Acceuil
+                                <NavLink :href="route('dashboard')" :active="route().current('dashboard')"
+                                    class="app-nav-link"
+                                    :class="{'is-active': route().current('dashboard')}">
+                                    <span class="nav-ico">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                            <path fill="currentColor" d="M12 2.7 3.1 10a1 1 0 0 0-.3.7v9.4A1.9 1.9 0 0 0 4.7 22h4.6v-6.1h5.4V22h4.6a1.9 1.9 0 0 0 1.9-1.9v-9.4a1 1 0 0 0-.3-.7L12 2.7z"/>
+                                            <path fill="currentColor" opacity=".38" d="M9.3 15.9h5.4V22H9.3z"/>
+                                        </svg>
+                                    </span>
+                                    Accueil
                                 </NavLink>
-                                <NavLink :href="route('arrivee.create')" :active="route().current('arrivee.create')" 
-                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                    :class="{'border-primary-dark': route().current('arrivee.create')}">
-                                    <svg class="hover:white w-6 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 12v3m0 0l-2-2m2 2l2-2" />
-                                    </svg>
+                                <NavLink :href="route('arrivee.create')" :active="route().current('arrivee.create')"
+                                    class="app-nav-link"
+                                    :class="{'is-active': route().current('arrivee.create')}">
+                                    <span class="nav-ico">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                            <path fill="currentColor" opacity=".3" d="M3.2 5.4A2.2 2.2 0 0 1 5.4 3.2h13.2a2.2 2.2 0 0 1 2.2 2.2v6.6l-2.4 2.2H5.6L3.2 12V5.4z"/>
+                                            <path fill="currentColor" d="M2 13.1h5.1c.35 1.35 1.55 2.3 3 2.3h3.8c1.45 0 2.65-.95 3-2.3H22v4.2A2.7 2.7 0 0 1 19.3 20H4.7A2.7 2.7 0 0 1 2 17.3v-4.2z"/>
+                                            <path fill="currentColor" d="M11.1 3.6h1.8V9l1.8-1.8 1.3 1.3L12 12.4 8 8.5l1.3-1.3L11.1 9V3.6z"/>
+                                        </svg>
+                                    </span>
                                     Enregistrement Arrivées
                                 </NavLink>
-                                <NavLink :href="route('depart.create')" :active="route().current('depart.create')" 
-                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                    :class="{'border-primary-dark': route().current('depart.create')}">
-                                    <svg class="hover:white w-6 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M16 5l3 3m0 0l-3 3m3-3H13" />
-                                    </svg>
+                                <NavLink :href="route('depart.create')" :active="route().current('depart.create')"
+                                    class="app-nav-link"
+                                    :class="{'is-active': route().current('depart.create')}">
+                                    <span class="nav-ico">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                            <path fill="currentColor" d="M2.7 11.2 21 3.5c.7-.3 1.4.4 1.1 1.1L14.4 23c-.3.8-1.5.7-1.7-.1l-2.1-7.4-7.4-2.1c-.8-.3-.9-1.4-.5-1.8z"/>
+                                            <path fill="currentColor" opacity=".4" d="m10.6 15.5 3.8 3.1-1.1-6.2-2.7 3.1z"/>
+                                        </svg>
+                                    </span>
                                     Enregistrement Départs
                                 </NavLink>
-                                <NavLink :href="route('visite.create')" :active="route().current('visite.create')" 
-                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                    :class="{'border-primary-dark': route().current('visite.create')}">                                    
-                                    <svg class="hover:white w-6 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                                    </svg>
-                                     Enregistrer Visiteur
-                                </NavLink> 
-                                <NavLink :href="route('instance.create')" :active="route().current('instance.create')" 
-                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                    :class="{'border-primary-dark': route().current('instance.create')}">
-                                    <svg class="hover:white w-6 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#5f2e01">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
-                                    </svg>
-                                    Instances 
+                                <NavLink :href="route('visite.create')" :active="route().current('visite.create')"
+                                    class="app-nav-link"
+                                    :class="{'is-active': route().current('visite.create')}">
+                                    <span class="nav-ico">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                            <circle cx="9" cy="7.5" r="3.1" fill="currentColor"/>
+                                            <path fill="currentColor" opacity=".38" d="M2.8 19.3a6.2 6.2 0 0 1 12.4 0v1.2H2.8v-1.2z"/>
+                                            <path fill="currentColor" d="M17.6 8h1.7v2.7h2.7v1.7h-2.7V15h-1.7v-2.6H15v-1.7h2.6V8z"/>
+                                        </svg>
+                                    </span>
+                                    Enregistrer Visiteur
                                 </NavLink>
-                                <NavLink :href="route('instancearrivee.create')" :active="route().current('instancearrivee.create')" 
-                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                    :class="{'border-primary-dark': route().current('instancearrivee.create')}">
-                                    <svg class="hover:white h-6 w-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M10 14H8m0 0l2-2m-2 2l2 2" />
-                                    </svg>
+                                <NavLink :href="route('instance.create')" :active="route().current('instance.create')"
+                                    class="app-nav-link"
+                                    :class="{'is-active': route().current('instance.create')}">
+                                    <span class="nav-ico">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                            <path fill="currentColor" opacity=".32" d="m12 2 9 3.7L12 9.4 3 5.7 12 2z"/>
+                                            <path fill="currentColor" d="m12 8.3 9 3.7-9 3.7-9-3.7 9-3.7z"/>
+                                            <path fill="currentColor" opacity=".55" d="m12 14.6 9 3.7L12 22l-9-3.7 9-3.7z"/>
+                                        </svg>
+                                    </span>
+                                    Instances
+                                </NavLink>
+                                <NavLink :href="route('instancearrivee.create')" :active="route().current('instancearrivee.create')"
+                                    class="app-nav-link"
+                                    :class="{'is-active': route().current('instancearrivee.create')}">
+                                    <span class="nav-ico">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                            <path fill="currentColor" opacity=".55" d="M6.2 3.2h8.2L19.8 8v12.2a1.8 1.8 0 0 1-1.8 1.8H6.2a1.8 1.8 0 0 1-1.8-1.8V5a1.8 1.8 0 0 1 1.8-1.8z"/>
+                                            <path fill="currentColor" d="M14.4 3.2V7.4a.8.8 0 0 0 .8.8h4.6"/>
+                                            <path fill="currentColor" d="m7.7 13.4 2.5 2.6 5.1-5.3 1.2 1.2-6.3 6.5-3.7-3.8 1.2-1.2z"/>
+                                        </svg>
+                                    </span>
                                     Liste des Arrivées
                                 </NavLink>
-                                <NavLink :href="route('instancedepart.create')" :active="route().current('instancedepart.create')" 
-                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                    :class="{'border-primary-dark': route().current('instancedepart.create')}">
-                                    <svg class="hover:white h-6 w-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M14 12l3-3m0 0l3 3m-3-3v9" />
-                                    </svg>
+                                <NavLink :href="route('instancedepart.create')" :active="route().current('instancedepart.create')"
+                                    class="app-nav-link"
+                                    :class="{'is-active': route().current('instancedepart.create')}">
+                                    <span class="nav-ico">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                            <path fill="currentColor" opacity=".55" d="M6 3.2h8.2L19.6 8v12.2a1.8 1.8 0 0 1-1.8 1.8H6A1.8 1.8 0 0 1 4.2 20.2V5A1.8 1.8 0 0 1 6 3.2z"/>
+                                            <path fill="currentColor" d="m14.2 3.2 5.4 4.8h-4.6a.8.8 0 0 1-.8-.8V3.2z"/>
+                                            <path fill="currentColor" d="M11.2 17V11l-1.8 1.8-1.2-1.2 4-4 4 4-1.2 1.2L13 11v6h-1.8z"/>
+                                        </svg>
+                                    </span>
                                     Liste des Départs
                                 </NavLink>
-                                <NavLink :href="route('instancevisite.create')" :active="route().current('instancevisite.create')" 
-                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                    :class="{'border-primary-dark': route().current('instancevisite.create')}">
-                                    <svg class="hover:white w-6 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                                    </svg>
-                                     liste Visiteurs 
-                                </NavLink>
-                                <NavLink :href="route('trimestre.create')" :active="route().current('trimestre.create')" 
-                                    class="hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                    :class="{'border-primary-dark': route().current('trimestre.create')}">
-                                    <svg class="hover:white w-6 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6d3500">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                    </svg>
-                                    Rapport Trimestre 
-                                </NavLink> 
-                                <NavLink :href="route('message.create')" 
-                                        :active="route().current('message.create')" 
-                                        class="relative hover:bg-primary-dark hover:border hover:text-white hover:font-bold hover:text-1xl p-2 rounded font-bold text-primary-txt border border-l-8 flex items-center" 
-                                        :class="{'border-primary-dark': route().current('message.create')}">
-                                        <svg class="hover:white w-6 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3 12H7v-2h10v2zm0-3H7V9h10v2zm0-3H7V6h10v2z"/>
+                                <NavLink :href="route('instancevisite.create')" :active="route().current('instancevisite.create')"
+                                    class="app-nav-link"
+                                    :class="{'is-active': route().current('instancevisite.create')}">
+                                    <span class="nav-ico">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                            <circle cx="8.5" cy="8" r="2.7" fill="currentColor"/>
+                                            <circle cx="15.8" cy="8.7" r="2.15" fill="currentColor" opacity=".62"/>
+                                            <path fill="currentColor" d="M2.8 18.8a5.5 5.5 0 0 1 11 0v1H2.8v-1z"/>
+                                            <path fill="currentColor" opacity=".62" d="M13.5 19a4.5 4.5 0 0 1 7.4 0v.8h-7.4V19z"/>
                                         </svg>
+                                    </span>
+                                    Liste des visiteurs
+                                </NavLink>
+                                <NavLink :href="route('trimestre.create')" :active="route().current('trimestre.create')"
+                                    class="app-nav-link"
+                                    :class="{'is-active': route().current('trimestre.create')}">
+                                    <span class="nav-ico">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                            <path fill="currentColor" opacity=".3" d="M3.4 13.4h4.1V20H3.4z"/>
+                                            <path fill="currentColor" opacity=".58" d="M9.9 8.6h4.2V20H9.9z"/>
+                                            <path fill="currentColor" d="M16.4 4h4.2v16h-4.2z"/>
+                                        </svg>
+                                    </span>
+                                    Rapport Trimestre
+                                </NavLink>
+                                <button type="button"
+                                        class="relative app-nav-link w-full text-left"
+                                        :class="{'is-active': chatOpen}"
+                                        @click="openChatPlugin">
+                                    <span class="nav-ico">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                            <path fill="currentColor" fill-rule="evenodd" d="M5 4h14a3 3 0 0 1 3 3v7.2a3 3 0 0 1-3 3H9.5L4.2 21.2V17.2A3 3 0 0 1 2 14.2V7a3 3 0 0 1 3-3zm2.1 4.5h9.8v1.55H7.1V8.5zm0 3.15h6.4v1.55H7.1v-1.55z"/>
+                                        </svg>
+                                    </span>
                                     Discussion
-                                    <span v-if="unreadTotal > 0" class="ml-2 px-2 py-1 text-xs bg-green-500 text-white rounded-full">
+                                    <span v-if="unreadTotal > 0" class="nav-badge">
                                         {{ unreadTotal }}
                                     </span>
-                                </NavLink> 
+                                </button> 
   
                             </div>
-                        </nav> 
-                </transition>
+                        </nav>
             </div>
-            <footer class="bg-white border-t border-primary-only text-center text-sm text-primary-txt mt-auto py-4">
-                <b>CENTRE DES SERVICES FISCAUX</b> CADASTRE MBOUR
+            <footer class="app-side-footer">
+                <b>CENTRE DES SERVICES FISCAUX</b><br>CADASTRE MBOUR
             </footer>
- 
         </nav>
 
-        <!-- Page Content -->
-        <div class="flex-1 md:ml-64 overflow-x-auto">
-            <header class="bg-white shadow flex justify-between items-center p-4 relative sticky top-0 z-30">
-                <!-- Titre ou Header (si présent) -->
-                <div>
-                    <slot name="header"/>
+        <div class="app-main overflow-x-auto">
+            <header class="app-topbar">
+                <div class="flex items-center gap-3 min-w-0">
+                    <button type="button" class="app-menu-btn" @click="toggleMenu" aria-label="Menu">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill="currentColor" d="M4 6.2h16v1.8H4zm0 5h11v1.8H4zm0 5h16v1.8H4z"/>
+                        </svg>
+                        Menu
+                    </button>
+                    <div class="min-w-0">
+                        <slot name="header"/>
+                    </div>
                 </div>
- 
-                    <div class="relative">
- 
-                        <button @click="showingNavigationDropdown = !showingNavigationDropdown" class="flex items-center space-x-2 px-4 py-2 bg-primary rounded-md hover:bg-primary-dark">
-                            <span class="text-white font-semibold">{{ user?.name }}</span>
-                            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </button>
 
-                        <!-- Dropdown -->
-                        <transition name="slideUser">
-                            <div v-if="showingNavigationDropdown" class="absolute right-0 mt-2 w-48 bg-white border border-primary-dark rounded shadow-md z-10">
-                                <div class="px-4 py-2 text-gray-800">{{ user?.name }}</div>
-                                <hr>
-                                <Link :href="route('logout')" method="post" as="button" class="block w-full text-left px-4 py-2 text-primary hover:bg-primary-dark">
-                                    Déconnexion
-                                </Link>
-                            </div>
-                        </transition>
-                    </div> 
+                <div v-if="user" class="relative">
+                    <button @click="showingNavigationDropdown = !showingNavigationDropdown" class="app-user-btn">
+                        <span class="app-user-mark">{{ user?.name?.charAt(0)?.toUpperCase() }}</span>
+                        <span>{{ user?.name }}</span>
+                        <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': showingNavigationDropdown }" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill="currentColor" d="M6.2 8.6 12 14.4l5.8-5.8 1.4 1.4L12 17.2 4.8 10z"/>
+                        </svg>
+                    </button>
+
+                    <transition name="slideUser">
+                        <div v-if="showingNavigationDropdown" class="app-user-menu">
+                            <div class="px-4 py-2 text-sm text-primary-txt">{{ user?.name }}</div>
+                            <button type="button" class="app-user-item" @click="focusEmail">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <circle cx="12" cy="8" r="3.2" fill="currentColor"/>
+                                    <path fill="currentColor" opacity=".4" d="M5 19.2a7 7 0 0 1 14 0v1.3H5v-1.3z"/>
+                                </svg>
+                                Profile
+                            </button>
+
+                            <Link :href="route('logout')" method="post" as="button" class="app-user-item is-danger">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path fill="currentColor" opacity=".28" d="M4 4.5h8.2v15H4A1.5 1.5 0 0 1 2.5 18V6A1.5 1.5 0 0 1 4 4.5z"/>
+                                    <path fill="currentColor" d="M10.2 11.1h7.1l-2.2-2.2 1.3-1.3 4.6 4.6-4.6 4.6-1.3-1.3 2.2-2.2h-7.1v-2.2z"/>
+                                </svg>
+                                Déconnexion
+                            </Link>
+                        </div>
+                    </transition>
+                </div>
             </header>
 
-            <!-- Contenu de la p-menuage -->
-                <main 
-                    class="p-6 overflow-x-auto" 
-                >
-                    <slot/>
-                </main>
-
+            <main class="app-content overflow-x-auto">
+                <slot/>
+            </main>
         </div>
+        <ChatWidget />
     </div>
 </template>
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Arrivee;
+use App\Models\CodeAcces;
 use App\Models\Depart;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
@@ -34,12 +35,23 @@ class InstancearriveeController extends Controller
         ]);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        $code = CodeAcces::where('code', $request->code_acces)
+            ->where('utilise', false)
+            ->first();
+
+        if (!$code) {
+            return back()->withErrors(['code_acces' => 'Code d’accès invalide ou déjà utilisé.']);
+        }
+
+        $code->update(['utilise' => true]);
+
         $arrivee = Arrivee::findOrFail($id);
+        $numero = $arrivee->txt_numdordre;
         $arrivee->delete();
 
-        return redirect()->back()->with('success', 'Courrier Arrivée N° ' . $arrivee->txt_numdordre . ' supprimé avec succès.');
+        return redirect()->back()->with('success', 'Courrier Arrivée N° ' . $numero . ' supprimé avec succès.');
     }
 
  

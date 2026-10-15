@@ -81,22 +81,23 @@ const trimestreLabel = computed(() => currentTrimestre(currentMonth));
         </template>
 
         <div class="py-12">
-            <div class="max-w-8xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <div>
-                        <h2 class="font-bold text-lg text-primary-txt mb-2"> Timestre : {{ trimestreLabel }}</h2>
-                    </div>
- 
-                    <table class="min-w-full divide-y divide-gray-200 border">
-                        <thead class="bg-primary text-white">
-                            <tr>
-                                <th class="px-4 py-2 text-left border border-b text-white text-sm font-bold">N°</th>
-                                <th class="px-4 py-2 text-left border border-b text-white whitespace-nowrap text-sm font-bold">Désignation</th>
-                                <th class="px-4 py-2 text-left border border-b text-white text-sm font-bold">Stock Fin Précédent</th>
-                                <th class="px-4 py-2 text-left border border-b text-white text-sm font-bold">Reçus</th>
-                                <th class="px-4 py-2 text-left border border-b text-white text-sm font-bold">Traités</th>
-                                <th class="px-4 py-2 text-left border border-b text-white text-sm font-bold">Retournés</th>
-                                <th class="px-4 py-2 text-left border border-b text-white text-sm font-bold">Instances</th>
+            <div class="flex justify-center">
+                <div class="w-full max-w-8xl">
+                    <div class="bg-white shadow-md rounded-xl">
+                        <div class="p-4 border-b bg-primary rounded-t-xl">
+                            <h1 class="text-lg font-semibold text-white">Trimestre : {{ trimestreLabel }}</h1>
+                        </div>
+                        <div class="overflow-x-auto p-6">
+                    <table class="min-w-full border">
+                        <thead class="bg-primary-form text-primary-txt">
+                            <tr class="h-10">
+                                <th class="border border-primary-only px-4 py-2 text-left text-sm font-bold">N°</th>
+                                <th class="whitespace-nowrap border border-primary-only px-4 py-2 text-left text-sm font-bold">Désignation</th>
+                                <th class="border border-primary-only px-4 py-2 text-left text-sm font-bold">Stock Fin Précédent</th>
+                                <th class="border border-primary-only px-4 py-2 text-left text-sm font-bold">Reçus</th>
+                                <th class="border border-primary-only px-4 py-2 text-left text-sm font-bold">Traités</th>
+                                <th class="border border-primary-only px-4 py-2 text-left text-sm font-bold">Retournés</th>
+                                <th class="border border-primary-only px-4 py-2 text-left text-sm font-bold">Instances</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -113,6 +114,8 @@ const trimestreLabel = computed(() => currentTrimestre(currentMonth));
                             </tr>
                         </tbody>
                     </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

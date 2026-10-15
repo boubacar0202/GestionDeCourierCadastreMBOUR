@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Arrivee;
+use App\Models\CodeAcces;
 use App\Models\Depart;
 use Illuminate\Http\Request;
 use Inertia\Inertia; 
@@ -286,10 +287,10 @@ class ArriveeController extends Controller
         if (!$code) {
             return back()->withErrors(['code_acces' => 'Code d’accès invalide ou déjà utilisé.']);
         }
- 
 
-        // Supprimer le courrier
-        $arrivee = InstanceArrivee::findOrFail($id);
+        $code->update(['utilise' => true]);
+
+        $arrivee = Arrivee::findOrFail($id);
         $arrivee->delete();
 
         return back()->with('success', 'Courrier supprimé avec succès.');

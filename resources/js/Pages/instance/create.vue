@@ -5,6 +5,7 @@ import { Head } from '@inertiajs/vue3';
 import { defineProps, onMounted } from 'vue';
 import { router, usePage  } from '@inertiajs/vue3'
 import { Link as InertiaLink } from '@inertiajs/vue3'
+import BaseInput from '@/Components/BaseInput.vue'
 
 
 // import { toast } from 'vue3-toastify' 
@@ -99,7 +100,7 @@ const formatDate = (dateString) => {
             <h2
                 class="text-xl font-semibold leading-tight text-primary-txt"
             >
-                Courriers en Insatnce
+                Courriers en Instance
             </h2>
             
             <!-- Vérification pour afficher un message si aucune donnée -->
@@ -112,19 +113,16 @@ const formatDate = (dateString) => {
         <div class="py-12">
             <div class="flex justify-center">
                 <div class="w-full max-w-8xl">
-                    <div class="bg-white shadow-md rounded-lg"> <br> 
-                        <div class="mx-auto max-w-8xl sm:px-8 lg:px-12 mt-4 mb-4">
-                            <div class="card-header">
-                                <div class="p-4 border-b bg-primary sm:rounded-lg">
-                                    <h1 class="text-3xl font-bold text-center text-white">Liste des Courriers en Instance</h1>
-                                </div>
-                            </div> 
- 
-                            <div class="relative overflow-x-auto p-4 border-b bg-primary-form sm:rounded-lg mt-8">
-                                <div class="flex justify-between items-center"> 
-                                    <h1 class="text-1xl text-primary-txt font-semibold">
-                                        Instances 
-                                        <span v-if="totalCourrierInstance>0" class="text-gray-600">
+                    <div class="bg-white shadow-md rounded-xl">
+                        <div class="p-4 border-b bg-primary rounded-t-xl">
+                            <h1 class="text-lg text-white font-semibold">Liste des courriers en instance</h1>
+                        </div>
+                        <div class="p-6">
+                            <div class="p-4 bg-primary-form border border-primary-only rounded-xl">
+                                <div class="flex flex-wrap items-center justify-between gap-3">
+                                    <h1 class="text-lg text-primary-txt font-bold">
+                                        Instances
+                                        <span v-if="totalCourrierInstance>0" class="text-primary-txt">
                                             ({{ totalCourrierInstance }})
                                         </span>
                                         <span v-else class="text-red-600">
@@ -132,35 +130,29 @@ const formatDate = (dateString) => {
                                         </span> 
                                     </h1>  
 
-                                    <h1 class="text-1xl text-primary-txt  font-semibold">
-                                        Nombres d'Instances (+10 jours) :  
-                                        {{ totalInstance }}
-                                    </h1>   
+                                    <h2 class="text-sm font-bold text-primary">
+                                        Instances de plus de 10 jours :
+                                        <span class="text-primary-dark">{{ totalInstance }}</span>
+                                    </h2>   
 
-                                    <div>
-                                        <input 
-                                            v-model="refCourrierArrivee"
-                                            type="search"
-                                            id="default-search"
-                                            aria-label="Rechercher"
-                                            class="h-9 block w-64 rounded-xl bg-white px-3 py-1.5 text-base text-gray-900 
-                                                border border-primary-menu  placeholder:text-gray-400 
-                                                focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                            placeholder="Reférence Courrrier Arrivée"
-                                        />
-                                    </div>
+                                    <BaseInput
+                                        class="w-64"
+                                        label="Référence"
+                                        name="filtre-instance"
+                                        type="search"
+                                        placeholder="Reférence Courrrier Arrivée"
+                                        v-model="refCourrierArrivee"
+                                    />
                                 </div>
                             </div>
 
-                            <div class="max-h-[600px] overflow-y-auto shadow-md sm:rounded-lg mt-8">
-                                <div class="container min-w-[1500px]"> 
-                                    <div class="card"> 
-                                        <div class="card-body"> 
-                                            <table class="table table-auto w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                            <div class="p-4">
+                                <div class="max-h-[600px] overflow-x-auto shadow-md rounded-xl">
+                                            <table class="table table-auto w-full text-sm text-left text-primary-txt">
 
                                                 <thead class="sticky top-0 z-10 text-xs text-primary-txt font_bold uppercase text-center 
-                                                        uppercase bg-primary-footer bg-gray-50 dark:bg-gray-700 dark:text-gray-400  whitespace-nowrap">
-                                                    <tr class="h-20">  
+                                                        uppercase bg-primary-footer text-primary-txt whitespace-nowrap">
+                                                    <tr class="h-10">  
                                                         <th scope="col" class="px-6 px-6 border-l border-primary-only">N°</th>
                                                         <th scope="col" class="px-6 py-3 border-l border-primary-only">N° d'ordre d'arrivée</th>
                                                         <th scope="col" class="px-6 py-3 border-l border-primary-only">Catégorie</th>
@@ -184,7 +176,7 @@ const formatDate = (dateString) => {
                                                         
                                                 <tbody sortedinstance>
                                                     <tr v-for="(arrivee, index) in filteredInstance" :key="arrivee.id"  
-                                                        class="bg-white text-primary-txt leading-8  border border-primary-footer dark:bg-gray-800 dark:border-gray-700 border-gray-200 
+                                                        class="bg-white text-primary-txt leading-8 border border-primary-only 
                                                             text-center text-sm hover:bg-primary-form dark:hover:bg-primary-form">
                                                         <td scope="col" class="sticky left-0 z-0 bg-white px-6 py-3 text-center text-primary-txt border border-primary-only font-bold whitespace-nowrap">{{ index + 1 }}</td>
                                                         <td scope="col" class="px-6 py-3 text-center whitespace-nowrap border border-primary-only font-bold" :class="arrivee.isOverdue ? 'text-red-600 font-bold' : ''">{{ arrivee.txt_numdordre }}</td> 
@@ -209,18 +201,15 @@ const formatDate = (dateString) => {
                                                                     Voir PDF
                                                                 </a>
                                                             </div>
-                                                            <div v-else class="text-gray-400 italic">Aucun fichier PDF</div>
+                                                            <div v-else class="italic text-primary-txt/60">Aucun fichier PDF</div>
                                                         </td>
             
                                                     </tr>
                                                 </tbody>
-                                            </table> 
-                                        </div>
-                                    </div>
+                                            </table>
                                 </div>
-                            </div><br>
+                            </div>
                         </div>
-                        <br>
                     </div>
                 </div>
             </div>

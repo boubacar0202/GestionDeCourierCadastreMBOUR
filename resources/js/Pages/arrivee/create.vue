@@ -4,7 +4,6 @@ import { Head, useForm } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
-import MazSelect from "maz-ui/components/MazSelect";
 import MazRadio from "maz-ui/components/MazRadio";
 import { onMounted, ref, watch, watchEffect, computed  } from "vue";
 import axios from "axios"; 
@@ -215,11 +214,11 @@ const submitForm = function () {  // Ajoutez `async` ici
 
         <div class="py-12">
             <div class="flex justify-center">
-                <div class="w-full border border-primary-only max-w-8xl rounded-xl">
+                <div class="w-full max-w-8xl px-2 py-2">
                     <div class="bg-white shadow-md rounded-xl">
                         <!-- En-tête du formulaire -->
-                        <div   class="p-4 border-b bg-primary rounded-t-xl">
-                            <h1 class="text-lg text-white font-semibold">Formulaire d'enregistrement des Courriers Arrivés</h1>
+                        <div class="p-4 border-b bg-primary flex items-center justify-between rounded-t-xl gap-2">
+                            <h2 class="text-2xl leading-tight text-white font-bold">Formulaire d'enregistrement des Courriers Arrivés</h2>
                         </div>
                         <!-- Corps du formulaire -->
                         <form @submit.prevent="submitForm">
@@ -290,32 +289,15 @@ const submitForm = function () {  // Ajoutez `async` ici
                                             ]"
                                         />
 
-                                        <div class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                for="txt_designation"
-                                                class="block text-sm/6 font-medium text-primary-txt"
-                                                >
-                                                Designation
-                                                </label>
-                                                <div class="mt-1">
-                                                    <MazSelect
-                                                        v-model="form.txt_designation"
-                                                        id="txt_designation"
-                                                        name="txt_designation"
-                                                        :options="designations"
-                                                        placeholder="Choisis catégorie d'abord"
-                                                        class="h-7  w-full block w-full rounded-md bg-white px-2 py-1.5 text-base text-primary-txt 
-                                                                outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-primary-dark 
-                                                                focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6
-                                                                scrollbar-thin scrollbar-thumb-primary scrollbar-track-primary-darlk"
-                                                                option-class="custom-option"   
-                                                                option-selected-class="bg-primary text-white"
-                                                        required
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <BaseSelect
+                                            class="sm:col-span-2"
+                                            label="Designation"
+                                            name="txt_designation"
+                                            v-model="form.txt_designation"
+                                            :options="designations"
+                                            placeholder="Choisis catégorie d'abord"
+                                            required
+                                        />
  
                                         <BaseInput
                                             v-if="show" 
@@ -502,16 +484,5 @@ const submitForm = function () {  // Ajoutez `async` ici
         </div>
     </AuthenticatedLayout>
 </template>
-
-
-<style scoped>
-/* ::v-deep permet de cibler les éléments dans le portal */
-::v-deep(.custom-option:hover),
-::v-deep(.custom-option:focus),
-::v-deep(.custom-option[aria-selected="true"]) {
-  background-color: #c7d2fe; /* Couleur claire type indigo-200 */
-  color: #1e293b; /* Couleur du texte, exemple slate-800 */
-}
-</style>
 
 

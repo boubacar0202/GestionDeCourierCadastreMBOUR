@@ -2,7 +2,6 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
-import MazSelect from "maz-ui/components/MazBtn";
 import MazRadio from "maz-ui/components/MazRadio";
 import { onMounted, ref, watch, watchEffect, computed  } from "vue";
 import axios from "axios";
@@ -432,11 +431,11 @@ const submitForm = function () {  // Ajoutez `async` ici
 
         <div class="py-12">
             <div class="flex justify-center">
-                <div class="w-full border border-primary-only max-w-8xl rounded-xl">
+                <div class="w-full max-w-8xl px-2 py-2">
                     <div class="bg-white shadow-md rounded-xl">
                         <!-- En-tête du formulaire -->
                         <div   class="p-4 border-b bg-primary rounded-t-xl">
-                            <h1 class="text-lg text-white font-semibold">Formulaire d'enregistrement des Courriers Départs</h1>
+                            <h2 class="text-2xl leading-tight text-white font-bold">Formulaire d'enregistrement des Courriers Départs</h2>
                         </div>
                         <!-- Corps du formulaire -->
                         <form @submit.prevent="submitForm">
@@ -494,29 +493,15 @@ const submitForm = function () {  // Ajoutez `async` ici
                                             ]"
                                         />
 
-                                        <div v-if="showcd" class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label for="txt_referencecourierarriveecd" class="block text-sm/6 font-medium text-primary-txt">
-                                                    Ref.Courrier Arrivée à Repondre
-                                                </label> 
-                                                <div class="mt-2">
-                                                    <select 
-                                                        name="txt_referencecourierarriveecd"
-                                                        v-model="form.txt_referencecourierarriveecd"
-                                                        id="txt_referencecourierarriveecd"
-                                                        autocomplete="off"
-                                                        class="h-7 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    >
-                                                        <option disabled value="">Choisir une référence</option>
-                                                        <option v-for="(ref, index) in references" :key="index" :value="ref">
-                                                            {{ ref }}
-                                                        </option> 
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>  
+                                        <BaseSelect
+                                            v-if="showcd"
+                                            class="sm:col-span-2"
+                                            label="Ref.Courrier Arrivée à Repondre"
+                                            name="txt_referencecourierarriveecd"
+                                            v-model="form.txt_referencecourierarriveecd"
+                                            :options="references"
+                                            placeholder="Choisir une référence"
+                                        />  
                                                                       
                                         <BaseInput
                                             class="sm:col-span-2"

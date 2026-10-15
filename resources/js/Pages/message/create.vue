@@ -3,8 +3,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, usePage } from "@inertiajs/vue3";
 import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
 import axios from "axios";
-import { groupBy } from 'lodash';
-
+import BaseInput from "@/Components/BaseInput.vue";
 const page = usePage();
 
 // Utilisateur connecté
@@ -311,11 +310,11 @@ function cancelEdit() {
                 <span v-else>Sélectionnez un utilisateur</span>
               </div> 
               <!-- Liste messages -->
-              <div class=" messages-container flex-1 p-4 overflow-y-auto flex flex-col space-y-2  bg-gray-50"
+              <div class="messages-container flex-1 p-4 overflow-y-auto flex flex-col space-y-2 bg-primary-layout"
                    style="background-image: url('/discut.jpg'); background-size: cover; background-position: center; padding-bottom: 1rem;"
                     @scroll="handleScroll">
 
-                <div v-if="!receiverId" class="text-gray-500 text-center mt-10">
+                <div v-if="!receiverId" class="text-primary-txt text-center mt-10">
                   Choisissez un utilisateur pour commencer la discussion
                 </div>
                 <div v-else-if="messages.length === 0" class="text-primary-txt text-center mt-10">
@@ -328,8 +327,8 @@ function cancelEdit() {
                       :class="[
                         'px-3 py-2 max-w-xs rounded-xl relative', 
                         msg.sender_id === user.id 
-                        ? 'bg-green-200 text-gray-800' 
-                        : 'bg-gray-200 text-gray-800'
+                        ? 'bg-[#d9f5e3] text-primary-txt' 
+                        : 'bg-primary-form text-primary-txt'
                       ]" 
                     > 
                     <p class="text-sm">{{ msg.content }}</p> 
@@ -386,13 +385,13 @@ function cancelEdit() {
                 </div> 
               </div> 
               <!-- Formulaire -->
-              <form v-if="receiverId" @submit.prevent="handleSubmit" class="p-4 border-primary-only flex space-x-2">
-                <input 
-                  v-model="newMessage" 
-                  type="text" 
-                  class="flex-1 border border-primary-only rounded px-3 py-2"
+              <form v-if="receiverId" @submit.prevent="handleSubmit" class="flex items-end space-x-2 border-primary-only p-4">
+                <BaseInput
+                  class="min-w-0 flex-1"
+                  name="message"
+                  v-model="newMessage"
                   :placeholder="editingMessageId ? 'Modifier le message...' : 'Votre message...'"
-                 />
+                />
                 <button 
                   type="submit" 
                   class="bg-primary text-white px-3 py-2 rounded"
@@ -404,7 +403,7 @@ function cancelEdit() {
                   v-if="editingMessageId" 
                   type="button" 
                   @click="cancelEdit" 
-                  class="bg-gray-400 text-white px-3 py-2 rounded"
+                  class="bg-primary-menu text-white px-3 py-2 rounded"
                 >
                   Retour
                 </button>
@@ -416,7 +415,7 @@ function cancelEdit() {
       </div>
     </div>
 
-    <div v-else class="text-center py-20 text-gray-500">
+    <div v-else class="text-center py-20 text-primary-txt">
       Chargement de l'utilisateur...
     </div>
   </AuthenticatedLayout>

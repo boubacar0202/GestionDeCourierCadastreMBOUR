@@ -7,7 +7,7 @@ use App\Models\Message;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB; 
-use App\Models\User; 
+use App\Models\User;
 
 class MessageController extends Controller
 {

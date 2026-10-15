@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CodeAcces;
 use App\Models\Visite;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -107,10 +108,8 @@ class VisiteController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Visite $visite)
+    public function destroy(Request $request, $id)
     {
-        //
-        // Vérifier code d'accès
         $code = CodeAcces::where('code', $request->code_acces)
             ->where('utilise', false)
             ->first();
@@ -118,12 +117,12 @@ class VisiteController extends Controller
         if (!$code) {
             return back()->withErrors(['code_acces' => 'Code d’accès invalide ou déjà utilisé.']);
         }
- 
 
-        // Supprimer le courrier
-        $visite = InstanceVisite::findOrFail($id);
+        $code->update(['utilise' => true]);
+
+        $visite = Visite::findOrFail($id);
         $visite->delete();
 
-        return back()->with('success', 'Courrier supprimé avec succès.');
+        return back()->with('success', 'Visite supprimée avec succès.');
     }
 }

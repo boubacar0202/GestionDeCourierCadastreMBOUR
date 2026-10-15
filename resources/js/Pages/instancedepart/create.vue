@@ -4,7 +4,8 @@ import { ref, computed  } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import { defineProps, onMounted } from 'vue';
 import { router, usePage  } from '@inertiajs/vue3'
-import { Link as InertiaLink } from '@inertiajs/vue3' 
+import { Link as InertiaLink } from '@inertiajs/vue3'
+import BaseInput from '@/Components/BaseInput.vue' 
  
 const props = defineProps({
     arrivee: Object,    
@@ -110,19 +111,16 @@ function supprimerCourrierDepart(depart) {
         <div class="py-12">
             <div class="flex justify-center">
                 <div class="w-full max-w-8xl">
-                    <div class="bg-white shadow-md rounded-xl"> <br> 
-                        <div class="mx-auto max-w-8xl sm:px-8 lg:px-12 mt-4 mb-4">
-                            <div class="card-header">
-                                <div class="p-4 border-b bg-primary sm:rounded-xl">
-                                    <h1 class="text-3xl text-white font-bold font-bold text-center">Base de donnée des Courriers Départs</h1>
-                                </div>
-                            </div> 
-                             
-                            <div class="relative overflow-x-auto p-4 border-b bg-primary-form sm:rounded-xl mt-8">
-                                <div class="flex justify-between items-center"> 
-                                    <h1 class="text-1xl text-primary-txt font-bold">
-                                        Liste des Courriers Départs : 
-                                        <span v-if="totalCourrier>0" class="text-gray-600">
+                    <div class="bg-white shadow-md rounded-xl">
+                        <div class="p-4 border-b bg-primary rounded-t-xl">
+                            <h1 class="text-lg text-white font-semibold">Liste des courriers départs</h1>
+                        </div>
+                        <div class="p-6">
+                            <div class="p-4 bg-primary-form border border-primary-only rounded-xl">
+                                <div class="flex flex-wrap items-center justify-between gap-3">
+                                    <h1 class="text-lg text-primary-txt font-bold">
+                                        Liste des Courriers Départs :
+                                        <span v-if="totalCourrier>0" class="text-primary-txt">
                                             ({{ totalCourrier }})
                                         </span>
                                         <span v-else class="text-red-600">
@@ -130,61 +128,43 @@ function supprimerCourrierDepart(depart) {
                                         </span> 
                                     </h1>  
 
-                                    <form @submit.prevent class="flex items-center ">
-                                        <div  class="flex items-start space-x-2">
-                                            <div>
-                                                <input 
-                                                    v-model="annee"
-                                                    type="search"
-                                                    maxlength="4"
-                                                    id="default-search"
-                                                    aria-label="Rechercher"
-                                                    class="h-9 block w-20 rounded-xl bg-white px-3 py-1.5 text-base text-gray-900 
-                                                        border border-primary-menu  placeholder:text-gray-400 
-                                                        focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    placeholder="année"
-                                                /> 
-                                            </div>
-                                        
-                                            <div>
-                                                <input 
-                                                    v-model="numeroCD"
-                                                    type="search"
-                                                    id="default-search"
-                                                    aria-label="Rechercher"
-                                                    class="h-9 block w-25 rounded-xl bg-white px-3 py-1.5 text-base text-gray-900 
-                                                        border border-primary-menu  placeholder:text-gray-400 
-                                                        focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    placeholder="Entrez numéro courrier"
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <input 
-                                                    v-model="refCourrierArrivee"
-                                                    type="search"
-                                                    id="default-search"
-                                                    aria-label="Rechercher"
-                                                    class="h-9 block w-25 rounded-xl bg-white px-3 py-1.5 text-base text-gray-900 
-                                                        border border-primary-menu  placeholder:text-gray-400 
-                                                        focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    placeholder="Désignation"
-                                                />
-                                            </div>
-                                        </div>
+                                    <form @submit.prevent class="flex flex-wrap items-center gap-2">
+                                        <BaseInput
+                                            class="w-24"
+                                            label="Année"
+                                            name="filtre-annee-depart"
+                                            type="search"
+                                            maxlength="4"
+                                            placeholder="année"
+                                            v-model="annee"
+                                        />
+                                        <BaseInput
+                                            class="w-44"
+                                            label="N° courrier"
+                                            name="filtre-numero-depart"
+                                            type="search"
+                                            placeholder="Entrez numéro courrier"
+                                            v-model="numeroCD"
+                                        />
+                                        <BaseInput
+                                            class="w-40"
+                                            label="Désignation"
+                                            name="filtre-designation-depart"
+                                            type="search"
+                                            placeholder="Désignation"
+                                            v-model="refCourrierArrivee"
+                                        />
                                     </form>
                                 </div>
                             </div>
 
-                            <div class="max-h-[600px] overflow-y-auto shadow-md sm:rounded-xl mt-8">
-                                <div class="container"> 
-                                    <div class="card"> 
-                                        <div class="card-body">
-                                            <table class="table table-auto w-full text-base text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                            <div class="p-4">
+                                <div class="max-h-[600px] overflow-x-auto shadow-md rounded-xl">
+                                            <table class="table table-auto w-full text-base text-left text-primary-txt">
 
                                                 <thead class="sticky top-0 z-10 text-primary-txt text-center border-l border-primary-only uppercase 
-                                                        bg-primary-form bg-gray-50 dark:bg-gray-700 dark:text-gray-400 whitespace-nowrap">
-                                                    <tr class="h-20">
+                                                        bg-primary-form text-primary-txt whitespace-nowrap">
+                                                    <tr class="h-10">
                                                         <th scope="col" class="sticky left-0 z-30 px-6 py-3 border-l border-primary-only">N°</th>
                                                         <th scope="col" class="px-6 py-3 border-l border-primary-only">Bordereau</th>
                                                         <th scope="col" class="px-6 py-3 border-l border-primary-only">N° d'ordre départ</th> 
@@ -242,7 +222,7 @@ function supprimerCourrierDepart(depart) {
                                                                     Voir PDF
                                                                 </a>
                                                             </div>
-                                                            <div v-else class="text-gray-400 italic">Aucun fichier PDF</div>
+                                                            <div v-else class="italic text-primary-txt/60">Aucun fichier PDF</div>
                                                         </td>
                                                 
                                                         <td class="flex items px-6 py-3">
@@ -280,8 +260,6 @@ function supprimerCourrierDepart(depart) {
                                                     </tr>
                                                 </tbody>
                                             </table>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>

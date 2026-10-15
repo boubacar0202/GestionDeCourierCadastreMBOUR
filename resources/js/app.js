@@ -52,10 +52,8 @@ createInertiaApp({
         // Configuration de MazUI avec la couleur personnalisée
         app.use(MazUI, {
             colors: {
-                primary: '#FC9D03',  // 🔥 Définit la couleur principale pour MazUI
-            },
-            colors: {
-                second: '#733900',  // 🔥 Définit la couleur principale pour MazUI
+                primary: '#A35B24',
+                second: '#7A3E12',
             },
         });
     
@@ -69,6 +67,6 @@ createInertiaApp({
     },    
       
     progress: {
-        color: "#FC9D03",
+        color: "#A35B24",
     },
 });

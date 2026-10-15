@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -40,6 +41,12 @@ class HandleInertiaRequests extends Middleware
                 'warning' => $request->session()->get('warning'),
                 'info' => $request->session()->get('info')
             ],
+            'chatUsers' => $request->user()
+                ? User::query()
+                    ->where('id', '!=', $request->user()->id)
+                    ->orderBy('name')
+                    ->get(['id', 'name'])
+                : [],
         ];
     }
 }

@@ -4,7 +4,8 @@ import { ref, computed  } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import { defineProps, onMounted } from 'vue';
 import { router, usePage  } from '@inertiajs/vue3'
-import { Link as InertiaLink } from '@inertiajs/vue3' 
+import { Link as InertiaLink } from '@inertiajs/vue3'
+import BaseInput from '@/Components/BaseInput.vue' 
  
 const props = defineProps({
     visite: Object,    
@@ -108,19 +109,16 @@ function supprimerVisite(visite) {
         <div class="py-12">
             <div class="flex justify-center">
                 <div class="w-full max-w-8xl">
-                    <div class="bg-white shadow-md rounded-lg "> <br> 
-                        <div class="mx-auto max-w-8xl sm:px-8 lg:px-12 mt-4 mb-4">
-                            <div class="card-header">
-                                <div class="p-4 border-b bg-primary sm:rounded-lg">
-                                    <h1 class="text-3xl text-white font-bold font-bold text-center">Base de donnée des Courriers Départs</h1>
-                                </div>
-                            </div> 
-                             
-                            <div class="relative overflow-x-auto p-4 border-b bg-primary-form sm:rounded-lg mt-8">
-                                <div class="flex justify-between items-center"> 
-                                    <h1 class="text-1xl text-primary-txt font-bold">
-                                        Liste des visiteurs : 
-                                        <span v-if="totalvisite>0" class="text-gray-600">
+                    <div class="bg-white shadow-md rounded-xl">
+                        <div class="p-4 border-b bg-primary rounded-t-xl">
+                            <h1 class="text-lg text-white font-semibold">Liste des visiteurs</h1>
+                        </div>
+                        <div class="p-6">
+                            <div class="p-4 bg-primary-form border border-primary-only rounded-xl">
+                                <div class="flex flex-wrap items-center justify-between gap-3">
+                                    <h1 class="text-lg text-primary-txt font-bold">
+                                        Liste des visiteurs :
+                                        <span v-if="totalvisite>0" class="text-primary-txt">
                                             ({{ totalvisite }})
                                         </span>
                                         <span v-else class="text-red-600">
@@ -128,47 +126,35 @@ function supprimerVisite(visite) {
                                         </span> 
                                     </h1>  
 
-                                    <form @submit.prevent class="flex items-center ">
-                                        <div  class="flex items-start space-x-4">
-                                            <div>
-                                                <input 
-                                                    v-model="annee"
-                                                    type="search"
-                                                    maxlength="4"
-                                                    id="default-search"
-                                                    aria-label="Rechercher"
-                                                    class="h-9 block w-20 rounded-md bg-white px-3 py-1.5 text-base text-gray-900 
-                                                        border border-primary-menu  placeholder:text-gray-400 
-                                                        focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    placeholder="Date Visite"
-                                                /> 
-                                            </div> 
-                                            <div>
-                                                <input 
-                                                    v-model="refPrenomNom"
-                                                    type="search"
-                                                    id="default-search"
-                                                    aria-label="Rechercher"
-                                                    class="h-9 block w-25 rounded-md bg-white px-3 py-1.5 text-base text-gray-900 
-                                                        border border-primary-menu  placeholder:text-gray-400 
-                                                        focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    placeholder="Prénom Nom"
-                                                />
-                                            </div>
-                                        </div>
+                                    <form @submit.prevent class="flex flex-wrap items-center gap-2">
+                                        <BaseInput
+                                            class="w-28"
+                                            label="Date visite"
+                                            name="filtre-visite-annee"
+                                            type="search"
+                                            maxlength="4"
+                                            placeholder="Date Visite"
+                                            v-model="annee"
+                                        />
+                                        <BaseInput
+                                            class="w-40"
+                                            label="Prénom et nom"
+                                            name="filtre-visite-nom"
+                                            type="search"
+                                            placeholder="Prénom Nom"
+                                            v-model="refPrenomNom"
+                                        />
                                     </form>
                                 </div>
                             </div>
 
-                            <div class="max-h-[600px] overflow-y-auto shadow-md sm:rounded-lg mt-8">
-                                <div class="container"> 
-                                    <div class="card"> 
-                                        <div class="card-body">
-                                            <table class="table table-auto w-full text-base text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                            <div class="p-4">
+                                <div class="max-h-[600px] overflow-x-auto shadow-md rounded-xl">
+                                            <table class="table table-auto w-full text-base text-left text-primary-txt">
 
                                                 <thead class="sticky top-0 z-10 text-primary-txt text-center border-l border-primary-only uppercase 
-                                                        bg-primary-form bg-gray-50 dark:bg-gray-700 dark:text-gray-400 whitespace-nowrap">
-                                                    <tr class="h-20">
+                                                        bg-primary-form text-primary-txt whitespace-nowrap">
+                                                    <tr class="h-10">
                                                         <th scope="col" class="sticky left-0 z-30 px-6 py-3 border-l border-primary-only">N°</th>
                                                         <th scope="col" class="px-6 py-3 border-l border-primary-only">Numero</th>
                                                         <th scope="col" class="px-6 py-3 border-l border-primary-only">Prenom & Nom</th> 
@@ -226,10 +212,8 @@ function supprimerVisite(visite) {
                                                     </tr>
                                                 </tbody>
                                             </table>
-                                        </div>
-                                    </div>
                                 </div>
-                            </div><br>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -2,7 +2,8 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
-import MazRadio from "maz-ui/components/MazRadio";
+import BaseInput from "@/Components/BaseInput.vue";
+import BaseSelect from "@/Components/BaseSelect.vue";
 import { onMounted, ref, watch, watchEffect, computed  } from "vue";
 import axios from "axios";
 import { toast } from "@/Components/AppToast";  
@@ -325,7 +326,7 @@ async function submit() {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl text-primary-txt font-semibold leading-tight text-gray-800">
+            <h2 class="text-xl text-primary-txt font-semibold leading-tight">
                 Modification Courrier Départ
                 
             </h2>
@@ -334,11 +335,11 @@ async function submit() {
 
         <div class="py-12">
             <div class="flex justify-center">
-                <div class="w-full max-w-8xl rounded-xl">
+                <div class="w-full max-w-8xl px-2 py-2">
                     <div class="bg-white shadow-md rounded-xl">
                         <!-- En-tête du formulaire -->
                         <div   class="p-4 border-b bg-primary rounded-t-xl">
-                            <h1 class="text-lg text-white font-semibold">Formulaire de Modification des Courriers Départs </h1>
+                            <h2 class="text-2xl leading-tight text-white font-bold">Modification du courrier départ</h2>
                         </div>
                         <!-- Corps du formulaire -->
                         <form @submit.prevent="submit">
@@ -349,520 +350,182 @@ async function submit() {
                                 </h5>
                                 <br />
                                 <div class="mb-6">
-                                    <div
-                                        class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4"
-                                    > 
+                                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                                        <BaseInput
+                                            class="sm:col-span-2"
+                                            label="N° BE"
+                                            name="txt_bordereau"
+                                            v-model="form.txt_bordereaucd"
+                                            autocomplete="on"
+                                        />
+                                    </div><br>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                                        <BaseInput
+                                            class="sm:col-span-2"
+                                            label="N° Dordre"
+                                            name="txt_numdordrecd"
+                                            v-model="form.txt_numdordrecd"
+                                            required
+                                        />
+                                        <BaseInput
+                                            label="Date Courrier"
+                                            name="dt_datecouriercd"
+                                            type="date"
+                                            v-model="form.dt_datecouriercd"
+                                        />
+                                        <BaseSelect
+                                            class="sm:col-span-2"
+                                            label="Catégorie"
+                                            name="txt_categoriecd"
+                                            v-model="form.txt_categoriecd"
+                                            @change="handleCategorieChangecd"
+                                            :options="[
+                                                { value: 'Reponse à un Courrier arrivé', label: 'Reponse à un Courrier arrivé' },
+                                                { value: 'Demande', label: 'Demande' },
+                                                { value: 'Transmission de Documents', label: 'Transmission de Documents' },
+                                                { value: 'Information', label: 'Information' },
+                                                { value: 'Alerte', label: 'Alerte' },
+                                                { value: 'Signalement', label: 'Signalement' },
+                                                { value: 'Dossier Retourné', label: 'Dossier Retourné' },
+                                            ]"
+                                        />
+                                        <BaseSelect
+                                            class="sm:col-span-2"
+                                            label="Ref.Courrier Arrivée à Repondre"
+                                            name="txt_referencecourierarriveecd"
+                                            v-model="form.txt_referencecourierarriveecd"
+                                            :options="references"
+                                            placeholder="Choisir une référence"
+                                        />
+                                        <BaseInput
+                                            class="sm:col-span-2"
+                                            label="Nbre de pièces"
+                                            name="txt_nombrepiececd"
+                                            v-model="form.txt_nombrepiececd"
+                                        />
+                                        <BaseInput
+                                            class="sm:col-span-2"
+                                            label="Référence Courrier"
+                                            name="txt_referencecd"
+                                            v-model="form.txt_referencecd"
+                                            required
+                                        />
+                                        <BaseInput
+                                            class="sm:col-span-2"
+                                            label="Objet"
+                                            name="txt_objetcd"
+                                            v-model="form.txt_objetcd"
+                                            required
+                                        />
+                                        <BaseInput
+                                            label="Numéro Lot"
+                                            name="txt_numLotcd"
+                                            v-model="form.txt_numLotcd"
+                                            autocomplete="off"
+                                        />
+                                        <BaseInput
+                                            label="Superficie"
+                                            name="txt_surfacecd"
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            v-model="form.txt_surfacecd"
+                                            autocomplete="off"
+                                        />
+                                        <BaseInput
+                                            class="sm:col-span-2"
+                                            label="Prénom"
+                                            name="txt_prenomcd"
+                                            v-model="form.txt_prenomcd"
+                                            autocomplete="off"
+                                        />
+                                        <BaseInput
+                                            class="sm:col-span-2"
+                                            label="Nom"
+                                            name="txt_nomcd"
+                                            v-model="form.txt_nomcd"
+                                            autocomplete="off"
+                                        />
+                                        <BaseInput
+                                            class="sm:col-span-2"
+                                            label="Situation"
+                                            name="txt_situationcd"
+                                            v-model="form.txt_situationcd"
+                                            autocomplete="off"
+                                        />
+                                        <BaseInput
+                                            class="sm:col-span-2"
+                                            label="NICAD"
+                                            name="txt_nicadcd"
+                                            v-model="form.txt_nicadcd"
+                                            autocomplete="off"
+                                        />
+                                        <BaseInput
+                                            class="sm:col-span-2"
+                                            label="Destinataire"
+                                            name="txt_destinatairecd"
+                                            v-model="form.txt_destinatairecd"
+                                            autocomplete="off"
+                                            required
+                                        />
+                                        <BaseInput
+                                            label="Réf.Récéption"
+                                            name="txt_referencereceptioncd"
+                                            v-model="form.txt_referencereceptioncd"
+                                            required
+                                        />
+                                        <BaseInput
+                                            label="Date d'envoi"
+                                            name="dt_dateenvoicd"
+                                            type="date"
+                                            v-model="form.dt_dateenvoicd"
+                                            required
+                                        />
+                                        <BaseInput
+                                            v-if="!show"
+                                            class="sm:col-span-2"
+                                            label="Durrée de traitement"
+                                            name="txt_dureetraitementcd"
+                                            v-model="form.txt_dureetraitementcd"
+                                        />
+                                        <BaseSelect
+                                            class="sm:col-span-2"
+                                            label="Caractères"
+                                            name="txt_caracterecd"
+                                            v-model="form.txt_caracterecd"
+                                            :options="[
+                                                { value: 'Connfidentiel', label: 'Confidentiel' },
+                                                { value: 'Urgent', label: 'Urgent' },
+                                                { value: 'Secret', label: 'Secret' },
+                                            ]"
+                                        />
+                                        <BaseInput
+                                            class="sm:col-span-4"
+                                            label="Observation"
+                                            name="txt_observationcd"
+                                            v-model="form.txt_observationcd"
+                                        />
                                         <div class="sm:col-span-2">
-                                            <div class="sm:col-span-2">
-                                                <label 
-                                                    for="txt_bordereau"
-                                                    class="block text-sm/6 font-medium text-primary-txt">
-                                                    N° BE
-                                                </label>
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="text"
-                                                        name="txt_bordereau"  
-                                                        v-model="form.txt_bordereaucd"  
-                                                        id="txt_bordereau"
-                                                        autocomplete="on"
-                                                        class="h-8 block w-full bg-gray-100 rounded-md bg-white px-3 py-1.5
-                                                            text-base text-primary outline outline-1 -outline-offset-1 outline-primary-only 
-                                                            placeholder:text-primary-dark focus:outline focus:outline-2 focus:-outline-2 
-                                                            focus:outline-primary sm:text-sm/6" 
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div><br> 
-                                    <div
-                                        class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4"
-                                    > 
-                                        <div class="sm:col-span-2">
-                                            <label 
-                                                for="txt_numdordrecd"
-                                                class="block text-sm/6 font-medium text-primary-txt">
-                                                N° Dordre
-                                            </label>
-                                            <div class="mt-2">
-                                                <input
-                                                    type="text"
-                                                    name="txt_numdordrecd"
-                                                    v-model="form.txt_numdordrecd" 
-                                                    required 
-                                                    id="txt_numdordrecd"
-                                                    class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                        outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                        focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                />
-                                            </div>
-                                        </div>  
-                                        <div class="sm:col-span-1">
-                                            <div class="sm:col-span-1">
-                                                <label 
-                                                    for="dt_datecouriercd"
-                                                    class="block text-sm/6 font-medium text-primary-txt">
-                                                    Date Courrier
-                                                </label>
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="date"
-                                                        name="dt_datecouriercd"
-                                                        v-model="form.dt_datecouriercd"  
-                                                        id="dt_datecouriercd"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6" 
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                     
-                                        <div class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_categoriecd"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Catégorie</label
-                                                >
-                                                <div class="mt-2">
-                                                    <select
-                                                        name="txt_categoriecd"
-                                                        v-model="
-                                                            form.txt_categoriecd
-                                                        "
-                                                        id="txt_categoriecd"
-                                                        autocomplete="address-level2"
-                                                        @change="handleCategorieChangecd"
-                                                        class="h-8  scrollbar-thin scrollbar-thumb-primary scrollbar-track-gray-300 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                        style="max-height: 200px;" 
-                                                    >
-                                                        <option selected desabled></option>
-                                                        <option value="Reponse à un Courrier arrivé">Reponse à un Courrier arrivé</option>
-                                                        <option value="Demande">Demande</option>
-                                                        <option value="Transmission de Documents">Transmission de Documents</option>
-                                                        <option value="Information">Information</option> 
-                                                        <option value="Alerte">Alerte</option>
-                                                        <option value="Signalement">Signalement</option>
-                                                        <option value="Dossier Retourné">Dossier Retourné</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label for="txt_referencecourierarriveecd" class="block text-sm/6 font-medium text-primary-txt">
-                                                    Ref.Courrier Arrivée à Repondre
-                                                </label> 
-                                                <div class="mt-2">
-                                                    <select
-                                                        name="txt_referencecourierarriveecd"
-                                                        v-model="form.txt_referencecourierarriveecd"
-                                                        id="txt_referencecourierarriveecd"
-                                                        autocomplete="address-level2" 
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    >
-                                                        <option value="">Choisir une référence</option>
-                                                        <option selected disabled>{{ departs?.txt_referencecourierarriveecd }}</option>
-                                                        <option v-for="(ref, index) in references" :key="index" :value="ref">
-                                                            {{ ref }}
-                                                        </option>  
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div> 
-                                        <div class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_nombrepiececd"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Nbre de pièces</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="text"
-                                                        name="txt_nombrepiececd"
-                                                        v-model="
-                                                            form.txt_nombrepiececd
-                                                        "
-                                                        id="txt_nombrepiececd"
-                                                        autocomplete="address-level2"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="sm:col-span-2">
-                                            <div class="sm:col-span-2">
-                                                <label
-                                                    for="txt_referencecd"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Référence Courrier</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="txt"
-                                                        name="txt_referencecd"
-                                                        v-model="
-                                                            form.txt_referencecd
-                                                        "
-                                                        required
-                                                        id="txt_referencecd"
-                                                        autocomplete="address-level2"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_objetcd"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Objet</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="txt"
-                                                        name="txt_objetcd"
-                                                        v-model="
-                                                            form.txt_objetcd
-                                                        "
-                                                        required
-                                                        id="txt_objetcd"
-                                                        autocomplete="address-level2"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="sm:col-span-1">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_numLotcd"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Numéro Lot</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="text"
-                                                        name="txt_numLotcd" 
-                                                        v-model="
-                                                            form.txt_numLotcd
-                                                        " 
-                                                        id="txt_numLotcd"
-                                                            autocomplete="off"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    />  
-                                                </div>
-                                            </div>
-                                        </div>  
-                                        <div class="sm:col-span-1">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_surfacecd"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Superficie</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="nomber"
-                                                        step="0.01" min="0" 
-                                                        name="txt_surfacecd"
-                                                        v-model="
-                                                            form.txt_surfacecd
-                                                        " 
-                                                        id="txt_surfacecd"
-                                                            autocomplete="off"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    />  
-                                                </div>
-                                            </div>
-                                        </div> 
-                                        <div class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_prenomcd"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Prénom</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="text"
-                                                        name="txt_prenomcd"
-                                                        v-model="
-                                                            form.txt_prenomcd
-                                                        " 
-                                                        id="txt_prenomcd"
-                                                            autocomplete="off"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    />  
-                                                </div>
-                                            </div>
-                                        </div> 
-                                         <div class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_nomcd"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Nom</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="text"
-                                                        name="txt_nomcd"
-                                                        v-model="
-                                                            form.txt_nomcd
-                                                        " 
-                                                        id="txt_nomcd"
-                                                            autocomplete="off"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    />  
-                                                </div>
-                                            </div>
-                                        </div> 
-                                        <div class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_situationcd"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Situation</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="text"
-                                                        name="txt_situationcd"
-                                                        v-model="
-                                                            form.txt_situationcd
-                                                        " 
-                                                        id="txt_situationcd"
-                                                            autocomplete="off"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    />  
-                                                </div>
-                                            </div>
-                                        </div> 
-                                        <div class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_nicadcd"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >NICAD</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="text"
-                                                        name="txt_nicadcd"
-                                                        v-model="
-                                                            form.txt_nicadcd
-                                                        " 
-                                                        id="txt_nicadcd"
-                                                            autocomplete="off"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    />  
-                                                </div>
-                                            </div>
-                                        </div> 
-                                        <div class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_destinatairecd"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Destinataire</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="text"
-                                                        name="txt_destinatairecd"
-                                                        v-model="
-                                                            form.txt_destinatairecd
-                                                        "
-                                                        required
-                                                        id="txt_destinatairecd"
-                                                            autocomplete="off"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    />  
-                                                </div>
-                                            </div>
-                                        </div> 
-                                        <div class="sm:col-span-1">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_referencereceptioncd"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Réf.Récéption</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="txt"
-                                                        name="txt_referencereceptioncd"
-                                                        v-model="
-                                                            form.txt_referencereceptioncd
-                                                        "
-                                                        required
-                                                        id="txt_referencereceptioncd"
-                                                        autocomplete="address-level2"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="sm:col-span-1">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="dt_dateenvoicd"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Date d'envoi</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="date"
-                                                        name="dt_dateenvoicd"
-                                                        v-model="
-                                                            form.dt_dateenvoicd
-                                                        "
-                                                        required
-                                                        id="dt_dateenvoicd"
-                                                        autocomplete="address-level2"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div> 
-                                        <div v-if="!show" class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_dureetraitement"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Durrée de traitement</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="txt"
-                                                        name="txt_dureetraitementcd"
-                                                        v-model="
-                                                            form.txt_dureetraitementcd
-                                                        " 
-                                                        id="txt_dureetraitementcd"
-                                                        autocomplete="address-level2"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="sm:col-span-2">
-                                            <label 
-                                                for="txt_caracterecd"
-                                                class="block text-sm/6 font-medium text-primary-txt">
-                                                Caractères
-                                            </label>
-                                            <div class="mt-2">
-                                                <select
-                                                    type="text"
-                                                    name="txt_caracterecd"
-                                                    v-model="form.txt_caracterecd" 
-                                                    id="txt_caracterecd"
-                                                    class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                        outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                        focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                >
-                                                    <option selected desabled></option>
-                                                    <option value="Connfidentiel">Confidentiel</option>
-                                                    <option value="Urgent">Urgent</option>
-                                                    <option value="Secret">Secret</option> 
-                                                </select>
-                                            </div> 
-                                        </div>
-                                        <div class="sm:col-span-4">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="txt_observation"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Observation</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="txt"
-                                                        name="txt_observationcd"
-                                                        v-model="
-                                                            form.txt_observationcd
-                                                        " 
-                                                        id="txt_observationcd"
-                                                        autocomplete="address-level2"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="sm:col-span-2">
-                                            <div class="sm:col-span-1">
-                                                <label
-                                                    for="fichierPDFcd"
-                                                    class="block text-sm/6 font-medium text-primary-txt"
-                                                    >Importer le Fichier PDF</label
-                                                >
-                                                <div class="mt-2">
-                                                    <input
-                                                        type="file"
-                                                        name="fichierPDFcd"
-                                                        accept="application/pdf"
-                                                        @change="handleFileChangecd"
-                                                        id="fichierPDFcd"
-                                                        autocomplete="off"
-                                                        class="h-8 block w-full rounded-md bg-white px-3 py-1.5 text-base text-primary-txt 
-                                                            outline outline-1 -outline-offset-1 outline-primary-only placeholder:text-gray-400 
-                                                            focus:outline focus:outline-2 focus:-outline-2 focus:outline-primary sm:text-sm/6"
-                                                    />
-                                                </div>
-                                                <!-- Pour ajouter un bouton de suppression de fichier -->
-                                                <div v-if="departs?.fichierPDFcd" class="mt-2 flex items-center space-x-2">
-                                                    <a :href="`/storage/${departs.fichierPDFcd}`" target="_blank" 
-                                                    class="text-blue-600 underline text-sm">
-                                                        📄 Voir le PDF
-                                                    </a>
-                                                    <button @click="deleteFile(departs)" 
-                                                            class="text-red-600 text-sm hover:text-red-800">
-                                                        🗑️ Supprimer
-                                                    </button>
-                                                </div>
-                                                <!-- Fin du bouton de suppression -->
+                                            <BaseInput
+                                                label="Importer le Fichier PDF"
+                                                name="fichierPDFcd"
+                                                type="file"
+                                                accept="application/pdf"
+                                                autocomplete="off"
+                                                @change="handleFileChangecd"
+                                            />
+                                            <div v-if="departs?.fichierPDFcd" class="mt-2 flex items-center space-x-2">
+                                                <a :href="`/storage/${departs.fichierPDFcd}`" target="_blank" class="text-sm text-blue-600 underline">
+                                                    Voir le PDF
+                                                </a>
+                                                <button type="button" @click="deleteFile(departs)" class="text-sm text-red-600 hover:text-red-800">
+                                                    Supprimer
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
-                                    <br /> 
-                                </div> 
+                                    <br />
+                                </div>
  
                                 <!-- Bouton de soumission -->
 
