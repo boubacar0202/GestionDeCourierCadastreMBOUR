@@ -31,7 +31,7 @@ function handleImageError() {
         <link rel="icon" sizes="512x512" href="/logo-01.png">
     </Head>
  
-    <div class="app-guest">
+    <div class="app-guest welcome-page">
         <div class="w-full max-w-3xl px-4">
             <header class="mb-8 flex flex-col items-center gap-4 text-center">
                 <img src="/logo.jpg" alt="Logo Cadastre Mbour" class="h-28 w-auto">
@@ -39,19 +39,19 @@ function handleImageError() {
                     <Link
                         v-if="$page.props.auth.user"
                         :href="route('dashboard')"
-                        class="app-btn app-btn-primary"
+                        class="w-full hover:text-primary-dark hover:ring-primary-only focus:outline-none focus-visible:ring-[#FF2D20] app-btn app-btn-primary welcome-page-btn"
                     >
                         Accueil
                     </Link>
 
                     <template v-else>
-                        <Link :href="route('login')" class="app-btn app-btn-primary">
+                        <Link :href="route('login')" class="w-full hover:text-primary-dark hover:ring-primary-only focus:outline-none focus-visible:ring-[#FF2D20] app-btn app-btn-primary welcome-page-btn">
                             Connexion
                         </Link>
                         <Link
                             v-if="canRegister"
                             :href="route('register')"
-                            class="app-btn app-btn-secondary"
+                            class="w-full hover:text-primary-dark hover:ring-primary-only focus:outline-none focus-visible:ring-[#FF2D20] app-btn app-btn-secondary welcome-page-btn"
                         >
                             S'inscrire
                         </Link>
@@ -59,7 +59,13 @@ function handleImageError() {
                 </nav>
             </header>
 
-            <a :href="route('login')" class="app-hero-card block">
+            <a :href="route('login')"
+                            id="docs-card"
+                            class="flex flex-col items-start border border-primary-txt-txt gap-6 overflow-hidden 
+                            rounded-xl bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-white/[0.05] 
+                            transition duration-300 hover:text-primary-dark hover:ring-primary-only focus:outline-none 
+                            focus-visible:ring-[#FF2D20] md:row-span-3 lg:p-10 lg:pb-10 dark:bg-zinc-900 dark:ring-zinc-800 
+                            dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#FF2D20]">
                 <div class="flex items-center justify-between gap-4">
                     <div>
                         <p class="text-sm font-semibold uppercase tracking-wide text-primary-dark">Centre des services fiscaux</p>
@@ -78,3 +84,24 @@ function handleImageError() {
         </div>
     </div>
 </template>
+
+<style>
+html:has(.welcome-page),
+body:has(.welcome-page),
+.app-shell:has(.welcome-page) {
+    background: #fff;
+}
+
+.app-shell:has(.welcome-page) .app-content {
+    padding: 0;
+    background: #fff;
+}
+</style>
+
+<style scoped>
+.welcome-page {
+    width: 100%;
+    min-height: 100vh;
+    background: #fff;
+}
+</style>

@@ -24,11 +24,11 @@ const form = useForm({
     <section>
         <header>
             <h2 class="text-lg font-medium text-primary-txt">
-                Profile Information
+                Information de votre compte
             </h2>
 
             <p class="mt-1 text-sm text-primary-txt/80">
-                Update your account's profile information and email address.
+                Mettez à jour les informations de votre compte et votre adresse email.
             </p>
         </header>
 
@@ -58,14 +58,14 @@ const form = useForm({
 
             <div v-if="mustVerifyEmail && user.email_verified_at === null">
                 <p class="mt-2 text-sm text-primary-txt">
-                    Your email address is unverified.
+                    Votre adresse email n'est pas vérifiée.
                     <Link
                         :href="route('verification.send')"
                         method="post"
                         as="button"
                         class="rounded-md text-sm text-primary-txt/80 underline hover:text-primary-txt focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     >
-                        Click here to re-send the verification email.
+                        Cliquez ici pour renvoyer l'email de vérification.
                     </Link>
                 </p>
 
@@ -73,12 +73,12 @@ const form = useForm({
                     v-show="status === 'verification-link-sent'"
                     class="mt-2 text-sm font-medium text-green-600"
                 >
-                    A new verification link has been sent to your email address.
+                    Un nouveau lien de vérification a été envoyé à votre adresse email.
                 </div>
             </div>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
+                <PrimaryButton :disabled="form.processing">Enregistrer</PrimaryButton>
 
                 <Transition
                     enter-active-class="transition ease-in-out"
@@ -90,7 +90,7 @@ const form = useForm({
                         v-if="form.recentlySuccessful"
                         class="text-sm text-primary-txt/80"
                     >
-                        Saved.
+                        Enregistré.
                     </p>
                 </Transition>
             </div>

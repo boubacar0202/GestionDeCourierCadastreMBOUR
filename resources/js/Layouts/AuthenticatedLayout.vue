@@ -2,7 +2,6 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3'; 
 import NavLink from '@/Components/NavLink.vue';
-import BaseInput from '@/Components/BaseInput.vue';
 import ChatWidget from '@/Components/ChatWidget.vue';
 import { toast } from "@/Components/AppToast";  
 import axios from 'axios';
@@ -15,12 +14,6 @@ const user = page.props.auth?.user;
 const isMenuOpen = ref(false);
 const isDesktop = ref(false);
 const showingNavigationDropdown = ref(false);
-const email = ref(user?.email ?? '');
-const emailInput = ref(null);
-
-function focusEmail() {
-    emailInput.value?.focus();
-}
 const unreadTotal = ref(0);
 const chatOpen = ref(false);
 
@@ -248,20 +241,6 @@ onUnmounted(() => {
                                     </span>
                                     Rapport Trimestre
                                 </NavLink>
-                                <button type="button"
-                                        class="relative app-nav-link w-full text-left"
-                                        :class="{'is-active': chatOpen}"
-                                        @click="openChatPlugin">
-                                    <span class="nav-ico">
-                                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                                            <path fill="currentColor" fill-rule="evenodd" d="M5 4h14a3 3 0 0 1 3 3v7.2a3 3 0 0 1-3 3H9.5L4.2 21.2V17.2A3 3 0 0 1 2 14.2V7a3 3 0 0 1 3-3zm2.1 4.5h9.8v1.55H7.1V8.5zm0 3.15h6.4v1.55H7.1v-1.55z"/>
-                                        </svg>
-                                    </span>
-                                    Discussion
-                                    <span v-if="unreadTotal > 0" class="nav-badge">
-                                        {{ unreadTotal }}
-                                    </span>
-                                </button> 
   
                             </div>
                         </nav>
@@ -297,13 +276,13 @@ onUnmounted(() => {
                     <transition name="slideUser">
                         <div v-if="showingNavigationDropdown" class="app-user-menu">
                             <div class="px-4 py-2 text-sm text-primary-txt">{{ user?.name }}</div>
-                            <button type="button" class="app-user-item" @click="focusEmail">
+                            <Link :href="route('profile.edit')" class="app-user-item" @click="showingNavigationDropdown = false">
                                 <svg viewBox="0 0 24 24" aria-hidden="true">
                                     <circle cx="12" cy="8" r="3.2" fill="currentColor"/>
                                     <path fill="currentColor" opacity=".4" d="M5 19.2a7 7 0 0 1 14 0v1.3H5v-1.3z"/>
                                 </svg>
                                 Profile
-                            </button>
+                            </Link>
 
                             <Link :href="route('logout')" method="post" as="button" class="app-user-item is-danger">
                                 <svg viewBox="0 0 24 24" aria-hidden="true">
