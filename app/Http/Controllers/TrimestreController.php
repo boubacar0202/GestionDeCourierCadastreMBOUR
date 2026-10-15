@@ -125,6 +125,112 @@ class TrimestreController extends Controller
         ]);
     }
 
+    public function parametre(Request $request)
+    {
+        $trimestre = $request->input('trimestre');
+
+        if ($trimestre && str_contains($trimestre, '-')) {
+            [$year, $quarter] = explode('-', $trimestre);
+        } else {
+            $now = Carbon::now();
+            $quarter = $now->quarter;
+            $year = $now->year;
+        }
+
+        $year = (int) $year;
+        $quarter = (int) $quarter;
+
+        $startOfQuarter = Carbon::createFromDate($year, ($quarter - 1) * 3 + 1, 1)->startOfDay();
+        $endOfQuarter = (clone $startOfQuarter)->addMonths(3)->subDay()->endOfDay();
+
+        $current = Carbon::createFromDate($year, ($quarter - 1) * 3 + 1, 1);
+        $prevQuarter = (clone $current)->subMonths(3);
+        $nextQuarter = (clone $current)->addMonths(3);
+        $prev = $prevQuarter->year.'-'.$prevQuarter->quarter;
+        $next = $nextQuarter->year.'-'.$nextQuarter->quarter;
+
+        $now = Carbon::now();
+        if ($year === (int) $now->year && $quarter === (int) $now->quarter) {
+            $next = null;
+        }
+
+        $designations = [
+            'Morcellements',
+            "Réquisition d'immatriculation",
+            'Demande Avis Technique',
+            'Demande de terrain/Echange',
+            'Prospection de terrain',
+            'Autorisation de construction',
+            'Autorisation de lotir',
+            "Demande d'états des lieux",
+            'Demande de délimitation',
+            'Demande de reconstruction',
+            'Réquisition DSCOS',
+            'Tribunal',
+            'Litiges',
+            "Demande d'extraits de plan",
+            'Demande de situation foncière',
+            'Demande de Cession définitive a Titre Gratuit',
+            'Demande de Régularisation par voie de Bail',
+            "Demande d'attestation du Cadastre",
+            'Projets de Lotissements reçus',
+            'Réceptions de lotissements',
+            'Lotissements réalisés sans respect des procédures',
+            'Duplication de CIC',
+            'Demande de Titre foncier',
+            'Autirisationde morceler',
+            "Demande d'évaluation",
+            'Nombre de fiches de mise à jour reçues',
+            'Nombre de dossiers techniques en attente de fiches de mise à jour',
+        ];
+
+        $stockFin = [];
+        $countsByTrimestre = [];
+        $countsTraiterByTrimestre = [];
+        $instancesRestantes = [];
+
+        foreach ($designations as $designation) {
+            $stockFin[$designation] = Arrivee::leftJoin('departs', 'departs.txt_referencecourierarriveecd', '=', 'arrivees.txt_reference')
+                ->where('arrivees.txt_designation', 'like', "%{$designation}%")
+                ->where('arrivees.dt_datearrivee', '<', $startOfQuarter)
+                ->whereNull('departs.txt_referencecourierarriveecd')
+                ->count();
+
+            $countsByTrimestre[$designation] = Arrivee::where('txt_designation', 'like', "%{$designation}%")
+                ->whereBetween('dt_datearrivee', [$startOfQuarter, $endOfQuarter])
+                ->count();
+
+            $countsTraiterByTrimestre[$designation] = Arrivee::where('txt_designation', 'like', "%{$designation}%")
+                ->whereBetween('dt_datearrivee', [$startOfQuarter, $endOfQuarter])
+                ->whereExists(function ($query) {
+                    $query->selectRaw('1')
+                        ->from('departs')
+                        ->whereColumn('departs.txt_referencecourierarriveecd', 'arrivees.txt_reference');
+                })
+                ->count();
+
+            $instancesRestantes[$designation] = max(
+                ($stockFin[$designation] + $countsByTrimestre[$designation]) - $countsTraiterByTrimestre[$designation],
+                0
+            );
+        }
+
+        return Inertia::render('parametre/trimestre/create', [
+            'trimestres' => Trimestre::orderBy('id')->get(),
+            'countsByTrimestre' => $countsByTrimestre,
+            'countsTraiterByTrimestre' => $countsTraiterByTrimestre,
+            'stockFin' => $stockFin,
+            'courriersRetourners' => Depart::where('txt_caracterecd', 'Dossier Retourne')
+                ->whereBetween('dt_datecouriercd', [$startOfQuarter, $endOfQuarter])
+                ->count(),
+            'instancesRestantes' => $instancesRestantes,
+            'trimestre' => $year.'-'.$quarter,
+            'prev' => $prev,
+            'next' => $next,
+            'trimestreLabel' => "T{$quarter} {$year}",
+        ]);
+    }
+
     /**
      * Store a newly created resource in storage.
      */

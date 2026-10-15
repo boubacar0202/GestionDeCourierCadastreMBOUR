@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'is_validated',
     ];
 
     /**
@@ -43,6 +45,18 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_validated' => 'boolean',
         ];
+    }
+
+    public static function normalizeRole(mixed $role): string
+    {
+        $value = strtolower(trim((string) $role));
+
+        return match ($value) {
+            'admin', 'administrateur' => 'admin',
+            'user', 'utilisateur' => 'user',
+            default => $value,
+        };
     }
 }

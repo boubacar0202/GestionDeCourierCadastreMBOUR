@@ -49,6 +49,24 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        $user = Auth::user();
+
+        if ($user && ! $user->is_validated) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Votre compte est en attente de validation par un administrateur.',
+            ]);
+        }
+
+        if ($user && ! in_array($user->role, ['admin', 'user'], true)) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Ce compte n\'a pas un rôle reconnu. Un administrateur doit le classer comme administrateur ou utilisateur.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

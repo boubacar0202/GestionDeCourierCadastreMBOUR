@@ -41,9 +41,14 @@ class HandleInertiaRequests extends Middleware
                 'warning' => $request->session()->get('warning'),
                 'info' => $request->session()->get('info')
             ],
+            'pendingAccounts' => $request->user()?->role === 'admin'
+                ? User::query()->where('is_validated', false)->count()
+                : 0,
             'chatUsers' => $request->user()
                 ? User::query()
                     ->where('id', '!=', $request->user()->id)
+                    ->where('is_validated', true)
+                    ->whereIn('role', ['admin', 'user'])
                     ->orderBy('name')
                     ->get(['id', 'name'])
                 : [],

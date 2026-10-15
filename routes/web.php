@@ -1,8 +1,12 @@
 <?php
 
 use App\Http\Controllers\ArriveeController;
+use App\Http\Controllers\BaremeEvaluationController;
+use App\Http\Controllers\CodeAccesController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartController;
+use App\Http\Controllers\ParametreController;
+use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\InstancearriveeController;
 use App\Http\Controllers\InstanceController; 
 use App\Http\Controllers\Auth\AuthenticatedSessionController; 
@@ -40,16 +44,17 @@ Route::post('/logout', function () {
 
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'validated'])
     ->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'validated'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
  
 //courierNouvelle appli
+Route::middleware(['auth', 'validated'])->group(function () {
 Route::resource('arrivee', ArriveeController::class);
 Route::resource('depart', DepartController::class);
 Route::resource('instance', InstanceController::class);
@@ -127,7 +132,57 @@ Route::middleware('auth:sanctum')->get('/messages/{receiverId}', [MessageControl
 Route::get('/messages/unread-per-user', [MessageController::class, 'unreadPerUser'])->middleware('auth:sanctum');
 Route::delete('/message/{id}', [MessageController::class, 'destroy'])->middleware('auth');
 Route::put('/message/{id}', [MessageController::class, 'update'])->middleware('auth');
-  
- 
- 
+});
+
+Route::middleware(['auth', 'validated', 'role:admin'])->group(function () {
+    Route::get('/departements', [ParametreController::class, 'getDepartements']);
+    Route::get('/arrondissements/{departement}', [ParametreController::class, 'getArrondissementByDepartement']);
+    Route::get('/communes/{arrondissement}', [ParametreController::class, 'getCommunesByArrondissement']);
+
+    Route::prefix('parametre')->group(function () {
+        Route::get('/admin', [ParametreController::class, 'admin'])->name('parametre.admin');
+        Route::get('/user', [ParametreController::class, 'user'])->name('parametre.user');
+        Route::post('/admin/store', [ParametreController::class, 'storeUser'])->name('parametre.admin.store');
+        Route::post('/admin/{id}/validate', [ParametreController::class, 'validateUser'])->name('parametre.admin.validate');
+        Route::delete('/admin/{id}', [ParametreController::class, 'destroyUser'])->name('parametre.admin.destroy');
+        Route::get('/adminEdit/{id}', [ParametreController::class, 'editUser'])->name('parametre.admin.edit');
+        Route::put('/admin/update/{id}', [ParametreController::class, 'updateUser'])->name('parametre.updateUser');
+
+        Route::get('/lotissement/index', [ParametreController::class, 'index'])->name('parametre.lotissement.index');
+        Route::post('/store', [ParametreController::class, 'store'])->name('parametre.store');
+        Route::get('/lotissement/create', [ParametreController::class, 'create'])->name('parametre.lotissement.create');
+        Route::get('/lotissement/edit/{id}', [ParametreController::class, 'edit'])->name('parametre.lotissement.edit');
+        Route::match(['put', 'post'], '/lotissement/update/{id}', [ParametreController::class, 'update'])->name('parametre.lotissement.update');
+        Route::delete('/lotissement/destroy/{id}', [ParametreController::class, 'destroy'])->name('parametre.lotissement.destroy');
+
+        Route::get('/pointDensifier/createPoint', [ParametreController::class, 'createPoint'])->name('parametre.pointDensifier.createPoint');
+        Route::post('/pointDensifier/storePoint', [ParametreController::class, 'storePoint'])->name('parametre.pointDensifier.storePoint');
+        Route::get('/pointDensifier/edit/{id}', [ParametreController::class, 'editPoint'])->name('parametre.pointDensifier.editPoint');
+        Route::match(['put', 'post'], '/pointDensifier/updatePoint/{id}', [ParametreController::class, 'updatePoint'])->name('parametre.pointDensifier.updatePoint');
+        Route::delete('/pointDensifier/destroy/{id}', [ParametreController::class, 'destroyPoint'])->name('parametre.pointDensifier.destroy');
+
+        Route::get('/chart', [ParametreController::class, 'chart'])->name('parametre.chart');
+
+        Route::get('/service/create', [ServiceController::class, 'create'])->name('parametre.service.create');
+        Route::post('/service', [ServiceController::class, 'store'])->name('parametre.service.store');
+        Route::get('/service/edit/{service}', [ServiceController::class, 'edit'])->name('parametre.service.edit');
+        Route::match(['put', 'post'], '/service/{service}', [ServiceController::class, 'update'])->name('parametre.service.update');
+        Route::delete('/service/{service}', [ServiceController::class, 'destroy'])->name('parametre.service.destroy');
+
+        Route::get('/trimestre/create', [TrimestreController::class, 'parametre'])->name('parametre.trimestre.create');
+
+        Route::get('/bareme', [BaremeEvaluationController::class, 'index'])->name('parametre.bareme.index');
+        Route::post('/bareme', [BaremeEvaluationController::class, 'store'])->name('parametre.bareme.store');
+        Route::put('/bareme/{bareme}', [BaremeEvaluationController::class, 'update'])->name('parametre.bareme.update');
+        Route::delete('/bareme/{bareme}', [BaremeEvaluationController::class, 'destroy'])->name('parametre.bareme.destroy');
+
+        Route::post('/code/verify-lotissement', [CodeAccesController::class, 'verify'])->name('code.verifyLotissement');
+        Route::post('/code/verify-point', [CodeAccesController::class, 'verify'])->name('code.verifyPoint');
+    });
+
+    Route::get('/api/chart-data', [ParametreController::class, 'getChartData'])->name('api.chart.data');
+    Route::get('/api/stats', [ParametreController::class, 'getStatsData'])->name('api.stats');
+    Route::get('/api/cession-data', [ParametreController::class, 'getCessionData'])->name('api.cession.data');
+});
+
 require __DIR__ . '/auth.php';

@@ -181,6 +181,60 @@ h3,
     box-shadow: inset 3px 0 0 var(--copper);
 }
 
+.app-settings {
+    position: relative;
+}
+
+.app-settings .app-nav-link {
+    padding-right: 2.4rem;
+}
+
+.app-settings-toggle {
+    position: absolute;
+    top: 0.55rem;
+    right: 0.35rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 0.55rem;
+    color: var(--copper-deep);
+}
+
+.app-settings-toggle svg {
+    width: 1.05rem;
+    height: 1.05rem;
+    transition: transform 0.2s ease;
+}
+
+.app-settings-toggle.is-open svg {
+    transform: rotate(90deg);
+}
+
+.app-nav-sub {
+    margin: 0.15rem 0 0.35rem 1.15rem;
+    padding-left: 0.55rem;
+    border-left: 1px solid var(--line);
+}
+
+.app-nav-sub .app-nav-link {
+    width: 100%;
+    font-size: 0.86rem;
+    padding: 0.4rem 0.55rem;
+}
+
+.app-nav-sub .nav-ico {
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 0.55rem;
+}
+
+.app-nav-sub .nav-ico svg {
+    width: 1rem;
+    height: 1rem;
+}
+
 .app-side-footer {
     margin-top: auto;
     padding-top: 1rem;

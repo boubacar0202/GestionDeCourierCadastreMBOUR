@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3'; 
 import NavLink from '@/Components/NavLink.vue';
 import ChatWidget from '@/Components/ChatWidget.vue';
@@ -10,7 +10,10 @@ import axios from 'axios';
 const page = usePage();
 const user = page.props.auth?.user;
 
-// --- MENU ---
+// --- MENU --- 
+const isAdmin = computed(() => page.props.auth?.user?.role === 'admin');
+const comptesEnAttente = computed(() => Number(page.props.pendingAccounts || 0));
+const isSettingsOpen = ref(false);
 const isMenuOpen = ref(false);
 const isDesktop = ref(false);
 const showingNavigationDropdown = ref(false);
@@ -41,6 +44,9 @@ function updateScreenSize() {
 onMounted(() => {
     updateScreenSize();
     window.addEventListener('resize', updateScreenSize);
+    if (String(route().current() || '').startsWith('parametre.')) {
+        isSettingsOpen.value = true;
+    }
 });
 
 onUnmounted(() => {
@@ -241,6 +247,115 @@ onUnmounted(() => {
                                     </span>
                                     Rapport Trimestre
                                 </NavLink>
+                                                            
+                            <template v-if="isAdmin">
+                                <div class="app-settings">
+                                    <NavLink
+                                        :href="route('parametre.admin')"
+                                        class="app-nav-link"
+                                        :class="{'is-active': route().current()?.startsWith('parametre.')}"
+                                    >
+                                        <span class="nav-ico">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                <path fill="currentColor" opacity=".35" d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6z"/>
+                                                <path fill="currentColor" d="M10.2 2.4h3.6l.5 2.2a7.4 7.4 0 0 1 1.8.8l2-1.1 2.5 2.5-1.1 2c.4.6.6 1.2.8 1.8l2.2.5v3.6l-2.2.5a7.4 7.4 0 0 1-.8 1.8l1.1 2-2.5 2.5-2-1.1a7.4 7.4 0 0 1-1.8.8l-.5 2.2h-3.6l-.5-2.2a7.4 7.4 0 0 1-1.8-.8l-2 1.1-2.5-2.5 1.1-2a7.4 7.4 0 0 1-.8-1.8l-2.2-.5V9.1l2.2-.5c.2-.6.4-1.2.8-1.8l-1.1-2 2.5-2.5 2 1.1c.6-.4 1.2-.6 1.8-.8l.5-2.2z"/>
+                                            </svg>
+                                        </span>
+                                        Paramètres
+                                    </NavLink>
+                                    <button type="button" class="app-settings-toggle" :class="{ 'is-open': isSettingsOpen }" @click.stop="isSettingsOpen = !isSettingsOpen" aria-label="Ouvrir les paramètres">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                            <path fill="currentColor" d="M9.2 6.2 15 12l-5.8 5.8-1.4-1.4L12.2 12 7.8 7.6l1.4-1.4z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div v-show="isSettingsOpen" class="app-nav-sub">
+                                    <NavLink :href="route('parametre.admin')" class="app-nav-link" :class="{'is-active': route().current('parametre.admin')}">
+                                        <span class="nav-ico">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                <circle cx="12" cy="8" r="3.2" fill="currentColor"/>
+                                                <path fill="currentColor" opacity=".4" d="M5 19.2a7 7 0 0 1 14 0V21H5v-1.8z"/>
+                                                <path fill="currentColor" d="m16.2 11.4 1.6.6v1.6c0 1.1-.8 1.9-2 2.4-1.2-.5-2-1.3-2-2.4v-1.6l1.6-.6z"/>
+                                            </svg>
+                                        </span>
+                                        Administrateurs
+                                        <span v-if="comptesEnAttente > 0" class="nav-badge">{{ comptesEnAttente }}</span>
+                                    </NavLink>
+
+                                    <NavLink :href="route('parametre.user')" class="app-nav-link" :class="{'is-active': route().current('parametre.user')}">
+                                        <span class="nav-ico">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                <circle cx="9" cy="8" r="3" fill="currentColor"/>
+                                                <circle cx="16.2" cy="9" r="2.2" fill="currentColor" opacity=".45"/>
+                                                <path fill="currentColor" d="M3.2 19.4a5.8 5.8 0 0 1 11.6 0v1H3.2v-1z"/>
+                                                <path fill="currentColor" opacity=".45" d="M13.4 19.6a4.2 4.2 0 0 1 6.8 0v.8h-6.8v-.8z"/>
+                                            </svg>
+                                        </span>
+                                        Utilisateurs
+                                    </NavLink>
+
+                                    <NavLink :href="route('parametre.lotissement.create')" class="app-nav-link" :class="{'is-active': route().current('parametre.lotissement.create')}">
+                                        <span class="nav-ico">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                <path fill="currentColor" opacity=".35" d="M3 10.5 12 4l9 6.5V20H3V10.5z"/>
+                                                <path fill="currentColor" d="M9.2 20v-5.2h5.6V20H9.2z"/>
+                                            </svg>
+                                        </span>
+                                        Lotissements
+                                    </NavLink>
+
+                                    <NavLink :href="route('parametre.pointDensifier.createPoint')" class="app-nav-link" :class="{'is-active': route().current('parametre.pointDensifier.createPoint')}">
+                                        <span class="nav-ico">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                <path fill="currentColor" d="M12 2.4c-3 0-5.4 2.4-5.4 5.4 0 4 5.4 9.6 5.4 9.6s5.4-5.6 5.4-9.6c0-3-2.4-5.4-5.4-5.4z"/>
+                                                <circle cx="12" cy="7.8" r="1.8" fill="currentColor" opacity=".35"/>
+                                            </svg>
+                                        </span>
+                                        Points
+                                    </NavLink>
+
+                                    <NavLink :href="route('parametre.service.create')" class="app-nav-link" :class="{'is-active': route().current('parametre.service.create') || route().current('parametre.service.edit')}">
+                                        <span class="nav-ico">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                <path fill="currentColor" opacity=".4" d="M6 3.2h8.2L19.6 8v12.2a1.8 1.8 0 0 1-1.8 1.8H6A1.8 1.8 0 0 1 4.2 20.2V5A1.8 1.8 0 0 1 6 3.2z"/>
+                                                <path fill="currentColor" d="M8 12.2h8v1.6H8zm0 3.4h5.4v1.6H8z"/>
+                                            </svg>
+                                        </span>
+                                        Recueil de textes
+                                    </NavLink>
+
+                                    <NavLink :href="route('parametre.trimestre.create')" class="app-nav-link" :class="{'is-active': route().current('parametre.trimestre.create')}">
+                                        <span class="nav-ico">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                <path fill="currentColor" opacity=".35" d="M4 5.2h16A1.8 1.8 0 0 1 21.8 7v12.2A1.8 1.8 0 0 1 20 21H4a1.8 1.8 0 0 1-1.8-1.8V7A1.8 1.8 0 0 1 4 5.2z"/>
+                                                <path fill="currentColor" d="M4 9.4h16v1.6H4zM8 3v4M16 3v4"/>
+                                            </svg>
+                                        </span>
+                                        Trimestres
+                                    </NavLink>
+
+                                    <NavLink :href="route('parametre.bareme.index')" class="app-nav-link" :class="{'is-active': route().current('parametre.bareme.index')}">
+                                        <span class="nav-ico">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                <path fill="currentColor" d="M11 3h2v15h-2zM7 20h10v2H7z"/>
+                                                <path fill="currentColor" opacity=".45" d="M4 8h16v2H4zM4 8 1.5 14h5L4 8zm16 0-2.5 6h5L20 8z"/>
+                                            </svg>
+                                        </span>
+                                        Barèmes
+                                    </NavLink>
+
+                                    <NavLink :href="route('parametre.chart')" class="app-nav-link" :class="{'is-active': route().current('parametre.chart')}">
+                                        <span class="nav-ico">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                <path fill="currentColor" opacity=".35" d="M4 4h2v16H4zM4 18h16v2H4z"/>
+                                                <path fill="currentColor" d="M8 14h2.2v4H8zm4.2-4H14.4v8h-2.2zM16.6 7H19v11h-2.4z"/>
+                                            </svg>
+                                        </span>
+                                        Évaluation
+                                    </NavLink>
+                                </div>
+                            </template>
   
                             </div>
                         </nav>
