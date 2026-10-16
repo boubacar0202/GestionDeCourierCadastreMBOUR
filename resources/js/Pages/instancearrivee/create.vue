@@ -1,109 +1,127 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { ref, computed  } from 'vue';
-import { Head } from '@inertiajs/vue3';
-import { defineProps, onMounted } from 'vue';
-import { router, usePage  } from '@inertiajs/vue3'
-import { Link as InertiaLink } from '@inertiajs/vue3'
+import { ref, computed, watch, nextTick, onMounted } from 'vue';
+import { Head, router, Link as InertiaLink } from '@inertiajs/vue3';
 import BaseInput from '@/Components/BaseInput.vue'
-import BaseSelect from '@/Components/BaseSelect.vue'  
- 
+import BaseSelect from '@/Components/BaseSelect.vue'
+import MazBtn from 'maz-ui/components/MazBtn'
+
 const props = defineProps({
-    arrivee: Object,    
-    arrivees: Array,  
+    arrivees: {
+        type: Object,
+        default: () => ({
+            data: [],
+            links: [],
+            current_page: 1,
+            last_page: 1,
+            per_page: 15,
+            total: 0,
+            from: 0,
+            to: 0,
+        }),
+    },
+    designations: {
+        type: Array,
+        default: () => [],
+    },
+    totalCourrier: {
+        type: Number,
+        default: 0,
+    },
+    totalConvocationsImminentes: {
+        type: Number,
+        default: 0,
+    },
+    convocationProche: {
+        type: Array,
+        default: () => [],
+    },
+    filters: {
+        type: Object,
+        default: () => ({}),
+    },
+    focus: {
+        type: String,
+        default: '',
+    },
 });
-   
-const refPrenomNom = ref('');  
-const annee = ref(''); 
+
+const filters = ref({
+    annee: props.filters?.annee || '',
+    courrier: props.filters?.courrier || '',
+    prenomNom: props.filters?.prenomNom || '',
+    designation: props.filters?.designation || '',
+});
+
 const rowRefs = ref({});
-const refCourrierArrivee = ref('');
-const refDesignation = ref('');
-  
-// Extraire les désignations uniques depuis les données
-const uniqueDesignations = computed(() => {
-  const set = new Set(props.arrivees.map(a => a.txt_designation).filter(Boolean));
-  return Array.from(set);
-});
+let suppressFilterWatch = false;
 
-// Normalisation 
-function normalize(str) {
-    return str?.toString().trim().toLowerCase();
-}
-  
-// Ajout du tri
-const filtereArrivees = computed(() => {
-    const now = new Date();
-
-    const addLateFlag = (arrivee) => {
-        const dtDate = arrivee.dt_date ? new Date(arrivee.dt_date) : null;
-
-        return {
-            ...arrivee,
-            isLateConvocation:
-                arrivee.txt_categorie === 'Convocation - Invitation' &&
-                dtDate &&
-                (dtDate - now) > 0 && // date future
-                (dtDate - now) <= (72 * 60 * 60 * 1000) // <= 72h
-        };
+function debounce(fn, delay) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), delay);
     };
+}
 
-    const filtered = props.arrivees.filter(arrivee => {
-  
-        const matchPrenomNom = refPrenomNom.value
-        ? (
-            (arrivee.txt_prenom && normalize(arrivee.txt_prenom).includes(normalize(refPrenomNom.value))) ||
-            (arrivee.txt_nom && normalize(arrivee.txt_nom).includes(normalize(refPrenomNom.value))) ||
-            (arrivee.txt_agenttraiteur && normalize(arrivee.txt_agenttraiteur).includes(normalize(refPrenomNom.value)))
-          )
-        : true;
-
-        const matchAnnee = annee.value
-            ? new Date(arrivee.dt_datearrivee).getFullYear().toString() === annee.value
-            : true;
-
-        const matchArrivee = refCourrierArrivee.value
-            ? normalize(arrivee.txt_numcourier)?.includes(normalize(refCourrierArrivee.value))
-            : true;
-         
-        const matchDesignation = refDesignation.value
-            ? normalize(arrivee.txt_designation)?.includes(normalize(refDesignation.value))
-            : true;
- 
-        return matchPrenomNom && matchAnnee && matchArrivee && matchDesignation;
+const loadPage = (page = 1, extra = {}) => {
+    router.get(route('instancearrivee.create'), {
+        ...filters.value,
+        page,
+        ...extra,
+    }, {
+        preserveState: true,
+        replace: true,
+        preserveScroll: !extra.focus,
+        only: extra.focus ? ['arrivees', 'filters', 'focus'] : ['arrivees'],
     });
- 
-    const sorted = filtered.sort((a, b) => {
-        const numA = parseInt(a.txt_numdordre?.split("/")[0] || 0, 10);
-        const numB = parseInt(b.txt_numdordre?.split("/")[0] || 0, 10);
-        return numA - numB; // tri croissant
-    });
+};
 
-    return sorted.map(addLateFlag);
+const debouncedSearch = debounce((page = 1) => {
+    loadPage(page);
+}, 300);
+
+watch(filters, () => {
+    if (suppressFilterWatch) return;
+    debouncedSearch(1);
+}, { deep: true });
+
+const hasFilters = computed(() => Object.values(filters.value).some((value) => String(value || '').trim() !== ''));
+
+const pagination = computed(() => {
+    const links = Array.isArray(props.arrivees?.links) ? props.arrivees.links : [];
+    const pages = links.length > 2 ? links.slice(1, -1) : links.filter((link) => link?.url || link?.label);
+
+    return {
+        links: pages,
+        prev: props.arrivees?.prev_page_url || null,
+        next: props.arrivees?.next_page_url || null,
+        meta: {
+            current_page: props.arrivees?.current_page || 1,
+            per_page: props.arrivees?.per_page || 15,
+            total: props.arrivees?.total || 0,
+            last_page: props.arrivees?.last_page || 1,
+            from: props.arrivees?.from || 0,
+            to: props.arrivees?.to || 0,
+        },
+    };
 });
 
+const goToPage = (url) => {
+    if (!url) return;
+    const params = new URL(url, window.location.origin).searchParams;
+    const next = Number(params.get('page') || 1);
+    if (next) loadPage(next);
+};
 
-// Compter le nombre d'invitation dans 72H 
-const totalConvocationsImminentes = computed(() => {
-    const now = new Date();
+const prevPage = () => {
+    if (pagination.value.prev) goToPage(pagination.value.prev);
+};
 
-    return props.arrivees.filter(arrivee => {
-        const dtDate = arrivee.dt_date ? new Date(arrivee.dt_date) : null;
+const nextPage = () => {
+    if (pagination.value.next) goToPage(pagination.value.next);
+};
 
-        return (
-            arrivee.txt_categorie === 'Convocation - Invitation' &&
-            dtDate &&
-            (dtDate - now) > 0 &&
-            (dtDate - now) <= (72 * 60 * 60 * 1000)
-        );
-    }).length;
-});
- 
-// Compter le nombre total de courrier
-const totalCourrier = computed(() => {
-    return props.arrivees.filter(totalarrivee => !!totalarrivee.txt_numdordre).length;
-});
-
-// format de la date
 const formatDate = (dateString) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -113,7 +131,6 @@ const formatDate = (dateString) => {
     });
 };
 
-// fonction d'envoi du formulaire
 function supprimerCourrierArrivee(arrivee) {
     const code = prompt("Entrez le code d'accès pour confirmer la suppression :");
 
@@ -123,71 +140,71 @@ function supprimerCourrierArrivee(arrivee) {
     }
 
     router.delete(route('instancearrivee.destroy', arrivee.id), {
-        data: { code_acces: code }, // ✅ on envoie le code au backend
+        data: { code_acces: code },
         preserveScroll: true,
         onSuccess: () => {
-            console.log('Suppression réussie');
+            if ((props.arrivees?.data?.length || 0) === 0 && (props.arrivees?.current_page || 1) > 1) {
+                loadPage((props.arrivees?.last_page || 1));
+            }
         },
         onError: (errors) => {
             alert(errors.code_acces || "Erreur : code invalide ou suppression refusée.");
-            console.error(errors);
         }
     });
 }
 
-
-// 👉 Liste filtrée (même logique mais sans length)
-const convocationsDans48h = computed(() => {
-    const now = new Date();
-
-    return props.arrivees.filter(arrivee => {
-        const dtDate = arrivee.dt_date ? new Date(arrivee.dt_date) : null;
-
-        return (
-            arrivee.txt_categorie === 'Convocation - Invitation' &&
-            dtDate &&
-            dtDate > now && 
-            (dtDate - now) <= 48 * 60 * 60 * 1000
-            
-        );
-    });
-});
-
-// 👉 Convocation(s) la/les plus proche(s)
-const convocationProche = computed(() => {
-    if (!convocationsDans48h.value.length) return null;
-
-    // Prendre la date la plus proche
-    const minDate = Math.min(
-        ...convocationsDans48h.value.map(c => new Date(c.dt_date).getTime())
-    );
-
-    // Retourner toutes celles qui ont cette même date
-    return convocationsDans48h.value.filter(
-        c => new Date(c.dt_date).getTime() === minDate
-    );
-});
- 
-// Fonction pour faire défiler jusqu'à la convocation
-const goToConvocation = (txt_numdordre) => {
+const scrollToConvocation = (txt_numdordre) => {
     const row = rowRefs.value[txt_numdordre];
-    if (row) {
-        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Optionnel : mettre en surbrillance la ligne pendant 2 sec
-        row.classList.add('bg-yellow-300');
-        setTimeout(() => row.classList.remove('bg-yellow-300'), 5000);
-    }
+    if (!row) return;
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    row.classList.add('bg-yellow-300');
+    setTimeout(() => row.classList.remove('bg-yellow-300'), 5000);
 };
+
+const applyServerFilters = (value) => {
+    suppressFilterWatch = true;
+    filters.value = {
+        annee: value?.annee || '',
+        courrier: value?.courrier || '',
+        prenomNom: value?.prenomNom || '',
+        designation: value?.designation || '',
+    };
+    nextTick(() => {
+        suppressFilterWatch = false;
+    });
+};
+
+const goToConvocation = (txt_numdordre) => {
+    router.get(route('instancearrivee.create'), {
+        ...filters.value,
+        focus: txt_numdordre,
+    }, {
+        preserveState: true,
+        replace: true,
+        preserveScroll: false,
+        only: ['arrivees', 'filters', 'focus'],
+        onSuccess: (page) => {
+            applyServerFilters(page.props.filters);
+            nextTick(() => scrollToConvocation(txt_numdordre));
+        },
+    });
+};
+
 const formatDateDMY = (dateStr) => {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
     return date.toLocaleDateString('fr-FR', {
         day: '2-digit',
-        month: 'short',  // abrégé : janv., févr., sept., etc.
+        month: 'short',
         year: 'numeric'
     });
 };
 
+onMounted(() => {
+    if (props.focus) {
+        nextTick(() => scrollToConvocation(props.focus));
+    }
+});
 </script>
 
 <template>
@@ -202,13 +219,11 @@ const formatDateDMY = (dateStr) => {
             >
                 Liste des Courriers Arrivés
             </h2>
-            
-            <!-- Vérification pour afficher un message si aucune donnée -->
-            <template class="text-xl font-semibold leading-tight text-primary-txt" v-if="(!arrivees || arrivees.length === 0)">
-                <p>Aucun Courrier arrivée trouvé.</p>
-            </template>
-           
-        </template v-else>
+
+            <p v-if="!totalCourrier" class="text-xl font-semibold leading-tight text-primary-txt">
+                Aucun Courrier arrivée trouvé.
+            </p>
+        </template>
 
         <div class="py-12">
             <div class="flex justify-center">
@@ -227,13 +242,16 @@ const formatDateDMY = (dateStr) => {
                                         </span>
                                         <span v-else class="text-red-600">
                                             Aucun enregistrement
-                                        </span> 
-                                    </h1> 
+                                        </span>
+                                        <span v-if="hasFilters" class="text-sm font-semibold text-primary">
+                                            — {{ pagination.meta.total }} avec filtres
+                                        </span>
+                                    </h1>
                                     <h2 class="text-sm text-primary font-bold">
                                         Convocation dans 72H :
                                         <span class="text-primary-dark font-bold">{{ totalConvocationsImminentes }}</span>
-                                    </h2>  
-                                    
+                                    </h2>
+
                                     <ul v-if="convocationProche && convocationProche.length" class="space-y-2">
                                         <li
                                             v-for="convocation in convocationProche"
@@ -242,7 +260,7 @@ const formatDateDMY = (dateStr) => {
                                              @click="goToConvocation(convocation.txt_numdordre)"
                                         >
                                             <div class="flex items-center space-x-2">
-                                                <p class="font-medium text-sm text-primary-txt"> 
+                                                <p class="font-medium text-sm text-primary-txt">
                                                     Dans 48H : 📅 {{ formatDateDMY(convocation.dt_date) }} à {{ convocation.txt_heure }}
                                                 </p>
                                             </div>
@@ -252,7 +270,7 @@ const formatDateDMY = (dateStr) => {
                                     <p v-else class="text-sm text-primary-txt p-2 bg-white border rounded-xl shadow-sm italic">
                                         Pas de convocation dans les 48h
                                     </p>
- 
+
                                     <form @submit.prevent class="flex flex-wrap items-center gap-2">
                                         <BaseInput
                                             class="w-24"
@@ -261,7 +279,7 @@ const formatDateDMY = (dateStr) => {
                                             type="search"
                                             maxlength="4"
                                             placeholder="année"
-                                            v-model="annee"
+                                            v-model="filters.annee"
                                         />
                                         <BaseInput
                                             class="w-36"
@@ -269,7 +287,7 @@ const formatDateDMY = (dateStr) => {
                                             name="filtre-courrier"
                                             type="search"
                                             placeholder="N° Courriers"
-                                            v-model="refCourrierArrivee"
+                                            v-model="filters.courrier"
                                         />
                                         <BaseInput
                                             class="w-40"
@@ -277,30 +295,30 @@ const formatDateDMY = (dateStr) => {
                                             name="filtre-nom"
                                             type="search"
                                             placeholder="Prénom & Nom"
-                                            v-model="refPrenomNom"
+                                            v-model="filters.prenomNom"
                                         />
                                         <BaseSelect
                                             class="w-44"
                                             label="Désignation"
                                             name="filtre-designation"
-                                            v-model="refDesignation"
-                                            :options="uniqueDesignations"
+                                            v-model="filters.designation"
+                                            :options="designations"
                                             placeholder="Tous"
                                         />
                                     </form>
                                 </div>
                             </div>
- 
+
                             <div class="p-4">
                                 <div class="max-h-[600px] overflow-x-auto shadow-md rounded-xl">
                                             <table class="table table-auto w-full text-base text-left text-primary-txt">
 
-                                                <thead  class="sticky top-0 z-10 text-primary-txt text-center border-l border-primary-only uppercase 
+                                                <thead  class="sticky top-0 z-10 text-primary-txt text-center border-l border-primary-only uppercase
                                                     bg-primary-form text-primary-txt whitespace-nowrap">
                                                     <tr class="h-10">
-                                                        <th scope="col" class="px-6 px-6 border-l border-primary-only">N°</th>
+                                                        <th scope="col" class="px-6 border-l border-primary-only">N°</th>
                                                         <th scope="col" class="px-6 py-3 border-l border-primary-only">Bordereau</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">N° d'ordre d'arrivée</th> 
+                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">N° d'ordre d'arrivée</th>
                                                         <th scope="col" class="px-6 py-3 border-l border-primary-only">Date Récéption</th>
                                                         <th scope="col" class="px-6 py-3 border-l border-primary-only">Categorie</th>
                                                         <th scope="col" class="px-6 py-3 border-l border-primary-only">Désignation</th>
@@ -326,11 +344,11 @@ const formatDateDMY = (dateStr) => {
                                                         <th scope="col" class="px-6 py-3 border-l border-primary-only">ACTIONS</th>
                                                     </tr>
                                                 </thead>
-                                                        
-                                                <tbody sortedArrivees >
-                                                    <tr v-for="(arrivee, index) in filtereArrivees" :key="arrivee.id" :ref="el => (rowRefs[arrivee.txt_numdordre] = el)" 
-                                                        class="h-20 bg-white text-primary-txt text-center font-bold whitespace-nowrap hover:bg-primary-form dark:hover:bg-primary-form">
-                                                        <td scope="col" class="sticky left-0 z-0 bg-white px-6 py-3 border border-primary-form">{{ index + 1 }}</td>
+
+                                                <tbody>
+                                                    <tr v-for="(arrivee, index) in arrivees.data" :key="arrivee.id" :ref="el => (rowRefs[arrivee.txt_numdordre] = el)"
+                                                        class="bg-white text-primary-txt text-center font-bold whitespace-nowrap hover:bg-primary-form dark:hover:bg-primary-form">
+                                                        <td scope="col" class="sticky left-0 z-0 bg-white px-6 py-3 border border-primary-form">{{ ((pagination.meta.current_page - 1) * pagination.meta.per_page) + index + 1 }}</td>
                                                         <td scope="col" class="px-6 py-3 border border-primary-only">{{ arrivee.txt_bordereau || '-' }}</td>
                                                         <td scope="col" class="px-6 py-3 border border-primary-only" :class="arrivee.isLateConvocation ? 'text-green-600 font-bold' : ''">{{ arrivee.txt_numdordre }}</td>
                                                         <td scope="col" class="px-6 py-3 border border-primary-only">{{ formatDate(arrivee.dt_datearrivee) || '-' }}</td>
@@ -354,7 +372,7 @@ const formatDateDMY = (dateStr) => {
                                                         <td scope="col" class="px-6 py-3 border border-primary-only">{{ arrivee.txt_expediteur || '-' }}</td>
                                                         <td scope="col" class="px-6 py-3 border border-primary-only">{{ arrivee.txt_agenttraiteur || '-' }}</td>
                                                         <td scope="col" class="px-6 py-3 border border-primary-only">{{ arrivee.txt_observation || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only"> 
+                                                        <td scope="col" class="px-6 py-3 border border-primary-only">
                                                             <div v-if="arrivee.fichierPDF">
                                                                 <a :href="`/storage/${arrivee.fichierPDF}`" target="_blank" class="text-blue-600 underline">
                                                                     📄 Voir PDF
@@ -362,41 +380,81 @@ const formatDateDMY = (dateStr) => {
                                                             </div>
                                                             <div v-else class="font-semibold italic text-primary-txt/60">Aucun fichier PDF</div>
                                                         </td>
-                                                
-                                                        <td class="flex items px-6 py-3">
-                                                            <div class="mt-2">
+
+                                                        <td class="sticky right-0 z-8 px-2 py-1 border bg-white whitespace-nowrap">
+                                                            <div class="flex justify-center gap-2">
                                                                 <InertiaLink :href="`/arrivee/editarrivee/${arrivee.id}`">
-                                                                    <MazBtn 
-                                                                        color="white" pastel size="medium"  
-                                                                        class="h-auto w-25 text-white bg-gradient-to-r from-green-400 via-green-500 
-                                                                        to-green-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none 
-                                                                        focus:ring-green-300 dark:focus:ring-green-800 shadow-lg shadow-green-500/50 
-                                                                        dark:shadow-lg dark:shadow-green-800/80 font-medium rounded-lg text-xs px-3 py-1 text-center me-2 mb-2" 
+                                                                    <MazBtn
+                                                                        size="large"
+                                                                        aria-label="Modifier"
+                                                                        title="Modifier"
+                                                                        class="h-6 w-6 text-white bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-xs px-5 py-2.5 text-center"
                                                                     >
-                                                                       ✏️Modifier
+                                                                        ✏️
                                                                     </MazBtn>
-                                                                </InertiaLink> 
-                                                            </div>
-                                                            <div class="container">
-                                                                <p></p>
-                                                            </div>
-                                                            <div class="mt-2">
-                                                                <MazBtn 
-                                                                    color="danger" size="medium"   
+                                                                </InertiaLink>
+                                                                <MazBtn
+                                                                    size="large"
+                                                                    color="danger"
+                                                                    aria-label="Supprimer"
+                                                                    title="Supprimer"
                                                                     @click="() => supprimerCourrierArrivee(arrivee)"
-                                                                    class="h-auto w-28 text-white bg-gradient-to-r from-danger-500 via-danger-600 
-                                                                    to-danger-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none 
-                                                                    focus:ring-danger-300 dark:focus:ring-danger-800 shadow-lg shadow-danger-500/50 
-                                                                    dark:shadow-lg dark:shadow-danger-800/80 font-medium rounded-lg text-xs px-3 py-1 text-center me-2 mb-2"
+                                                                    class="h-6 w-6 text-white bg-gradient-to-r from-red-500 via-red-600 to-red-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-xs px-5 py-2.5 text-center"
                                                                 >
-                                                                    🗑️Supprimer
+                                                                    🗑
                                                                 </MazBtn>
                                                             </div>
                                                         </td>
-
+                                                    </tr>
+                                                    <tr v-if="!arrivees.data?.length">
+                                                        <td colspan="26" class="text-center py-12 text-primary-txt text-base">
+                                                            Aucun courrier arrivée trouvé
+                                                        </td>
                                                     </tr>
                                                 </tbody>
                                             </table>
+                                </div>
+                            </div>
+
+                            <div class="p-4 border-t flex flex-wrap justify-between items-center gap-4 bg-gray-50 rounded-b-xl">
+                                <p class="text-sm text-primary-txt">
+                                    {{ pagination.meta.from }}–{{ pagination.meta.to }} sur {{ pagination.meta.total }}
+                                </p>
+                                <div class="flex gap-1 flex-wrap">
+                                    <button
+                                        type="button"
+                                        @click="prevPage"
+                                        :disabled="!pagination.prev"
+                                        class="px-3 py-1.5 rounded-lg text-sm font-medium transition disabled:opacity-40 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-primary-txt"
+                                    >
+                                        ← Précédent
+                                    </button>
+
+                                    <button
+                                        v-for="(link, linkIndex) in pagination.links"
+                                        :key="linkIndex"
+                                        type="button"
+                                        @click="goToPage(link.url)"
+                                        :disabled="!link.url"
+                                        :class="[
+                                            'px-3.5 py-1.5 rounded-lg text-sm font-medium transition',
+                                            link.active
+                                                ? 'bg-primary text-white shadow-md'
+                                                : 'bg-gray-200 hover:bg-gray-300 text-primary-txt',
+                                            !link.url ? 'opacity-40 cursor-not-allowed' : ''
+                                        ]"
+                                        v-html="link.label"
+                                    >
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        @click="nextPage"
+                                        :disabled="!pagination.next"
+                                        class="px-3 py-1.5 rounded-lg text-sm font-medium transition disabled:opacity-40 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-primary-txt"
+                                    >
+                                        Suivant →
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -425,13 +483,14 @@ const formatDateDMY = (dateStr) => {
 }
 
 table tr td {
-  padding-top: 0.25rem; /* équivaut à py-1 */
+  padding-top: 0.25rem;
   padding-bottom: 0.25rem;
-  line-height: 1rem; /* équivaut à leading-3 */
-  font-size: 0.80rem; /* équivaut à text-xs */
+  line-height: 1rem;
+  font-size: 0.80rem;
 }
 
+button:active:not(:disabled) {
+    transform: scale(0.95);
+}
 
 </style>
- 
- 

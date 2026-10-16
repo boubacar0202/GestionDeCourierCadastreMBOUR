@@ -324,7 +324,7 @@ onUnmounted(() => {
                                         </span>
                                         Recueil de textes
                                     </NavLink>
-
+                                    <!--
                                     <NavLink :href="route('parametre.trimestre.create')" class="app-nav-link" :class="{'is-active': route().current('parametre.trimestre.create')}">
                                         <span class="nav-ico">
                                             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -354,6 +354,7 @@ onUnmounted(() => {
                                         </span>
                                         Évaluation
                                     </NavLink>
+                                    -->
                                 </div>
                             </template>
   

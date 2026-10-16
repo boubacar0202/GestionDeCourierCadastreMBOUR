@@ -125,7 +125,7 @@ Route::middleware('auth')->group(function () {
  
 Route::post('/message/markRead/{senderId}', [MessageController::class, 'markRead'])->name('messages.markRead');
  
-Route::get('/api/messages/{id}', [MessageController::class, 'fetchMessages']); 
+Route::get('/api/messages/{id}', [MessageController::class, 'apiIndex']); 
 Route::post('/message', [MessageController::class, 'store']);
 Route::post('/message/markReceived/{senderId}', [MessageController::class, 'markReceived']);
 Route::middleware('auth:sanctum')->get('/messages/{receiverId}', [MessageController::class, 'messages']);

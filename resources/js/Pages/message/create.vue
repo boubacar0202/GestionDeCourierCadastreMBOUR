@@ -169,7 +169,7 @@ async function selectUser(userId) {
 
     // Mettre à jour localement les messages pour afficher ✅
     messages.value = messages.value.map(msg => {
-      if(msg.sender_id === userId && !msg.is_read) {
+      if(sameId(msg.sender_id, userId) && !msg.is_read) {
         return { ...msg, is_read: true };
       }
       return msg;
@@ -181,17 +181,30 @@ async function selectUser(userId) {
   }
 }
   
+function sameId(a, b) {
+  return Number(a) === Number(b);
+}
+
 function isMine(msg) {
-  return msg.sender_id === user.value?.id;
+  return sameId(msg.sender_id, user.value?.id);
+}
+
+function dayKey(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toDateString();
 }
  
-// Messages filtrés pour la discussion courante
+// Tous les messages précédents de la discussion courante
 const filteredMessages = computed(() => {
-  if (!receiverId.value) return [];
-  return messages.value.filter(
-    m => (m.sender_id === receiverId.value && m.receiver_id === user.value.id) ||
-         (m.sender_id === user.value.id && m.receiver_id === receiverId.value)
-  ).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+  if (!receiverId.value || !user.value) return [];
+  const me = Number(user.value.id);
+  const other = Number(receiverId.value);
+  return messages.value.filter((m) => {
+    const sender = Number(m.sender_id);
+    const receiver = Number(m.receiver_id);
+    return (sender === other && receiver === me) || (sender === me && receiver === other);
+  }).sort((a,b) => new Date(a.created_at) - new Date(b.created_at) || Number(a.id) - Number(b.id));
 });
  
 // Soumission du formulaire 
@@ -317,16 +330,23 @@ function cancelEdit() {
                 <div v-if="!receiverId" class="text-primary-txt text-center mt-10">
                   Choisissez un utilisateur pour commencer la discussion
                 </div>
-                <div v-else-if="messages.length === 0" class="text-primary-txt text-center mt-10">
+                <div v-else-if="filteredMessages.length === 0" class="text-primary-txt text-center mt-10">
                   Aucun message avec {{ receiverUser.name }}
                 </div>
 
-                <div v-for="msg in filteredMessages" :key="msg?.id" class="flex w-full items-center relative"
-                    :class="msg.sender_id === user.id ? 'justify-end' : 'justify-start'">
+                <template v-for="(msg, index) in filteredMessages" :key="msg?.id">
+                <p
+                  v-if="index === 0 || dayKey(msg.created_at) !== dayKey(filteredMessages[index - 1].created_at)"
+                  class="self-center rounded-full bg-white/80 px-3 py-1 text-xs text-primary-txt"
+                >
+                  {{ new Date(msg.created_at).toLocaleDateString() }}
+                </p>
+                <div class="flex w-full items-center relative"
+                    :class="sameId(msg.sender_id, user.id) ? 'justify-end' : 'justify-start'">
                   <div 
                       :class="[
                         'px-3 py-2 max-w-xs rounded-xl relative', 
-                        msg.sender_id === user.id 
+                        sameId(msg.sender_id, user.id) 
                         ? 'bg-[#d9f5e3] text-primary-txt' 
                         : 'bg-primary-form text-primary-txt'
                       ]" 
@@ -334,13 +354,13 @@ function cancelEdit() {
                     <p class="text-sm">{{ msg.content }}</p> 
 
 
-                    <!-- ✅ Indicateur “lu” pour les messages envoyés --> 
+                    <!-- Indicateur lu pour les messages envoyés --> 
                      <div class="w-full flex justify-between items-end mt-1">
                       <span class="text-xs opacity-70  ">
-                        {{ msg.created_at ? new Date(msg.created_at).toLocaleTimeString() : '' }}
+                        {{ msg.created_at ? new Date(msg.created_at).toLocaleString([], { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '' }}
                       </span> 
 
-                      <span v-if="msg.sender_id === user.id" 
+                      <span v-if="sameId(msg.sender_id, user.id)" 
                             class="text-xs"
                             :class="msg.is_read ? 'text-blue-500' : 'text-blue-400'">
                         {{ msg.is_read ? '✓✓' : '✓' }}
@@ -382,7 +402,8 @@ function cancelEdit() {
                         </div> 
                     </template> 
                   </div>
-                </div> 
+                </div>
+                </template>
               </div> 
               <!-- Formulaire -->
               <form v-if="receiverId" @submit.prevent="handleSubmit" class="flex items-end space-x-2 border-primary-only p-4">

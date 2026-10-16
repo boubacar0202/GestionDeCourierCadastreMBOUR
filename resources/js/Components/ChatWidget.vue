@@ -30,15 +30,37 @@ const otherUsers = computed(() =>
     }))
 );
 
+function sameId(a, b) {
+    return Number(a) === Number(b);
+}
+
+function formatWhen(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    const time = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const today = new Date();
+    if (date.toDateString() === today.toDateString()) return time;
+    return `${date.toLocaleDateString()} ${time}`;
+}
+
+function dayKey(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toDateString();
+}
+
 const filteredMessages = computed(() => {
     if (!receiverId.value || !user.value) return [];
+    const me = Number(user.value.id);
+    const other = Number(receiverId.value);
     return messages.value
-        .filter(
-            (m) =>
-                (m.sender_id === receiverId.value && m.receiver_id === user.value.id) ||
-                (m.sender_id === user.value.id && m.receiver_id === receiverId.value)
-        )
-        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        .filter((m) => {
+            const sender = Number(m.sender_id);
+            const receiver = Number(m.receiver_id);
+            return (sender === other && receiver === me) || (sender === me && receiver === other);
+        })
+        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at) || Number(a.id) - Number(b.id));
 });
 
 function initials(name) {
@@ -303,20 +325,25 @@ onUnmounted(() => {
                     <p v-if="filteredMessages.length === 0" class="chat-empty">
                         Aucun message avec {{ receiverUser.name }}
                     </p>
-                    <div
-                        v-for="msg in filteredMessages"
-                        :key="msg.id"
-                        class="chat-row"
-                        :class="msg.sender_id === user.id ? 'is-mine' : ''"
+                    <template v-for="(msg, index) in filteredMessages" :key="msg.id">
+                    <p
+                        v-if="index === 0 || dayKey(msg.created_at) !== dayKey(filteredMessages[index - 1].created_at)"
+                        class="chat-day"
                     >
-                        <div class="chat-bubble" :class="msg.sender_id === user.id ? 'is-mine' : ''">
+                        {{ new Date(msg.created_at).toLocaleDateString() }}
+                    </p>
+                    <div
+                        class="chat-row"
+                        :class="sameId(msg.sender_id, user.id) ? 'is-mine' : ''"
+                    >
+                        <div class="chat-bubble" :class="sameId(msg.sender_id, user.id) ? 'is-mine' : ''">
                             <p>{{ msg.content }}</p>
                             <div class="chat-meta">
-                                <span>{{ msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '' }}</span>
-                                <span v-if="msg.sender_id === user.id">{{ msg.is_read ? '✓✓' : '✓' }}</span>
+                                <span>{{ formatWhen(msg.created_at) }}</span>
+                                <span v-if="sameId(msg.sender_id, user.id)">{{ msg.is_read ? '✓✓' : '✓' }}</span>
                             </div>
                             <button
-                                v-if="msg.sender_id === user.id"
+                                v-if="sameId(msg.sender_id, user.id)"
                                 type="button"
                                 class="chat-more"
                                 @click="toggleMenu(msg.id)"
@@ -330,6 +357,7 @@ onUnmounted(() => {
                             </div>
                         </div>
                     </div>
+                    </template>
                 </div>
 
                 <form class="chat-composer" @submit.prevent="handleSubmit">
@@ -570,6 +598,16 @@ onUnmounted(() => {
 
 .chat-menu button.is-danger {
     color: #9b3a2f;
+}
+
+.chat-day {
+    align-self: center;
+    margin: 0.35rem 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 0.15rem 0.6rem;
+    color: #7a5a40;
+    font-size: 0.72rem;
 }
 
 .chat-empty {
