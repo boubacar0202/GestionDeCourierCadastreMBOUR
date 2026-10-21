@@ -6,11 +6,9 @@ import DeleteModal from "@/Components/DeleteModal.vue";
 import { Link } from '@inertiajs/vue3'; 
 import axios from "axios";
 import { toast } from "@/Components/AppToast";  
-import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import { Inertia } from '@inertiajs/inertia';
 import { ref, computed } from "vue";
   
-defineOptions({ layout: DefaultLayout });
 
 const loadingDelete = ref(false); 
 const showDeleteModal = ref(false)

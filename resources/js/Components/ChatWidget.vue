@@ -406,7 +406,7 @@ onUnmounted(() => {
     border: 0;
     border-radius: 999px;
     padding: 0.8rem 1.05rem;
-    background: linear-gradient(180deg, #a35b24, #7a3e12);
+    background: linear-gradient(180deg, #c7812e, #613104);
     color: #fff8f1;
     font-weight: 700;
     box-shadow: 0 12px 30px rgba(122, 62, 18, 0.35);
@@ -423,7 +423,7 @@ onUnmounted(() => {
     height: min(34rem, calc(100vh - 7rem));
     flex-direction: column;
     overflow: hidden;
-    border: 1px solid #e4d0b8;
+    border: 1px solid #e6c5a2;
     border-radius: 1.15rem;
     background: #fff;
     box-shadow: 0 18px 50px rgba(44, 24, 16, 0.22);
@@ -434,7 +434,7 @@ onUnmounted(() => {
     align-items: center;
     gap: 0.6rem;
     padding: 0.85rem 0.9rem;
-    background: linear-gradient(180deg, #8c4e1a, #7a3e12);
+    background: linear-gradient(180deg, #a35200, #613104);
     color: #fff8f1;
 }
 
@@ -487,12 +487,12 @@ onUnmounted(() => {
     border-radius: 0.8rem;
     padding: 0.55rem 0.6rem;
     background: transparent;
-    color: #2c1810;
+    color: #3f2410;
     text-align: left;
 }
 
 .chat-user:hover {
-    background: #f8efe4;
+    background: #ffe5c5;
 }
 
 .chat-avatar {
@@ -502,7 +502,7 @@ onUnmounted(() => {
     flex-shrink: 0;
     place-items: center;
     border-radius: 999px;
-    background: #7a3e12;
+    background: #613104;
     color: white;
     font-size: 0.75rem;
     font-weight: 700;
@@ -523,7 +523,7 @@ onUnmounted(() => {
     flex-direction: column;
     gap: 0.45rem;
     padding: 0.8rem;
-    background: #f7f1ea;
+    background: #faefe6;
 }
 
 .chat-row {
@@ -541,7 +541,7 @@ onUnmounted(() => {
     border-radius: 0.95rem;
     background: white;
     padding: 0.45rem 1.4rem 0.4rem 0.7rem;
-    color: #2c1810;
+    color: #3f2410;
     box-shadow: 0 1px 0 rgba(44, 24, 16, 0.05);
 }
 
@@ -570,7 +570,7 @@ onUnmounted(() => {
     right: 0.15rem;
     border: 0;
     background: transparent;
-    color: #2c1810;
+    color: #3f2410;
     font-weight: 700;
 }
 
@@ -582,7 +582,7 @@ onUnmounted(() => {
     display: grid;
     min-width: 7rem;
     overflow: hidden;
-    border: 1px solid #e4d0b8;
+    border: 1px solid #e6c5a2;
     border-radius: 0.7rem;
     background: white;
     box-shadow: 0 8px 24px rgba(44, 24, 16, 0.12);
@@ -620,7 +620,7 @@ onUnmounted(() => {
 .chat-composer {
     display: flex;
     gap: 0.4rem;
-    border-top: 1px solid #e4d0b8;
+    border-top: 1px solid #e6c5a2;
     padding: 0.65rem;
     background: white;
 }
@@ -628,7 +628,7 @@ onUnmounted(() => {
 .chat-composer input {
     min-width: 0;
     flex: 1;
-    border: 1px solid #e4d0b8;
+    border: 1px solid #e6c5a2;
     border-radius: 0.7rem;
     padding: 0.55rem 0.7rem;
     font-size: 0.9rem;
@@ -637,7 +637,7 @@ onUnmounted(() => {
 .chat-composer button {
     border: 0;
     border-radius: 0.7rem;
-    background: #7a3e12;
+    background: #613104;
     padding: 0.55rem 0.75rem;
     color: white;
     font-size: 0.85rem;
@@ -645,6 +645,6 @@ onUnmounted(() => {
 }
 
 .chat-composer button.is-ghost {
-    background: #c6a15b;
+    background: #c7812e;
 }
 </style>

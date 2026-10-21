@@ -21,7 +21,11 @@ class MessageController extends Controller
 
     public function create()
     {
-        $users = User::where('id', '!=', Auth::id())->get();
+        $users = User::query()
+            ->where('id', '!=', Auth::id())
+            ->where('is_validated', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         return Inertia::render('message/create', [
             'authUser' => Auth::user(),
@@ -133,12 +137,12 @@ class MessageController extends Controller
     }
  
     // nouvelle méthode pour supprimer un message
-    public function destroy($userId)
+    public function destroy($id)
     {
         $user = Auth::user();
-        $message = Message::find($userId);
+        $message = Message::find($id);
 
-        if (!$message || $message->sender_id !== $user->id) {
+        if (! $message || (int) $message->sender_id !== (int) $user->id) {
             return response()->json(['error' => 'Non autorisé'], 403);
         }
 
@@ -157,7 +161,7 @@ class MessageController extends Controller
         $message = Message::findOrFail($id);
 
         // Vérifier que seul l'auteur peut modifier
-        if ($message->sender_id !==  $user->id) {
+        if ((int) $message->sender_id !== (int) $user->id) {
             abort(403);
         }
 

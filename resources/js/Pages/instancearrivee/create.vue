@@ -374,7 +374,7 @@ onMounted(() => {
                                                         <td scope="col" class="px-6 py-3 border border-primary-only">{{ arrivee.txt_observation || '-' }}</td>
                                                         <td scope="col" class="px-6 py-3 border border-primary-only">
                                                             <div v-if="arrivee.fichierPDF">
-                                                                <a :href="`/storage/${arrivee.fichierPDF}`" target="_blank" class="text-blue-600 underline">
+                                                                <a :href="`/fichiers/${arrivee.fichierPDF}`" target="_blank" class="text-blue-600 underline">
                                                                     📄 Voir PDF
                                                                 </a>
                                                             </div>

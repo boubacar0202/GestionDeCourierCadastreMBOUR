@@ -6,14 +6,11 @@ import MazRadio from "maz-ui/components/MazRadio";
 import { onMounted, ref, watch, watchEffect, computed  } from "vue";
 import axios from "axios";
 import { toast } from "@/Components/AppToast";  
-import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import { Inertia } from '@inertiajs/inertia';  
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
  
 
-defineOptions({ layout: DefaultLayout }); 
- 
 const props = defineProps({
     arrivee: Object,    
     arrivees: Array,

@@ -1,13 +1,11 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import DefaultLayout from '@/Layouts/DefaultLayout.vue';
 import MazBtn from 'maz-ui/components/MazBtn';
 import { computed } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { toast } from "@/Components/AppToast";
 import * as XLSX from 'xlsx';
 
-defineOptions({ layout: DefaultLayout });
 
   
 // import { toast } from 'vue3-toastify' 

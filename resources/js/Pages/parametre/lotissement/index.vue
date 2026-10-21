@@ -1,7 +1,6 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import BaseInput from "@/Components/BaseInput.vue";
-import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import MazBtn from "maz-ui/components/MazBtn";
 import DeleteModal from "@/Components/DeleteModal.vue";
 import { Link } from '@inertiajs/vue3';
@@ -12,7 +11,6 @@ import { toast } from "@/Components/AppToast";
 import { Inertia } from "@inertiajs/inertia"; 
 
 
-defineOptions({ layout: DefaultLayout });
 
 const props = defineProps({
     lotissements: {
@@ -183,7 +181,7 @@ const confirmerSuppression = async (payload) => {
                           <td class="px-2 py-1 text-xs border whitespace-nowrap">{{ lot.txt_nombreParcelle || '-' }}</td> 
                           <td class="px-2 py-1 text-xs border">
                             <div v-if="lot.txt_documentsAfferants">
-                              <a :href="`/storage/${lot.txt_documentsAfferants}?t=${Date.now()}`" target="_blank" class="text-primary underline">
+                              <a :href="`/fichiers/${lot.txt_documentsAfferants}?t=${Date.now()}`" target="_blank" class="text-primary underline">
                                 Voir PDF
                               </a>
                             </div>

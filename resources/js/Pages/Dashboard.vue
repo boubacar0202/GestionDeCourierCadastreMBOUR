@@ -1,46 +1,66 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, usePage } from '@inertiajs/vue3';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted } from 'vue';
 import image1 from '@/assets/image1.jpeg';
 
 const page = usePage();
 
-const stats = [
-    { key: 'totalCourriersArrivees', label: 'Courriers arrivées' },
-    { key: 'totalCourriersDeparts', label: 'Courriers départs' },
-    { key: 'totalVisites', label: 'Visiteurs' },
-    { key: 'totalInstances', label: 'Courriers instances' },
+const groupes = [
+    [
+        { key: 'totalTerrains', label: 'Dossiers' },
+        { key: 'totalDelimitation', label: 'Délimitations' },
+        { key: 'totalNicad', label: 'Ont des NICAD' },
+        { key: 'totalSansNicad', label: 'Sans NICAD' },
+    ],
+    [
+        { key: 'totalCourriersArrivees', label: 'Courriers arrivées' },
+        { key: 'totalCourriersDeparts', label: 'Courriers départs' },
+        { key: 'totalInstances', label: 'Courriers instances' },
+    ],
 ];
+
+const stats = groupes.flat();
 
 const targets = computed(() =>
     Object.fromEntries(stats.map((stat) => [stat.key, Number(page.props[stat.key] ?? 0)]))
 );
 
-const display = ref(Object.fromEntries(stats.map((stat) => [stat.key, 0])));
+const nodes = {};
+const frames = [];
+
+function register(key, el) {
+    if (el) nodes[key] = el;
+}
 
 function animateCount(key, target) {
     const duration = 900;
     const start = performance.now();
 
     const step = (now) => {
+        const el = nodes[key];
+        if (!el) return;
         const progress = Math.min(1, (now - start) / duration);
-        display.value[key] = Math.round(target * (1 - Math.pow(1 - progress, 3)));
+        el.textContent = String(Math.round(target * (1 - Math.pow(1 - progress, 3))));
         if (progress < 1) {
-            requestAnimationFrame(step);
+            frames.push(requestAnimationFrame(step));
         }
     };
 
-    requestAnimationFrame(step);
+    frames.push(requestAnimationFrame(step));
 }
 
 onMounted(() => {
     stats.forEach((stat) => animateCount(stat.key, targets.value[stat.key]));
 });
+
+onUnmounted(() => {
+    frames.forEach((id) => cancelAnimationFrame(id));
+});
 </script>
 
 <template>
-    <Head title="Accueil">
+    <Head v-once title="Accueil">
         <link rel="icon" sizes="512x512" href="/logo-01.png">
     </Head>
 
@@ -55,16 +75,19 @@ onMounted(() => {
             class="relative min-h-[calc(100vh-8rem)] bg-cover bg-center bg-no-repeat"
             :style="{ backgroundImage: `url(${image1})` }"
         >
-            <div class="absolute inset-0 bg-[#2c1810]/40"></div>
-            <div class="relative flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center gap-8 px-4 py-8">
-                <div class="flex flex-wrap items-center justify-center gap-8">
+            <div class="flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center gap-8 px-4 py-8">
+                <div
+                    v-for="(groupe, index) in groupes"
+                    :key="index"
+                    class="flex flex-wrap items-center justify-center gap-8"
+                >
                     <div
-                        v-for="stat in stats"
+                        v-for="stat in groupe"
                         :key="stat.key"
-                        class="flex h-52 w-52 flex-col items-center justify-center rounded-full border-8 border-primary-only bg-white/85 text-center shadow-lg"
+                        class="flex h-52 w-52 flex-col items-center justify-center rounded-full border-8 border-primary-only bg-white/80 text-center shadow-lg"
                     >
-                        <span class="text-6xl font-bold text-primary-txt">{{ display[stat.key] }}</span>
-                        <h1 class="px-6 text-sm font-semibold uppercase text-primary-txt">{{ stat.label }}</h1>
+                        <span class="text-7xl font-bold leading-none text-primary-txt" :ref="(el) => register(stat.key, el)">0</span>
+                        <h1 class="px-6 text-sm font-semibold text-primary-txt">{{ stat.label }}</h1>
                     </div>
                 </div>
             </div>

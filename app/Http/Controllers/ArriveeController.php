@@ -77,7 +77,7 @@ class ArriveeController extends Controller
             'txt_numdordre' => 'required|unique:arrivees,txt_numdordre',   
             'txt_caractere' => 'nullable|string|max:255',
             'dt_datearrivee' => 'required|date',
-            'txt_numcourier' => 'required|unique:arrivees,txt_numdordre|string|max:255',
+            'txt_numcourier' => 'required|unique:arrivees,txt_numcourier|string|max:255',
             'dt_datecourier' => 'required|date|before_or_equal:today',
             'txt_reference' => 'required|unique:arrivees,txt_reference',
             'txt_categorie' => 'required|string|max:255',
@@ -280,15 +280,9 @@ class ArriveeController extends Controller
     public function destroy(Request $request, $id)
     {
         // Vérifier code d'accès
-        $code = CodeAcces::where('code', $request->code_acces)
-            ->where('utilise', false)
-            ->first();
-
-        if (!$code) {
+        if (! CodeAcces::consommer((string) $request->input('code_acces', ''))) {
             return back()->withErrors(['code_acces' => 'Code d’accès invalide ou déjà utilisé.']);
         }
-
-        $code->update(['utilise' => true]);
 
         $arrivee = Arrivee::findOrFail($id);
         $arrivee->delete();

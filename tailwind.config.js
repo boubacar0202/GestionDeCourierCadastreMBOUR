@@ -15,21 +15,20 @@ export default {
      theme: {
         extend: {
             fontFamily: {
-                sans: ['Outfit', ...defaultTheme.fontFamily.sans],
-                serif: ['"Source Serif 4"', ...defaultTheme.fontFamily.serif],
+                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
             maxWidth: {
                 '8xl': '88rem',
             },
             colors: {
-                primary: '#7A3E12',
-                "primary-dark": "#A35B24",
-                "primary-txt": "#2C1810",
-                "primary-only": "#E4D0B8",
-                "primary-menu": "#8C4E1A",
-                "primary-form": "#F8EFE4",
-                "primary-footer": "#F3E4D2",
-                "primary-layout": "#F7F1EA",
+                primary: '#613104',
+                "primary-dark": "#A35200",
+                "primary-txt": "#643407",
+                "primary-only": "#E6C5A2",
+                "primary-menu": "#C7812E",
+                "primary-form": "#ffe5c5",
+                "primary-footer": "#fff6ee",
+                "primary-layout": "#faefe6",
             },
             scrollbar: ['rounded'],
         },

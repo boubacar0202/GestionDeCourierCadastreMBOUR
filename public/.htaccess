@@ -5,6 +5,11 @@
 
     RewriteEngine On
 
+    # Les pièces jointes passent par une route authentifiée.
+    # Les fonds de carte GeoJSON restent lisibles par la page plan.
+    RewriteRule ^storage/.+\.geojson$ - [L]
+    RewriteRule ^storage/ - [F,L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

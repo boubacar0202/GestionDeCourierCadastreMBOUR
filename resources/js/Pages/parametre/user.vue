@@ -5,13 +5,11 @@ import MazBtn from "maz-ui/components/MazBtn";
 import { computed, ref } from "vue";
 import axios from "axios";
 import { toast } from "@/Components/AppToast";  
-import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import { Inertia } from '@inertiajs/inertia';
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import DeleteModal from "@/Components/DeleteModal.vue";
  
-defineOptions({ layout: DefaultLayout });
 
 const isAdmin = computed(() => usePage().props.auth?.user?.role === "admin");
 

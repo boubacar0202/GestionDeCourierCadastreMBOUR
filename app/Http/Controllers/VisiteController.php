@@ -57,7 +57,7 @@ class VisiteController extends Controller
             'txt_prenomVisite' => 'required|string',
             'txt_telVisite' => 'required|string',
             'txt_objetVisite' => 'required|string',
-            'txt_traitementVisite' => 'required|',
+            'txt_traitementVisite' => 'required|string|max:255',
             'dt_visite' => 'required|date', 
         ],[
             'txt_numdordreVisite.unique' => 'Le numéro d\'ordre existe déjà.',
@@ -100,9 +100,40 @@ class VisiteController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Visite $visite)
+    public function editvisite(string $id)
     {
-        //
+        $visite = Visite::findOrFail($id);
+
+        return Inertia::render('visite/editvisite', [
+            'visite' => $visite,
+        ]);
+    }
+
+    public function update(Request $request, string $id)
+    {
+        $visite = Visite::findOrFail($id);
+
+        $validateData = $request->validate([
+            'txt_numdordreVisite' => 'required|string|max:255|unique:visites,txt_numdordreVisite,'.$visite->id,
+            'txt_prenomVisite' => 'required|string|max:255',
+            'txt_telVisite' => 'required|string|max:50',
+            'txt_objetVisite' => 'required|string|max:255',
+            'txt_traitementVisite' => 'required|string|max:255',
+            'dt_visite' => 'required|date',
+        ], [
+            'txt_numdordreVisite.unique' => 'Le numéro d\'ordre existe déjà.',
+            'txt_numdordreVisite.required' => 'Le numéro est requis.',
+            'txt_prenomVisite.required' => 'Le prénom et le nom sont requis.',
+            'txt_telVisite.required' => 'Le téléphone est requis.',
+            'txt_objetVisite.required' => 'L\'objet est requis.',
+            'txt_traitementVisite.required' => 'Le traitement est requis.',
+            'dt_visite.required' => 'La date de visite est requise.',
+        ]);
+
+        $visite->update($validateData);
+
+        return redirect()->route('instancevisite.create')
+            ->with('success', 'Visite modifiée avec succès.');
     }
 
     /**
@@ -110,15 +141,9 @@ class VisiteController extends Controller
      */
     public function destroy(Request $request, $id)
     {
-        $code = CodeAcces::where('code', $request->code_acces)
-            ->where('utilise', false)
-            ->first();
-
-        if (!$code) {
+        if (! CodeAcces::consommer((string) $request->input('code_acces', ''))) {
             return back()->withErrors(['code_acces' => 'Code d’accès invalide ou déjà utilisé.']);
         }
-
-        $code->update(['utilise' => true]);
 
         $visite = Visite::findOrFail($id);
         $visite->delete();

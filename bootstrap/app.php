@@ -3,6 +3,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -24,5 +26,17 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {
+            if ($response->getStatusCode() !== 419) {
+                return $response;
+            }
+
+            $message = 'La page a expiré. Le formulaire a été rechargé, vous pouvez réessayer.';
+
+            if ($request->is('login')) {
+                return redirect()->route('login')->with('status', $message);
+            }
+
+            return back()->with('status', $message);
+        });
     })->create();

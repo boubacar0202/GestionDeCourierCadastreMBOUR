@@ -8,10 +8,8 @@ import AppCodeAccee from "@/Components/AppCodeAccee.vue";
 import { onMounted, ref, watch, computed } from "vue";
 import axios from "axios";
 import { toast } from "@/Components/AppToast";  
-import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import { Inertia } from '@inertiajs/inertia';
 
-defineOptions({ layout: DefaultLayout });
   
 const {lotissements} = defineProps({
     lotissements: Object,
@@ -286,7 +284,7 @@ async function submitForm() {
                                     />
                                     <div v-if="form.txt_documentsAfferants && typeof form.txt_documentsAfferants === 'string'" class="mt-2"> 
                                         <a
-                                            :href="`/storage/${form.txt_documentsAfferants}`"
+                                            :href="`/fichiers/${form.txt_documentsAfferants}`"
                                             target="_blank"
                                             class="text-primary underline"
                                         >

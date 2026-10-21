@@ -7,11 +7,9 @@ import BaseSelect from "@/Components/BaseSelect.vue";
 import { onMounted, ref, watch, watchEffect, computed  } from "vue";
 import axios from "axios";
 import { useToast } from "maz-ui"; 
-import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import { Inertia } from '@inertiajs/inertia';
 import { toast } from "@/Components/AppToast";  
 
-defineOptions({ layout: DefaultLayout });
 const today = new Date().toISOString().split('T')[0];
   
 // Formulaire 

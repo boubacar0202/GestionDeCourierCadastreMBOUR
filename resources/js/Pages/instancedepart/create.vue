@@ -218,7 +218,7 @@ function supprimerCourrierDepart(depart) {
                                                         <td scope="col" class="px-6 py-3 border border-primary-only">{{ depart.txt_dureetraitementcd || '-' }}</td>
                                                         <td scope="col" class="px-6 py-3 border border-primary-only"> 
                                                             <div v-if="depart.fichierPDFcd">
-                                                                <a :href="`/storage/${depart.fichierPDFcd}`" target="_blank" class="text-blue-600 underline">
+                                                                <a :href="`/fichiers/${depart.fichierPDFcd}`" target="_blank" class="text-blue-600 underline">
                                                                     Voir PDF
                                                                 </a>
                                                             </div>

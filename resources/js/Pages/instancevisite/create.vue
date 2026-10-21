@@ -178,7 +178,7 @@ function supprimerVisite(visite) {
                                                         <td scope="col" class="px-6 py-3 border border-primary-only">{{ formatDate(visite.dt_visite) || '-' }}</td> 
                                                         <td class="flex items px-6 py-3">
                                                             <div class="mt-2">
-                                                                <InertiaLink :href="`/visite/editvisite/${visite.id}`">
+                                                                <InertiaLink :href="route('visite.editvisite', visite.id)">
                                                                     <MazBtn 
                                                                         color="white" pastel size="sm"
                                                                         class="h-8 w-28 text-white bg-gradient-to-r from-green-400 via-green-500 

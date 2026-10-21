@@ -7,10 +7,8 @@ import MazBtn from "maz-ui/components/MazBtn";
 import { onMounted, ref, watch, watchEffect } from "vue";
 import axios from "axios";
 import { toast } from "@/Components/AppToast";  
-import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import { Inertia } from '@inertiajs/inertia';
 
-defineOptions({ layout: DefaultLayout });
   
 // Form
 const form = useForm({

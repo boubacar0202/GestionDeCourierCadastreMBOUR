@@ -9,11 +9,9 @@ import AppCodeAccee from "@/Components/AppCodeAccee.vue";
 import { onMounted, ref, watch, computed  } from "vue";
 import axios from "axios";
 import { toast } from "@/Components/AppToast";  
-import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import { Inertia } from '@inertiajs/inertia'; 
 import "vue-toastification/dist/index.css";
    
-defineOptions({ layout: DefaultLayout });
    
 const { mutation } = defineProps({
     mutation: {

@@ -8,10 +8,8 @@ import MazRadio from "maz-ui/components/MazRadio";
 import { onMounted, ref, watch, computed  } from "vue";
 import axios from "axios"; 
 import { toast } from "@/Components/AppToast"; 
-import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import { Inertia } from '@inertiajs/inertia';
    
-defineOptions({ layout: DefaultLayout });
  
 // const toast = showToast();
  

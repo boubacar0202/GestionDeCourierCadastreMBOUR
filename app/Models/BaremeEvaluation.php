@@ -22,4 +22,13 @@ class BaremeEvaluation extends Model
         'ordre' => 'integer',
         'actif' => 'boolean',
     ];
+
+    public static function pourCalcul()
+    {
+        return static::query()
+            ->where('actif', true)
+            ->orderBy('ordre')
+            ->orderBy('id')
+            ->get(['groupe', 'type', 'code', 'prix', 'ordre', 'actif']);
+    }
 }

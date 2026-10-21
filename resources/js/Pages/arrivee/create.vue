@@ -7,12 +7,10 @@ import BaseSelect from "@/Components/BaseSelect.vue";
 import MazRadio from "maz-ui/components/MazRadio";
 import { onMounted, ref, watch, watchEffect, computed  } from "vue";
 import axios from "axios"; 
-import DefaultLayout from "@/Layouts/DefaultLayout.vue"; 
 import { toast } from "@/Components/AppToast"; 
 import { Inertia } from '@inertiajs/inertia';
 
  
-defineOptions({ layout: DefaultLayout });
  
 const fichierPDF = ref(null);
 const today = new Date().toISOString().split('T')[0];

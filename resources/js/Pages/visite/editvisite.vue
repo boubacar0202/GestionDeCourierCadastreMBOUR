@@ -1,66 +1,55 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, useForm } from "@inertiajs/vue3";
+import { Head, useForm, router } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
-import { onMounted, ref, watch, watchEffect, computed  } from "vue";
 import axios from "axios";
-import { useToast } from "maz-ui"; 
-import DefaultLayout from "@/Layouts/DefaultLayout.vue";
-import { Inertia } from '@inertiajs/inertia';
-import { toast } from "@/Components/AppToast";  
+import { toast } from "@/Components/AppToast";
 
-defineOptions({ layout: DefaultLayout });
-const today = new Date().toISOString().split('T')[0];
-  
-// Formulaire 
-const form = useForm({
-    //  visite edit    
-    dt_visite: visit?.dt_visite || '',
-    txt_traitementVisite: visit?.txt_traitementVisite || '',
-    txt_objetVisite: viste?.txt_objetVisite || '',
-    txt_telVisite: visite?.txt_telVisite || '',
-    txt_prenomVisite: visit?.txt_prenomVisite || '',
-    txt_numdordreVisite: visit?.txt_numdordreVisite || '',
+
+const props = defineProps({
+    visite: {
+        type: Object,
+        required: true,
+    },
 });
-   
-async function submit() {
+
+const today = new Date().toISOString().split("T")[0];
+
+const form = useForm({
+    dt_visite: props.visite?.dt_visite ? String(props.visite.dt_visite).slice(0, 10) : "",
+    txt_traitementVisite: props.visite?.txt_traitementVisite || "",
+    txt_objetVisite: props.visite?.txt_objetVisite || "",
+    txt_telVisite: props.visite?.txt_telVisite || "",
+    txt_prenomVisite: props.visite?.txt_prenomVisite || "",
+    txt_numdordreVisite: props.visite?.txt_numdordreVisite || "",
+});
+
+async function submitForm() {
     try {
-        console.log("📤 Envoi du formulaire départ...");
-
         const formData = new FormData();
-        formData.append('_method', 'PUT'); // Laravel update 
-        formData.append('dt_visite', form.dt_visite);
-        formData.append('txt_traitementVisite', form.txt_traitementVisite);
-        formData.append('txt_objetVisite', form.txt_objetVisite);
-        formData.append('txt_telVisite', form.txt_telVisite); 
-        formData.append('txt_prenomVisite', form.txt_prenomVisite); 
-        formData.append('txt_numdordreVisite', form.txt_numdordreVisite); 
+        formData.append("_method", "PUT");
+        formData.append("dt_visite", form.dt_visite);
+        formData.append("txt_traitementVisite", form.txt_traitementVisite);
+        formData.append("txt_objetVisite", form.txt_objetVisite);
+        formData.append("txt_telVisite", form.txt_telVisite);
+        formData.append("txt_prenomVisite", form.txt_prenomVisite);
+        formData.append("txt_numdordreVisite", form.txt_numdordreVisite);
 
-        // Debug
-        for (let [key, value] of formData.entries()) {
-            console.log(key + ':', value);
-        }
+        await axios.post(route("visite.update", props.visite.id), formData);
 
-        await axios.post(route('visite.update', departs.id), formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
-
-        toast.success('Modification réussie !');
-        Inertia.visit(route('instancevisite.create'), { replace: true });
-
+        toast.success("Modification réussie !");
+        router.visit(route("instancevisite.create"));
     } catch (error) {
-        console.error('Erreur détaillée:', error.response?.data);
-        if (error.response?.data?.errors) {
-            Object.values(error.response.data.errors).forEach(err => toast.error(err));
+        const errors = error.response?.data?.errors;
+        if (errors) {
+            Object.values(errors).flat().forEach((err) => toast.error(err));
         } else {
-            toast.error('Erreur lors de la modification');
+            toast.error("Erreur lors de la modification");
         }
     }
 }
-
- 
 </script>
 
 <template>

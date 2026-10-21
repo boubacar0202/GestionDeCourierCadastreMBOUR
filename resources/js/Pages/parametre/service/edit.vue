@@ -2,12 +2,10 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import { toast } from "@/Components/AppToast";
-import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import MazBtn from "maz-ui/components/MazBtn";
 
-defineOptions({ layout: DefaultLayout });
 
 // ✅ Prop au SINGULIER : le service à éditer
 const props = defineProps({
@@ -121,7 +119,7 @@ const submitForm = () => {
                                 <!-- Aperçu de l'ancien PDF -->
                                 <div v-if="service.fichierPDF" class="mt-4 text-sm">
                                     <span class="text-primary-600">PDF actuel : </span>
-                                    <a :href="`/storage/${service.fichierPDF}`" target="_blank"
+                                    <a :href="`/fichiers/${service.fichierPDF}`" target="_blank"
                                        class="text-primary font-semibold underline">Voir le PDF</a>
                                 </div>
 

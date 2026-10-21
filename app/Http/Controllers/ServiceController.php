@@ -114,6 +114,6 @@ class ServiceController extends Controller
     {
         $request->validate(['code' => 'required|string']);
 
-        return CodeAcces::where('id', $id)->where('code', $request->code)->exists();
+        return CodeAcces::correspond((string) $request->input('code'), $id);
     }
 }

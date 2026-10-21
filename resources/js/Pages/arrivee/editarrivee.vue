@@ -7,11 +7,9 @@ import BaseSelect from "@/Components/BaseSelect.vue";
 import { onMounted, ref, watch, watchEffect, computed  } from "vue";
 import axios from "axios";
 import { toast } from "@/Components/AppToast";  
-import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import { Inertia } from '@inertiajs/inertia'; 
 import { router } from '@inertiajs/vue3';
  
-defineOptions({ layout: DefaultLayout });
  
 const { arrivees } = defineProps({
     arrivees: Object,  
@@ -453,7 +451,7 @@ async function submit() {
                                                 @change="handleFileChange"
                                             />
                                             <div v-if="arrivees?.fichierPDF" class="mt-2 flex items-center space-x-2">
-                                                <a :href="`/storage/${arrivees.fichierPDF}`" target="_blank" class="text-sm text-blue-600 underline">
+                                                <a :href="`/fichiers/${arrivees.fichierPDF}`" target="_blank" class="text-sm text-blue-600 underline">
                                                     Voir le PDF
                                                 </a>
                                                 <button type="button" @click="deleteFile(arrivees)" class="text-sm text-red-600 hover:text-red-800">

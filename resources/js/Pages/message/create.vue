@@ -222,7 +222,7 @@ async function handleSubmit() {
 // Modifier un message existant
 async function updateMessage(id, content) {
   try {
-    const res = await axios.put(`/api/messages/${id}`, { content });
+    const res = await axios.put(`/message/${id}`, { content });
 
     // Mettre à jour le message localement
     const msgIndex = messages.value.findIndex(m => m.id === id);

@@ -462,7 +462,7 @@ onMounted(() => {
                                             <td class="px-2 py-1 border border-primary-only">{{ point.txt_nordPoint || '-' }}</td>
                                             <td class="px-2 py-1 border border-primary-only">{{ point.txt_hauteurPoint || '-' }}</td>
                                             <td class="px-2 py-1 border border-primary-only">
-                                                <a v-if="point.fichierPDF" :href="`/storage/${point.fichierPDF}`" target="_blank"
+                                                <a v-if="point.fichierPDFPoint" :href="`/fichiers/${point.fichierPDFPoint}`" target="_blank"
                                                     class="text-primary font-bold underline">
                                                     Voir PDF
                                                 </a>

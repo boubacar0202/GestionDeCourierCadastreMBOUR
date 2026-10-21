@@ -11,19 +11,13 @@ class CodeAccesController extends Controller
     public function verify(Request $request)
     {
         $request->validate([
-            'code' => 'required|string'
+            'code' => 'required|string|max:100',
         ]);
 
-        $code = CodeAcces::where('code', $request->code)->first();
-
-        if ($code) {
-            // ✅ Marquer comme utilisé
-            $code->utilise = true;
-            $code->save();
-
+        if (CodeAcces::correspond((string) $request->input('code'))) {
             return response()->json([
                 'exists' => true,
-                'success' => 'Code confirmé.'
+                'success' => 'Code confirmé.',
             ]);
         }
 

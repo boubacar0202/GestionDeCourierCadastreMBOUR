@@ -6,7 +6,6 @@ import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { createApp, h } from "vue";
 import { ZiggyVue } from "../../vendor/tightenco/ziggy";
 import * as MazUI from "maz-ui";
-import DefaultLayout from "./Layouts/DefaultLayout.vue";
 import { installToaster } from 'maz-ui'; 
 // import Toast from 'vue-toastification'
  
@@ -33,27 +32,24 @@ createInertiaApp({
     // title: (title) => `${title} - ${appName}`,
     title: (title) => `${title}`,
     resolve: async (name) => {
-        const page = await resolvePageComponent(
+        return resolvePageComponent(
             `./Pages/${name}.vue`,
             import.meta.glob("./Pages/**/*.vue")
         );
-        page.default.layout = page.default.layout || DefaultLayout;
-        return page;
     },
     setup({ el, App, props, plugin }) {
         const app = createApp({ render: () => h(App, props) });
     
         // Gestion globale des erreurs
         app.config.errorHandler = (err, vm, info) => {
-            console.error('Erreur Vue attrapée:', err,vm, info)
-            alert('Une erreur est survenue. Vérifie la console.')
+            console.error('Erreur Vue attrapée:', err, vm, info)
         }
 
         // Configuration de MazUI avec la couleur personnalisée
         app.use(MazUI, {
             colors: {
-                primary: '#A35B24',
-                second: '#7A3E12',
+                primary: '#FE5835',
+                second: '#613104',
             },
         });
     
@@ -67,6 +63,6 @@ createInertiaApp({
     },    
       
     progress: {
-        color: "#A35B24",
+        color: "#FE5835",
     },
 });

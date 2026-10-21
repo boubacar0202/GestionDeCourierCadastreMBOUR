@@ -7,7 +7,6 @@ import BaseSelect from "@/Components/BaseSelect.vue";
 import { onMounted, ref, watch, watchEffect, computed  } from "vue";
 import axios from "axios";
 import { toast } from "@/Components/AppToast";  
-import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import { Inertia } from '@inertiajs/inertia';  
 import { router } from '@inertiajs/vue3' 
    
@@ -515,7 +514,7 @@ async function submit() {
                                                 @change="handleFileChangecd"
                                             />
                                             <div v-if="departs?.fichierPDFcd" class="mt-2 flex items-center space-x-2">
-                                                <a :href="`/storage/${departs.fichierPDFcd}`" target="_blank" class="text-sm text-blue-600 underline">
+                                                <a :href="`/fichiers/${departs.fichierPDFcd}`" target="_blank" class="text-sm text-blue-600 underline">
                                                     Voir le PDF
                                                 </a>
                                                 <button type="button" @click="deleteFile(departs)" class="text-sm text-red-600 hover:text-red-800">

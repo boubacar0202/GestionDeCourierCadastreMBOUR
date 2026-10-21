@@ -1,6 +1,5 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import DeleteModal from "@/Components/DeleteModal.vue";
@@ -10,7 +9,6 @@ import MazBtn from "maz-ui/components/MazBtn";
 import { computed, ref, watch } from "vue";
 import axios from "axios";
 
-defineOptions({ layout: DefaultLayout });
 
 const props = defineProps({
     baremes: { type: Array, default: () => [] },

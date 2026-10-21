@@ -1,6 +1,5 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
 import { toast } from "@/Components/AppToast";
@@ -8,7 +7,6 @@ import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import { ref } from "vue";
 
-defineOptions({ layout: DefaultLayout });
 
 const { user } = defineProps({
     user: {

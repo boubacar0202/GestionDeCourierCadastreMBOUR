@@ -334,7 +334,7 @@ async function submitForm() {
 
                                     <div v-if="form.fichierPDFPoint && typeof form.fichierPDFPoint === 'string'" class="mt-2"> 
                                         <a
-                                            :href="`/storage/${form.fichierPDFPoint}`"
+                                            :href="`/fichiers/${form.fichierPDFPoint}`"
                                             target="_blank"
                                             class="text-primary underline"
                                         >

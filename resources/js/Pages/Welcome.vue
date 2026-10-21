@@ -128,7 +128,7 @@ body:has(.welcome-page),
     width: 100%;
     min-height: 100vh;
     background: #fff;
-    color: #2c1810;
+    color: #613104;
 }
 
 .welcome-bar,
@@ -144,7 +144,7 @@ body:has(.welcome-page),
     justify-content: space-between;
     gap: 1.5rem;
     padding: 1.35rem 0 1.1rem;
-    border-bottom: 1px solid #e4d0b8;
+    border-bottom: 1px solid #e6c5a2;
 }
 
 .welcome-logo {
@@ -176,14 +176,14 @@ body:has(.welcome-page),
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: #a35b24;
+    color: #a35200;
 }
 
 .welcome-hero h1 {
     margin-top: 0.7rem;
     font-size: clamp(2.6rem, 5vw, 4.4rem);
     line-height: 0.95;
-    color: #2c1810;
+    color: #613104;
 }
 
 .welcome-lead {
@@ -191,7 +191,7 @@ body:has(.welcome-page),
     max-width: 32rem;
     font-size: 1.08rem;
     line-height: 1.6;
-    color: #5c3a22;
+    color: #5a3412;
 }
 
 .welcome-actions {
@@ -213,7 +213,7 @@ body:has(.welcome-page),
 
 .welcome-card {
     padding: 1.25rem 1.2rem 1.35rem;
-    border: 1px solid #e4d0b8;
+    border: 1px solid #e6c5a2;
     border-radius: 1.15rem;
     background: #fff;
     box-shadow: 0 16px 36px rgba(44, 24, 16, 0.05);
@@ -225,7 +225,7 @@ body:has(.welcome-page),
     height: 0.28rem;
     margin-bottom: 1rem;
     border-radius: 999px;
-    background: linear-gradient(90deg, #c6a15b, #a35b24);
+    background: linear-gradient(90deg, #c7812e, #613104);
 }
 
 .welcome-card h2 {
@@ -233,26 +233,26 @@ body:has(.welcome-page),
     font-size: 1.02rem;
     font-weight: 700;
     letter-spacing: 0;
-    color: #2c1810;
+    color: #613104;
 }
 
 .welcome-card p {
     margin-top: 0.45rem;
     font-size: 0.92rem;
     line-height: 1.55;
-    color: #5c3a22;
+    color: #5a3412;
 }
 
 .welcome-foot {
     padding: 1.1rem 0 1.4rem;
-    border-top: 1px solid #e4d0b8;
+    border-top: 1px solid #e6c5a2;
     font-size: 0.84rem;
     font-weight: 600;
-    color: #5c3a22;
+    color: #5a3412;
 }
 
 .welcome-foot strong {
-    color: #2c1810;
+    color: #613104;
 }
 
 @media (max-width: 760px) {

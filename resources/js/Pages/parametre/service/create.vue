@@ -7,11 +7,9 @@ import { ref, computed } from "vue";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import { toast } from "@/Components/AppToast";
-import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import { router } from "@inertiajs/vue3";
 import axios from "axios";
 
-defineOptions({ layout: DefaultLayout });
 
 const props = defineProps({
     services: {
@@ -363,7 +361,7 @@ const confirmerSuppression = async ({ adminCode } = {}) => {
                                                         <td class="px-2 py-2 text-center whitespace-nowrap border border-primary-only">
                                                             <a
                                                                 v-if="service.fichierPDF"
-                                                                :href="`/storage/${service.fichierPDF}`"
+                                                                :href="`/fichiers/${service.fichierPDF}`"
                                                                 target="_blank"
                                                                 rel="noopener"
                                                                 class="text-primary font-semibold underline"

@@ -10,6 +10,7 @@ use App\Models\Commune;
 use App\Models\Depart;
 use App\Models\Departement;
 use App\Models\Lotissement;
+use App\Models\Mutation;
 use App\Models\PointDensifier;
 use App\Models\User;
 use App\Models\Visite;
@@ -139,6 +140,41 @@ class ParametreController extends Controller
         return response()->json([
             'success' => true,
             'message' => "Lotissement \"$nom\" supprimé avec succès.",
+        ]);
+    }
+
+    public function editMutation($id)
+    {
+        $mutation = Mutation::findOrFail($id);
+
+        return Inertia::render('parametre/mutationEdit', [
+            'mutation' => $mutation,
+        ]);
+    }
+
+    public function destroyMutation(Request $request, $id)
+    {
+        $request->validate([
+            'code' => 'required|string',
+        ]);
+
+        $code = CodeAcces::where('id', 3)
+            ->where('code', $request->code)
+            ->first();
+
+        if (! $code) {
+            return response()->json([
+                'success' => false,
+                'message' => "Code d'accès invalide. Contacter l'administrateur !",
+            ], 403);
+        }
+
+        $mutation = Mutation::findOrFail($id);
+        $mutation->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$mutation->txt_numeroMutation} supprimé avec succès.",
         ]);
     }
 
@@ -658,6 +694,7 @@ class ParametreController extends Controller
             $score = ($enregistrements * 3) + ($modifications * 2);
 
             return [
+                'user_id' => $user->id,
                 'utilisateur' => $user->name,
                 'role' => $user->role ?: '—',
                 'trimestre' => $label,
@@ -681,6 +718,63 @@ class ParametreController extends Controller
             'label' => $label,
             'lignes' => $lignes,
         ];
+    }
+
+    public function getEvaluationUtilisateur(Request $request)
+    {
+        $validated = $request->validate([
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'annee' => ['nullable', 'integer'],
+            'trimestre' => ['nullable', 'integer', 'between:1,4'],
+        ]);
+
+        $annee = ! empty($validated['annee']) ? (int) $validated['annee'] : (int) now()->year;
+        $trimestre = ! empty($validated['trimestre']) ? (int) $validated['trimestre'] : (int) ceil(now()->month / 3);
+        $debut = Carbon::create($annee, (($trimestre - 1) * 3) + 1, 1)->startOfDay();
+        $fin = $debut->copy()->addMonths(3)->subSecond();
+        $label = ['1er', '2e', '3e', '4e'][$trimestre - 1].' trimestre '.$annee;
+
+        $user = User::query()->findOrFail($validated['user_id']);
+        $hasDetail = Schema::hasColumn('activites_utilisateurs', 'libelle');
+
+        $base = ActiviteUtilisateur::query()
+            ->where('user_id', $user->id)
+            ->whereBetween('created_at', [$debut, $fin]);
+
+        $totauxBruts = (clone $base)
+            ->select('action', DB::raw('COUNT(*) as total'))
+            ->groupBy('action')
+            ->pluck('total', 'action');
+
+        $total = (int) $totauxBruts->sum();
+        $lignes = (clone $base)->orderByDesc('created_at')->limit(300)->get();
+
+        $traitements = $lignes->map(function (ActiviteUtilisateur $activite) use ($hasDetail) {
+            return [
+                'date' => optional($activite->created_at)->format('d/m/Y H:i'),
+                'action' => $activite->action,
+                'module' => $hasDetail ? ($activite->module ?: null) : null,
+                'libelle' => $hasDetail && $activite->libelle ? $activite->libelle : 'Traitement non détaillé',
+                'reference' => $hasDetail ? ($activite->reference ?: null) : null,
+                'chemin' => $hasDetail ? ($activite->chemin ?: null) : null,
+            ];
+        })->values();
+
+        return response()->json([
+            'user_id' => $user->id,
+            'utilisateur' => $user->name,
+            'role' => $user->role ?: '—',
+            'trimestre' => $label,
+            'totaux' => [
+                'enregistrements' => (int) ($totauxBruts['enregistrement'] ?? 0),
+                'modifications' => (int) ($totauxBruts['modification'] ?? 0),
+                'suppressions' => (int) ($totauxBruts['suppression'] ?? 0),
+                'recherches' => (int) ($totauxBruts['recherche'] ?? 0),
+            ],
+            'total' => $total,
+            'tronque' => $total > $traitements->count(),
+            'traitements' => $traitements,
+        ]);
     }
 
     private function compterCourriersDuMois(int $month, int $year, string $designation): array
@@ -727,7 +821,7 @@ class ParametreController extends Controller
     {
         $request->validate(['code' => 'required|string']);
 
-        return CodeAcces::where('id', $id)->where('code', $request->code)->exists();
+        return CodeAcces::correspond((string) $request->input('code'), $id);
     }
 
     private function compteProtege(User $user): bool

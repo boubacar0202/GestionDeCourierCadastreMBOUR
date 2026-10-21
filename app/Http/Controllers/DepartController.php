@@ -299,15 +299,9 @@ class DepartController extends Controller
     public function destroy(Request $request, $id)
     {
         // Vérifier code d'accès
-        $code = CodeAcces::where('code', $request->code_acces)
-            ->where('utilise', false)
-            ->first();
-
-        if (!$code) {
+        if (! CodeAcces::consommer((string) $request->input('code_acces', ''))) {
             return back()->withErrors(['code_acces' => 'Code d’accès invalide ou déjà utilisé.']);
         }
-
-        $code->update(['utilise' => true]);
 
         $depart = Depart::findOrFail($id);
         $depart->delete();
