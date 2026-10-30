@@ -18,6 +18,7 @@
     --sb-thumb: #c7812e;
     --sb-thumb-hover: #613104;
     --side-bg: #fff9f4;
+    --side-border: #e6c5a2;
     --side-radius: 1.5rem;
     --maz-color-primary: #FE5835 !important;
     --maz-color-primary-dark: #e04c2f !important;
@@ -581,47 +582,73 @@ input[type="checkbox"] {
     accent-color: #FE5835;
 }
 
-table {
+select {
+    overflow: visible;
+}
+
+main table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    overflow: hidden;
-    border-radius: 0.9rem;
     background: #fff;
 }
 
-table thead th,
-table thead td {
-    background: #fff6ee !important;
-    color: #613104 !important;
+main table td.border,
+main table th.border {
+    border-color: #f0e2d4;
+}
+
+main table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+main table tbody tr:hover td {
+    background-color: #fff8f1;
+}
+
+main table th,
+main table td {
+    padding: 0.55rem 0.7rem;
+    font-family: Figtree, ui-sans-serif, system-ui, sans-serif !important;
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+    font-style: normal !important;
+    letter-spacing: 0 !important;
+    line-height: 1.4 !important;
+    text-transform: none !important;
+    vertical-align: middle;
+}
+
+main table thead th {
+    background: #fff6ee;
+    color: #613104;
     font-size: 0.75rem !important;
     font-weight: 700 !important;
     letter-spacing: 0.01em !important;
-    text-transform: none !important;
 }
 
-table th,
-table td {
-    border-bottom: 1px solid #f0e2d4;
-    padding: 0.55rem 0.7rem;
+main .rounded-xl > .bg-primary,
+main .rounded-t-xl.bg-primary,
+main .bg-primary {
+    background-image: linear-gradient(90deg, #613104, #8a4b12 55%, #a35200);
 }
 
-table tbody tr:hover td {
-    background: #fff8f1;
-}
-
-.bg-primary {
-    background-color: #613104 !important;
-    background-image: linear-gradient(90deg, #613104, #7a4010) !important;
-}
-
-label {
+main form h5 {
+    margin: 1.35rem 0 0.75rem;
+    padding-left: 0.75rem;
+    border-left: 4px solid #a35200;
     color: #613104;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
 }
 
-main h4:not(.text-white),
-main h5:not(.text-white) {
-    color: #613104;
+main form button[type="submit"] {
+    border-radius: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(90deg, #613104, #a35200) !important;
+    box-shadow: 0 10px 22px rgba(97, 49, 4, 0.2);
 }
 
 .maz-input {
@@ -730,6 +757,14 @@ main .bg-white h2:not(.text-white) {
     color: #613104 !important;
 }
 
+main .bg-primary-form h3:not(.text-white),
+main .bg-white h3:not(.text-white) {
+    font-size: 0.95rem !important;
+    font-weight: 650 !important;
+    line-height: 1.35 !important;
+    color: #613104 !important;
+}
+
 main form .grid {
     gap: 0.85rem 1rem;
 }
@@ -747,6 +782,11 @@ main h5:not(.text-white) {
     color: #613104 !important;
 }
 
+main h4:first-child,
+main h5:first-child {
+    margin-top: 0;
+}
+
 .m-btn,
 button.maz-btn {
     border-radius: 0.75rem !important;
@@ -756,6 +796,8 @@ button.maz-btn {
 
 main .bg-primary :is(h1, h2, h3, h4, h5, h6, p, span),
 main .bg-primary-dark :is(h1, h2, h3, h4, h5, h6, p, span),
-main :is(h1, h2, h3, h4, h5, h6).text-white {
+main :is(h1, h2, h3, h4, h5, h6).text-white,
+main :is(th, td, p, span).text-white.bg-primary,
+main :is(th, td, p, span).text-white.bg-primary-dark {
     color: #fff !important;
 }

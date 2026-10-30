@@ -1,13 +1,12 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, useForm } from "@inertiajs/vue3";
+import { Head, useForm, router } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import { onMounted, ref, watch, watchEffect, computed  } from "vue";
 import axios from "axios";
 import { useToast } from "maz-ui"; 
-import { Inertia } from '@inertiajs/inertia';
 import { toast } from "@/Components/AppToast";  
 
 const today = new Date().toISOString().split('T')[0];
@@ -25,6 +24,7 @@ const form = useForm({
   
 // Génération automatique du numéro d'ordre
 const fetchNextDossier = async (annee) => {
+    if (!/^\d{4}$/.test(String(annee))) return;
     try {
         const response = await axios.get(`/visite/next/${annee}`);
         const numero = response.data.num_dordre;
@@ -68,16 +68,23 @@ const submitForm = function () {  // Ajoutez `async` ici
     console.log("📤 Envoi du formulaire :", form);
     console.log("✅ Données finales envoyées à Laravel :", form.data()); 
   
-    // Formulaire Laravel
-    form.post(route('visite.store'), {
+    // Même logique que Cadastre_Kedougou
+    form.post(route("visite.store"), {
+        forceFormData: true,
         onSuccess: () => {
-            toast.success('Enregistré avec succès')
-            Inertia.visit(route("visite.create"), { replace: true });
+            toast.success("Enregistré avec succès");
+            router.visit(route("visite.create"), {
+                replace: true,
+                preserveState: false,
+                preserveScroll: false,
+            });
         },
         onError: (errors) => {
-            Object.values(errors).forEach(msg => toast.error(msg))
-        }
-    }) 
+            Object.values(errors).forEach((msg) =>
+                toast.error(Array.isArray(msg) ? msg[0] : msg)
+            );
+        },
+    });
 };
  
 </script>
@@ -108,7 +115,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                 <div class="mb-6">
                                     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Date visite"
                                             name="dt_visite"
                                             type="date"
@@ -118,14 +125,14 @@ const submitForm = function () {  // Ajoutez `async` ici
                                             required
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="N° Arrivée du Visiteur"
                                             name="txt_numdordreVisite"
                                             v-model="form.txt_numdordreVisite"
                                             required
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Prénom & Nom"
                                             name="txt_prenomVisite"
                                             v-model="form.txt_prenomVisite"
@@ -133,7 +140,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                             required
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="N° Telephone"
                                             name="txt_telVisite"
                                             v-model="form.txt_telVisite"
@@ -141,7 +148,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                             required
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Objet"
                                             name="txt_objetVisite"
                                             v-model="form.txt_objetVisite"
@@ -149,7 +156,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                             required
                                         />
                                         <BaseSelect
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Traitement"
                                             name="txt_traitementVisite"
                                             v-model="form.txt_traitementVisite"
@@ -167,7 +174,7 @@ const submitForm = function () {  // Ajoutez `async` ici
 
                                 <!-- Bouton de soumission -->
 
-                                <div class="sm:col-span-6 flex justify-center">
+                                <div class="md:col-span-3 lg:col-span-6 flex justify-center">
                                     <MazBtn 
                                         type="submit" no-shadow no-hover-effect
                                         class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-dark 

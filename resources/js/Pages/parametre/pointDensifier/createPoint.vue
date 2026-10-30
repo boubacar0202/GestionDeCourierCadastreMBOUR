@@ -1,13 +1,12 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, useForm, Link } from "@inertiajs/vue3";
+import { Head, useForm, Link, router as Inertia } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
 import DeleteModal from "@/Components/DeleteModal.vue";
 import { ref, computed, watch, watchEffect, onMounted } from "vue";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import { toast } from "@/Components/AppToast";
-import { Inertia } from '@inertiajs/inertia';
 import axios from 'axios';
 import proj4 from 'proj4'; // ⬅️ IMPORT POUR LA CONVERSION UTM
 
@@ -203,15 +202,20 @@ const submitForm = () => {
     form.slt_arrondissement = slt_arrondissement.value || "";
     form.slt_commune = slt_commune.value || "";
 
-    form.post(route('parametre.pointDensifier.storePoint'), {
+    // Même logique que Cadastre_Kedougou
+    form.post(route("parametre.pointDensifier.storePoint"), {
         forceFormData: true,
         onSuccess: () => {
-            toast.success("✅ Point enregistré avec succès");
-            Inertia.visit(route("parametre.pointDensifier.createPoint"), { replace: true });
+            toast.success("Enregistré avec succès");
+            router.visit(route("parametre.pointDensifier.createPoint"), {
+                replace: true,
+                preserveState: false,
+                preserveScroll: false,
+            });
         },
         onError: (errors) => {
-            Object.values(errors).forEach(e => toast.error(e));
-        }
+            Object.values(errors).forEach((e) => toast.error(e));
+        },
     });
 };
 
@@ -367,7 +371,7 @@ onMounted(() => {
                                         autocomplete="off"
                                     />
                                     <BaseInput
-                                        class="sm:col-span-2"
+                                        class="md:col-span-2"
                                         label="Documents afférants (PDF)"
                                         name="fichierPDFPoint"
                                         type="file"
@@ -377,7 +381,7 @@ onMounted(() => {
                                 </div>
 
                                 <!-- Bouton de soumission -->
-                                <div class="sm:col-span-6 flex justify-center mt-6">
+                                <div class="md:col-span-3 lg:col-span-6 flex justify-center mt-6">
                                     <MazBtn
                                         type="submit" no-shadow no-hover-effect
                                         class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-dark

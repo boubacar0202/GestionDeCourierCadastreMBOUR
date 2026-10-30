@@ -52,12 +52,22 @@ onMounted(() => {
 onUnmounted(() => {
     window.removeEventListener('resize', updateScreenSize);
 });
-// --- TOAST --- 
-onMounted(() => {
-    if (page.props.flash?.success) {
-        toast.success(page.props.flash.success);
-    }
-});
+// --- TOAST (flash après store / update / delete) ---
+const lastFlash = ref({ success: null, error: null, warning: null, info: null });
+watch(
+    () => page.props.flash,
+    (flash) => {
+        if (!flash) return;
+        for (const type of ["success", "error", "warning", "info"]) {
+            const message = flash[type] || null;
+            if (message && message !== lastFlash.value[type]) {
+                toast[type](message);
+            }
+            lastFlash.value[type] = message;
+        }
+    },
+    { deep: true, immediate: true }
+);
 
 // --- GESTION DE L'ÉCRAN ET DU MENU ---
 function checkScreenSize() {

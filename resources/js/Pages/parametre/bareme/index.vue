@@ -4,7 +4,7 @@ import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import DeleteModal from "@/Components/DeleteModal.vue";
 import { toast } from "@/Components/AppToast";
-import { Head, router, useForm } from "@inertiajs/vue3";
+import { Head, router as Inertia, useForm } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
 import { computed, ref, watch } from "vue";
 import axios from "axios";
@@ -80,7 +80,7 @@ const submitForm = () => {
 };
 
 const enregistrer = (ligne) => {
-    router.put(
+    Inertia.put(
         route("parametre.bareme.update", ligne.id),
         {
             groupe: ligne.groupe,
@@ -122,7 +122,7 @@ const confirmerSuppression = async ({ adminCode } = {}) => {
         if (data.success) {
             toast.success(data.message);
             showDeleteModal.value = false;
-            router.reload({ preserveScroll: true });
+            Inertia.reload({ preserveScroll: true });
         } else {
             toast.error(data.message || "Code invalide.");
         }
@@ -162,7 +162,7 @@ const confirmerSuppression = async ({ adminCode } = {}) => {
                                 <BaseInput v-model="form.code" label="Code" type="text" />
                                 <BaseInput v-model="form.prix" label="Prix (FCFA)" type="number" min="0" />
                                 <BaseInput v-model="form.ordre" label="Ordre" type="number" min="0" />
-                                <div class="sm:col-span-6 flex justify-center">
+                                <div class="md:col-span-3 lg:col-span-6 flex justify-center">
                                     <MazBtn
                                         type="submit"
                                         :loading="form.processing"

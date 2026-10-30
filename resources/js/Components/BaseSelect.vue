@@ -1,5 +1,9 @@
 <script setup>
-  import { computed, onBeforeUnmount, onMounted, ref } from "vue"
+  import { computed, onBeforeUnmount, onMounted, ref, useAttrs } from "vue"
+
+  defineOptions({ inheritAttrs: false })
+
+  const attrs = useAttrs()
 
   const props = defineProps({
     modelValue: [String, Number],
@@ -20,6 +24,12 @@
   })
 
   const emit = defineEmits(["update:modelValue"])
+
+  const classeEnveloppe = computed(() => attrs.class || props.wrapperClass)
+  const attrsSansClasse = computed(() => {
+    const { class: _classe, ...reste } = attrs
+    return reste
+  })
 
   const ouvert = ref(false)
   const racine = ref(null)
@@ -74,7 +84,7 @@
 </script>
 
 <template>
-  <div ref="racine" :class="[wrapperClass, ouvert ? 'relative z-40' : '']">
+  <div ref="racine" v-bind="attrsSansClasse" :class="[classeEnveloppe, ouvert ? 'relative z-40' : '']">
     <label
       v-if="label"
       :for="selectId"

@@ -20,253 +20,134 @@ defineProps({
 
 const services = [
     {
-        title: 'Courriers arrivées',
-        text: 'Réception, référence et classement des demandes adressées au service.',
+        title: 'Dossiers',
+        text: 'Enregistrement et suivi des dossiers cadastraux du centre.',
+        icon: 'M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1zm7 0v4h4',
     },
     {
-        title: 'Courriers départs',
-        text: 'Suivi des réponses et des pièces transmises à partir du registre.',
+        title: 'Courriers',
+        text: 'Arrivées, départs, visites et courriers encore en instance.',
+        icon: 'M4 6.5h16v11H4v-11zm0 0 8 6 8-6',
     },
     {
-        title: 'Visites',
-        text: 'Enregistrement des personnes reçues au centre des services fiscaux.',
+        title: 'Matrice',
+        text: 'Parcelles, NICAD, lotissements et mutations.',
+        icon: 'M4 4.5h7v7H4v-7zm9 0h7v7h-7v-7zM4 13.5h7v7H4v-7zm9 0h7v7h-7v-7z',
+    },
+    {
+        title: 'Plans',
+        text: 'Consultation cartographique et points densifiés.',
+        icon: 'M12 21s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10zm0-7.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z',
     },
 ];
 </script>
 
 <template>
-    <Head title="Cadastre Mbour — Gestion des courriers">
+    <Head title="Cadastre de Mbour">
         <link rel="icon" sizes="512x512" href="/logo-01.png">
     </Head>
 
-    <div class="welcome-page">
-        <header class="welcome-bar">
-            <img src="/logo.jpg" alt="Direction générale des impôts et des domaines" class="welcome-logo">
+    <div class="min-h-screen bg-[#faefe6] text-primary-txt">
+        <div class="h-1.5 bg-gradient-to-r from-primary via-primary-menu to-primary-only"></div>
 
-            <nav v-if="canLogin" class="welcome-nav" aria-label="Accès">
-                <Link
-                    v-if="$page.props.auth.user"
-                    :href="route('dashboard')"
-                    class="app-btn app-btn-primary"
+        <header class="sticky top-0 z-20 border-b border-primary-only/80 bg-white/90 backdrop-blur-md">
+            <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+                <img
+                    src="/logo.jpg"
+                    alt="Direction Générale des Impôts et des Domaines"
+                    class="h-12 w-auto sm:h-16"
                 >
-                    Accueil
-                </Link>
 
-                <template v-else>
-                    <Link :href="route('login')" class="app-btn app-btn-primary">
-                        Connexion
-                    </Link>
-                    <Link
-                        v-if="canRegister"
-                        :href="route('register')"
-                        class="app-btn app-btn-secondary"
-                    >
-                        S'inscrire
-                    </Link>
-                </template>
-            </nav>
-        </header>
-
-        <main class="welcome-main">
-            <section class="welcome-hero">
-                <p class="welcome-kicker">Centre des services fiscaux</p>
-                <h1>Cadastre Mbour</h1>
-                <p class="welcome-lead">
-                    Gestion des courriers, des départs, des arrivées et des visites.
-                </p>
-
-                <div v-if="canLogin" class="welcome-actions">
+                <nav v-if="canLogin" class="flex shrink-0 items-center gap-2">
                     <Link
                         v-if="$page.props.auth.user"
                         :href="route('dashboard')"
-                        class="app-btn app-btn-primary welcome-cta"
+                        class="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-primary-dark"
                     >
-                        Ouvrir le registre
+                        Tableau de bord
                     </Link>
-                    <Link
-                        v-else
-                        :href="route('login')"
-                        class="app-btn app-btn-primary welcome-cta"
+                    <template v-else>
+                        <Link
+                            v-if="canRegister"
+                            :href="route('register')"
+                            class="hidden rounded-xl px-4 py-2.5 text-sm font-semibold text-primary-txt transition hover:bg-primary-form sm:inline-flex"
+                        >
+                            S'inscrire
+                        </Link>
+                        <Link
+                            :href="route('login')"
+                            class="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-primary-dark"
+                        >
+                            Se connecter
+                        </Link>
+                    </template>
+                </nav>
+            </div>
+        </header>
+
+        <main>
+            <section class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-2 lg:py-16">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary-menu">
+                        Centre des services fiscaux de Mbour
+                    </p>
+                    <h1 class="mt-3 text-4xl font-bold leading-tight text-primary sm:text-5xl">
+                        Cadastre de Mbour
+                    </h1>
+                    <p class="mt-4 max-w-xl text-base leading-relaxed">
+                        Programme de gestion de la base de données MB-1. Enregistrez les dossiers,
+                        suivez les courriers et les visites, et consultez la matrice cadastrale ainsi que les plans.
+                    </p>
+
+                    <div v-if="canLogin" class="mt-8 flex flex-wrap items-center gap-3">
+                        <Link
+                            :href="$page.props.auth.user ? route('dashboard') : route('login')"
+                            class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary-dark px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl"
+                        >
+                            {{ $page.props.auth.user ? 'Ouvrir le tableau de bord' : "Accéder à l'application" }}
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m0 0-6-6m6 6-6 6" />
+                            </svg>
+                        </Link>
+                    </div>
+                </div>
+
+                <div class="relative h-44 overflow-hidden rounded-3xl border border-primary-only bg-white shadow-[0_18px_40px_rgba(97,49,4,0.12)] sm:h-56">
+                    <img
+                        src="/pageAcceuil.jpg?v=mbour"
+                        alt="Carte du Sénégal, arrondissement de Mbour dans la région de Thiès"
+                        class="absolute inset-x-0 top-0 w-full"
                     >
-                        Accéder au service
-                    </Link>
                 </div>
             </section>
 
-            <section class="welcome-services" aria-label="Registres du service">
-                <article v-for="service in services" :key="service.title" class="welcome-card">
-                    <span class="welcome-mark" aria-hidden="true"></span>
-                    <h2>{{ service.title }}</h2>
-                    <p>{{ service.text }}</p>
-                </article>
+            <section class="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-primary">Services disponibles</h2>
+                    <p class="mt-1 text-sm">Les principaux modules de l'application.</p>
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <article
+                        v-for="service in services"
+                        :key="service.title"
+                        class="rounded-2xl border border-primary-only bg-white p-5 shadow-[0_12px_30px_rgba(97,49,4,0.06)]"
+                    >
+                        <span class="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary-form text-primary">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" :d="service.icon" />
+                            </svg>
+                        </span>
+                        <h3 class="text-lg font-semibold text-primary">{{ service.title }}</h3>
+                        <p class="mt-2 text-sm leading-relaxed">{{ service.text }}</p>
+                    </article>
+                </div>
             </section>
         </main>
 
-        <footer class="welcome-foot">
-            Programme de Gestion de Courriers <strong>MB.01</strong>
+        <footer class="border-t border-primary/20 bg-primary px-4 py-8 text-center text-sm text-primary-form">
+            <p class="font-semibold tracking-wide text-white">Centre des services fiscaux de Mbour</p>
+            <p class="mt-1">Cadastre de Mbour — Programme de gestion de base de données MB-1</p>
         </footer>
     </div>
 </template>
-
-<style>
-html:has(.welcome-page),
-body:has(.welcome-page),
-.app-shell:has(.welcome-page) {
-    background: #fff;
-}
-
-.app-shell:has(.welcome-page) .app-content {
-    padding: 0;
-    background: #fff;
-}
-</style>
-
-<style scoped>
-.welcome-page {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    min-height: 100vh;
-    background: #fff;
-    color: #613104;
-}
-
-.welcome-bar,
-.welcome-main,
-.welcome-foot {
-    width: min(1080px, calc(100% - 2.5rem));
-    margin-inline: auto;
-}
-
-.welcome-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem;
-    padding: 1.35rem 0 1.1rem;
-    border-bottom: 1px solid #e6c5a2;
-}
-
-.welcome-logo {
-    height: 4.25rem;
-    width: auto;
-    object-fit: contain;
-}
-
-.welcome-nav {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-}
-
-.welcome-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 3.5rem 0 2.5rem;
-}
-
-.welcome-hero {
-    max-width: 38rem;
-}
-
-.welcome-kicker {
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: #a35200;
-}
-
-.welcome-hero h1 {
-    margin-top: 0.7rem;
-    font-size: clamp(2.6rem, 5vw, 4.4rem);
-    line-height: 0.95;
-    color: #613104;
-}
-
-.welcome-lead {
-    margin-top: 1.1rem;
-    max-width: 32rem;
-    font-size: 1.08rem;
-    line-height: 1.6;
-    color: #5a3412;
-}
-
-.welcome-actions {
-    margin-top: 1.6rem;
-}
-
-.welcome-cta {
-    min-width: 11.5rem;
-    padding: 0.75rem 1.15rem;
-    font-size: 0.92rem;
-}
-
-.welcome-services {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1rem;
-    margin-top: 3.25rem;
-}
-
-.welcome-card {
-    padding: 1.25rem 1.2rem 1.35rem;
-    border: 1px solid #e6c5a2;
-    border-radius: 1.15rem;
-    background: #fff;
-    box-shadow: 0 16px 36px rgba(44, 24, 16, 0.05);
-}
-
-.welcome-mark {
-    display: block;
-    width: 2rem;
-    height: 0.28rem;
-    margin-bottom: 1rem;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #c7812e, #613104);
-}
-
-.welcome-card h2 {
-    font-family: Outfit, Figtree, ui-sans-serif, system-ui, sans-serif;
-    font-size: 1.02rem;
-    font-weight: 700;
-    letter-spacing: 0;
-    color: #613104;
-}
-
-.welcome-card p {
-    margin-top: 0.45rem;
-    font-size: 0.92rem;
-    line-height: 1.55;
-    color: #5a3412;
-}
-
-.welcome-foot {
-    padding: 1.1rem 0 1.4rem;
-    border-top: 1px solid #e6c5a2;
-    font-size: 0.84rem;
-    font-weight: 600;
-    color: #5a3412;
-}
-
-.welcome-foot strong {
-    color: #613104;
-}
-
-@media (max-width: 760px) {
-    .welcome-bar {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .welcome-services {
-        grid-template-columns: 1fr;
-    }
-
-    .welcome-main {
-        padding-top: 2.4rem;
-    }
-}
-</style>

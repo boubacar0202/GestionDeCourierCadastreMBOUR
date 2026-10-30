@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
-import { Head, router, Link as InertiaLink } from '@inertiajs/vue3';
+import { Head, router as Inertia, Link as InertiaLink } from '@inertiajs/vue3';
 import BaseInput from '@/Components/BaseInput.vue'
 import BaseSelect from '@/Components/BaseSelect.vue'
 import MazBtn from 'maz-ui/components/MazBtn'
@@ -65,7 +65,7 @@ function debounce(fn, delay) {
 }
 
 const loadPage = (page = 1, extra = {}) => {
-    router.get(route('instancearrivee.create'), {
+    Inertia.get(route('instancearrivee.create'), {
         ...filters.value,
         page,
         ...extra,
@@ -139,7 +139,7 @@ function supprimerCourrierArrivee(arrivee) {
         return;
     }
 
-    router.delete(route('instancearrivee.destroy', arrivee.id), {
+    Inertia.delete(route('instancearrivee.destroy', arrivee.id), {
         data: { code_acces: code },
         preserveScroll: true,
         onSuccess: () => {
@@ -175,7 +175,7 @@ const applyServerFilters = (value) => {
 };
 
 const goToConvocation = (txt_numdordre) => {
-    router.get(route('instancearrivee.create'), {
+    Inertia.get(route('instancearrivee.create'), {
         ...filters.value,
         focus: txt_numdordre,
     }, {

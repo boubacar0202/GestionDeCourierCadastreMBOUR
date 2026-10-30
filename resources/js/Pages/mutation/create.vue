@@ -362,16 +362,19 @@ function resetAll() {
 
 // ============ SOUMISSION ============
 const submitForm = function () {
+  // Même logique que Cadastre_Kedougou
   form.post(route("mutation.store"), {
-    preserveScroll: true,
-    onSuccess: (page) => {
-      toast.success(page.props.flash?.success || "✅ Dossier enregistré !");
-      resetAll();
+    onSuccess: () => {
+      toast.success("Enregistré avec succès");
+      router.visit(route("mutation.create"), {
+        replace: true,
+        preserveState: false,
+        preserveScroll: false,
+      });
     },
     onError: (errors) => {
-      console.error("❌ Erreurs de validation :", errors);
       const seen = new Set();
-      Object.entries(errors).forEach(([key, message]) => {
+      Object.entries(errors).forEach(([, message]) => {
         const msgs = Array.isArray(message) ? message : [message];
         msgs.forEach((msg) => {
           if (!seen.has(msg)) {

@@ -3,12 +3,11 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import BaseInput from "@/Components/BaseInput.vue";
 import MazBtn from "maz-ui/components/MazBtn";
 import DeleteModal from "@/Components/DeleteModal.vue";
-import { Link } from '@inertiajs/vue3';
+import { Link, router as Inertia } from '@inertiajs/vue3';
 import { Head } from "@inertiajs/vue3";
 import { ref, computed } from "vue";
 import axios from "axios";
-import { toast } from "@/Components/AppToast";  
-import { Inertia } from "@inertiajs/inertia"; 
+import { toast } from "@/Components/AppToast"; 
 
 
 

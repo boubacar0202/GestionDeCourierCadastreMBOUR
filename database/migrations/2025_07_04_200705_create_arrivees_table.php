@@ -33,7 +33,7 @@ return new class extends Migration
             $table->string('txt_prenom')->nullable(); 
             $table->string('txt_nom')->nullable();  
             $table->decimal('txt_surface', 20, 2)->nullable();
-            $table->string('txt_numLot')->nullabe();
+            $table->string('txt_numLot')->nullable();
             $table->string('txt_expediteur');
             $table->string('txt_agenttraiteur');
             $table->string('txt_observation')->nullable(); 

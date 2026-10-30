@@ -1,28 +1,23 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue"; 
-import { Head, useForm } from "@inertiajs/vue3";
+import { Head, useForm, router } from "@inertiajs/vue3";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import MazBtn from "maz-ui/components/MazBtn";
 import { onMounted, ref, watch, watchEffect } from "vue";
 import axios from "axios";
-import { toast } from "@/Components/AppToast";  
-import { Inertia } from '@inertiajs/inertia';
+import { toast } from "@/Components/AppToast";
 
   
 // Form
 const form = useForm({
-    txt_nomPoint: "",
-    txt_dateCreationPoint: "",
+    txt_denomination: "",
+    txt_nombreParcelle: "",
+    txt_surfaceLotissement: "",
     slt_departement: null,
     slt_arrondissement: null,
     slt_commune: null,
-    txt_descriptionPoint: "",
-    txt_situationPoint: "",
-    txt_estPoint: "",
-    txt_nordPoint: "",
-    txt_hauteurPoint: "",
-    txt_documentsAfferantsPoint: ""
+    txt_documentsAfferants: null,
 });
 
 // Sélections
@@ -94,25 +89,31 @@ onMounted(fetchDepartements);
 
 // Fichier PDF 
 const handleFileUpload = (event) => {
-    fichierPDF.value = event.target.files[0];
-    form.txt_documentsAfferantsPoint = fichierPDF.value; // lier directement au formulaire
+    fichierPDF.value = event.target.files[0] || null;
+    form.txt_documentsAfferants = fichierPDF.value;
 };
  
 // Submit
 const submitForm = () => {
     // Synchroniser les selections avec le formulaire
-    form.slt_departement = slt_departement.value || "";
-    form.slt_arrondissement = slt_arrondissement.value || "";
-    form.slt_commune = slt_commune.value || "";
+    form.slt_departement = slt_departement.value || null;
+    form.slt_arrondissement = slt_arrondissement.value || null;
+    form.slt_commune = slt_commune.value || null;
 
-    form.post(route('parametre.store'), {
-        onSuccess: (page) => {
-            toast.success(page.props.flash?.success || "✅ Dossier Lotissement enregistré !");
-            Inertia.visit(route("parametre.lotissement.create"), { replace: true });
+    // Même logique que Cadastre_Kedougou
+    form.post(route("parametre.store"), {
+        forceFormData: true,
+        onSuccess: () => {
+            toast.success("Enregistré avec succès");
+            router.visit(route("parametre.lotissement.create"), {
+                replace: true,
+                preserveState: false,
+                preserveScroll: false,
+            });
         },
         onError: (errors) => {
-            Object.values(errors).forEach(msg => toast.error(msg));
-        }
+            Object.values(errors).forEach((msg) => toast.error(Array.isArray(msg) ? msg[0] : msg));
+        },
     });
 };
 
@@ -144,7 +145,7 @@ const submitForm = () => {
                                 <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-4"> 
  
                                     <BaseSelect
-                                        class="sm:col-span-2"
+                                        class="md:col-span-2"
                                         label="Département"
                                         name="slt_departement"
                                         :options="departements"
@@ -155,7 +156,7 @@ const submitForm = () => {
                                     /> 
   
                                     <BaseSelect
-                                        class="sm:col-span-2"
+                                        class="md:col-span-2"
                                         label="Arrondissement"
                                         :options="arrondissements"
                                         optionLabel="slt_arrondissement"
@@ -165,7 +166,7 @@ const submitForm = () => {
                                     />
  
                                     <BaseSelect
-                                        class="sm:col-span-2"
+                                        class="md:col-span-2"
                                         label="Commune"
                                         :options="communes"
                                         optionLabel="slt_commune"
@@ -175,15 +176,15 @@ const submitForm = () => {
                                     />
  
                                     <BaseInput
-                                        class="sm:col-span-2"
-                                        label="Dénommination"
+                                        class="md:col-span-2"
+                                        label="Dénomination"
                                         name="txt_denomination" 
                                         autocomplete="off"
                                         v-model="form.txt_denomination"
                                     />
  
                                     <BaseInput
-                                        class="sm:col-span-2"
+                                        class="md:col-span-2"
                                         label="Nombre de Parcelles"
                                         name="txt_nombreParcelle" 
                                         autocomplete="off"
@@ -192,7 +193,7 @@ const submitForm = () => {
 
                                      
                                     <BaseInput
-                                        class="sm:col-span-2"
+                                        class="md:col-span-2"
                                         label="Surface du Lotissement"
                                         name="txt_surfaceLotissement"
                                         autocomplete="off"
@@ -200,7 +201,7 @@ const submitForm = () => {
                                     />
  
                                     <BaseInput
-                                        class="sm:col-span-4"
+                                        class="md:col-span-3 lg:col-span-4"
                                         label="Documents Afférants" 
                                         accept="application/pdf"
                                         name="txt_documentsAfferants"
@@ -213,7 +214,7 @@ const submitForm = () => {
  
                                 <!-- Bouton de soumission -->
 
-                                <div class="sm:col-span-6 flex justify-center">
+                                <div class="md:col-span-3 lg:col-span-6 flex justify-center">
                                     <MazBtn type="submit" no-shadow no-hover-effect
                                             class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-dark to-primary
                                                 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300

@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue"; 
-import { Head, useForm } from "@inertiajs/vue3";
+import { Head, useForm, router } from "@inertiajs/vue3";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import MazInput from "maz-ui/components/MazInput";
@@ -9,7 +9,6 @@ import MazRadio from "maz-ui/components/MazRadio";
 import { onMounted, ref, watch, computed  } from "vue";
 import axios from "axios";
 import { useToast } from "maz-ui";
-import { Inertia } from '@inertiajs/inertia';
  
 
 
@@ -36,22 +35,21 @@ const submitForm = function () {  // Ajoutez `async` ici
     form.txt_num_parcelle = txt_num_parcelle?.value || ""; // Accès via this.slt_commune
     form.txt_appartement = txt_appartement?.value || ""; // Accès via this.slt_commune
   
-    // Formulaire Laravel
-    form.post(route('secretariat.store'), {
-        onSuccess: (page) => {
-            console.log("✅ Enregistré !", page);
-            toast.success(page.props.flash?.success || "✅ Dossier enregistré !");
-            Inertia.visit(route("secretariat.create"), { replace: true });
+    // Même logique que Cadastre_Kedougou
+    form.post(route("secretariat.store"), {
+        forceFormData: true,
+        onSuccess: () => {
+            toast.success("Enregistré avec succès");
+            router.visit(route("secretariat.create"), {
+                replace: true,
+                preserveState: false,
+                preserveScroll: false,
+            });
         },
         onError: (errors) => {
-            console.error("❌ Erreurs de validation :", errors);
-            Object.values(errors).forEach(msg => toast.error(msg)); 
+            Object.values(errors).forEach((msg) => toast.error(msg));
         },
-        onFinish: () => {
-            console.log("🟡 Requête terminée");
-        }
     });
-
 };
 
 
@@ -139,7 +137,7 @@ const submitForm = function () {  // Ajoutez `async` ici
  
                                 <!-- Bouton de soumission -->
 
-                                <div class="sm:col-span-6 flex justify-center">
+                                <div class="md:col-span-3 lg:col-span-6 flex justify-center">
                                     <MazBtn type="submit" no-shadow no-hover-effect
                                             class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-dark to-primary
                                                 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300

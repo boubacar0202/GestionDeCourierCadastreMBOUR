@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch } from "vue"
 import MazBtn from "maz-ui/components/MazBtn"
-import { router } from '@inertiajs/vue3';
+import { router as Inertia } from '@inertiajs/vue3';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline';
 import BaseInput from "@/Components/BaseInput.vue";
 
@@ -39,7 +39,7 @@ const close = () => {
     return
   }
 
-  router.visit(route("dashboard"))
+  Inertia.visit(route("dashboard"))
 }
 
 const togglePassword = () => {

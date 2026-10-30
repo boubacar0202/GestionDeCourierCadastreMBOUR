@@ -3,12 +3,11 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import BaseInput from "@/Components/BaseInput.vue";
 import MazBtn from "maz-ui/components/MazBtn";
 import DeleteModal from "@/Components/DeleteModal.vue";
-import { Link } from '@inertiajs/vue3';
+import { Link, router as Inertia } from '@inertiajs/vue3';
 import { Head, usePage } from "@inertiajs/vue3";
 import { ref, computed } from "vue";
 import axios from "axios";
-import { toast } from "@/Components/AppToast";  
-import { Inertia } from "@inertiajs/inertia"; 
+import { toast } from "@/Components/AppToast"; 
 
 
 
@@ -149,9 +148,9 @@ const confirmerSuppression = async (payload) => {
               <div class="max-h-[600px] overflow-x-auto shadow-md rounded-xl mt-2">
                 <div class="container">
                   <div class="card-body">
-                    <table class="table table-auto w-full text-base text-left text-primary-txt">
+                    <table class="table table-auto w-full text-base text-left">
                       <thead
-                        class="sticky top-0 z-10 text-primary-txt text-center uppercase bg-primary-form whitespace-nowrap"
+                        class="entete-lotissement sticky top-0 z-10 text-white text-center uppercase bg-primary-form whitespace-nowrap"
                       >
                         <tr class="h-10">
                           <th class="px-4 py-1 text-xs text-white text-center border bg-primary font-semibold">N°</th>
@@ -162,7 +161,7 @@ const confirmerSuppression = async (payload) => {
                           <th class="px-4 py-1 text-xs text-white text-center border bg-primary font-semibold">Superficie (ha)</th>
                           <th class="px-4 py-1 text-xs text-white text-center border bg-primary font-semibold">Nombre de Parcelles</th>
                           <th class="px-4 py-1 text-xs text-white text-center border bg-primary font-semibold">Documents Afferants</th>
-                          <th v-if="isAdmin" class="px-4 py-1 text-xs text-center bg-primary-only font-semibold">ACTIONS</th>
+                          <th v-if="isAdmin" class="px-4 py-1 text-xs text-white text-center border bg-primary font-semibold">ACTIONS</th>
                         </tr>
                       </thead>
 
@@ -172,7 +171,7 @@ const confirmerSuppression = async (payload) => {
                           :key="lot?.id ?? index"
                           class="h-8 bg-white text-xs font-semibold text-primary-txt text-center hover:bg-primary-form"
                         >
-                          <td class="sticky left-0 z-8 text-xs border bg-white px-2 py-1">{{ index + 1 }}</td> 
+                          <td class="sticky left-0 z-8 text-xs border bg-white text-primary-txt px-2 py-1">{{ index + 1 }}</td> 
                           <td class="px-2 py-1 text-xs border whitespace-nowrap">{{ lot.departement?.slt_departement || '-' }}</td>
                           <td class="px-2 py-1 text-xs border whitespace-nowrap">{{ lot.arrondissement?.slt_arrondissement || '-' }}</td>
                           <td class="px-2 py-1 text-xs border whitespace-nowrap">{{ lot.commune?.slt_commune || '-' }}</td>
@@ -234,3 +233,9 @@ const confirmerSuppression = async (payload) => {
     </div>
   </AuthenticatedLayout>
 </template>
+
+<style scoped>
+.entete-lotissement :deep(th) {
+    color: #fff !important;
+}
+</style>

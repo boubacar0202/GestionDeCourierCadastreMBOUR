@@ -1,12 +1,11 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue"; 
-import { Head } from "@inertiajs/vue3"; 
+import { Head, router as Inertia } from "@inertiajs/vue3"; 
 import MazBtn from "maz-ui/components/MazBtn";  
 import DeleteModal from "@/Components/DeleteModal.vue";
 import { Link } from '@inertiajs/vue3'; 
 import axios from "axios";
-import { toast } from "@/Components/AppToast";  
-import { Inertia } from '@inertiajs/inertia';
+import { toast } from "@/Components/AppToast";
 import { ref, computed } from "vue";
   
 
@@ -190,7 +189,7 @@ const confirmerSuppression = async ({ deleteCode, adminCode } = {}) => {
                       <th colspan="2" class="px-4 py-1 text-xs text-white text-center border bg-primary font-semibold">
                         Propriétaire
                       </th>
-                      <th colspan="2" class="px-4 py-1 text-xs text-white text-center border bg-primary-dark font-semibold">
+                      <th colspan="2" class="px-4 py-1 text-xs text-white text-center border bg-primary font-semibold">
                         Acquéreur
                       </th>
                       <th rowspan="2" class="px-4 py-1 text-xs text-white text-center border bg-primary font-semibold">
@@ -199,7 +198,7 @@ const confirmerSuppression = async ({ deleteCode, adminCode } = {}) => {
                       <th rowspan="2" class="px-4 py-1 text-xs text-white text-center border bg-primary font-semibold">
                         Fichier PDF
                       </th>
-                      <th rowspan="2" class="px-4 py-1 text-xs text-center border bg-primary-only font-semibold">
+                      <th rowspan="2" class="px-4 py-1 text-xs text-white text-center border bg-primary font-semibold">
                         Actions
                       </th>
                     </tr>
@@ -212,10 +211,10 @@ const confirmerSuppression = async ({ deleteCode, adminCode } = {}) => {
                       <th class="px-4 py-1 text-xs text-white text-center border bg-primary font-semibold">
                         N° Pièce
                       </th>
-                      <th class="px-4 py-1 text-xs text-white text-center border bg-primary-dark font-semibold">
+                      <th class="px-4 py-1 text-xs text-white text-center border bg-primary font-semibold">
                         Nom & Prénom
                       </th> 
-                      <th class="px-4 py-1 text-xs text-white text-center border bg-primary-dark font-semibold">
+                      <th class="px-4 py-1 text-xs text-white text-center border bg-primary font-semibold">
                         Numéro CIN
                       </th>
                     </tr>

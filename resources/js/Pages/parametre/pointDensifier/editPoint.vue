@@ -8,9 +8,6 @@ import AppCodeAccee from "@/Components/AppCodeAccee.vue";
 import { onMounted, ref, watch, computed } from "vue";
 import axios from "axios";
 import { toast } from "@/Components/AppToast";
-import { Inertia } from '@inertiajs/inertia';
-// Importer route si nécessaire (selon votre configuration)
-// import { route } from 'ziggy-js';
 
 const props = defineProps({
     point_densifiers: Object,
@@ -164,47 +161,23 @@ const codeDaccees = async (payload) => {
 };
 
 // --- Soumission du formulaire ---
-async function submitForm() {
-    try {
-        // Construire le FormData
-        const formData = new FormData();
-        formData.append('_method', 'PUT');
-        formData.append('txt_nomPoint', form.txt_nomPoint);
-        formData.append('txt_dateCreationPoint', form.txt_dateCreationPoint);
-        formData.append('slt_departement', form.slt_departement);
-        formData.append('slt_arrondissement', form.slt_arrondissement);
-        formData.append('slt_commune', form.slt_commune);
-        formData.append('txt_descriptionPoint', form.txt_descriptionPoint);
-        formData.append('txt_situationPoint', form.txt_situationPoint);
-        formData.append('txt_estPoint', form.txt_estPoint);
-        formData.append('txt_nordPoint', form.txt_nordPoint);
-        formData.append('txt_hauteurPoint', form.txt_hauteurPoint);
-
-        // Envoyer toujours le champ fichier (null si absent)
-        formData.append('fichierPDFPoint', form.fichierPDFPoint || null);
-
-        // Générer l'URL
-        const url = route('parametre.pointDensifier.updatePoint', form.id);
-        console.log('URL :', url);
-        console.log('Données envoyées :', Object.fromEntries(formData.entries()));
-
-        // Envoi
-        await axios.post(url, formData);
-
-        toast.success("Modification réussie !");
-        Inertia.visit(route('parametre.pointDensifier.createPoint'), { replace: true });
-
-    } catch (error) {
-        console.error('Erreur complète :', error);
-        if (error.response) {
-            console.error('Données de réponse :', error.response.data);
-            // Si le serveur renvoie un message d'erreur, on l'affiche
-            const msg = error.response.data.message || `Erreur ${error.response.status}`;
-            toast.error(msg);
-        } else {
-            toast.error("Erreur lors de la modification");
-        }
+function submitForm() {
+    if (!(form.fichierPDFPoint instanceof File)) {
+        form.fichierPDFPoint = null;
     }
+
+    isSubmitting.value = true;
+    form.post(route('parametre.pointDensifier.updatePoint', form.id), {
+        forceFormData: true,
+        onFinish: () => {
+            isSubmitting.value = false;
+        },
+        onError: (errors) => {
+            Object.values(errors).forEach((err) => {
+                toast.error(Array.isArray(err) ? err[0] : err);
+            });
+        },
+    });
 }
 </script>
 
@@ -324,7 +297,7 @@ async function submitForm() {
                                     />
                                     <!-- Fichier PDF -->
                                     <BaseInput
-                                        class="sm:col-span-2"
+                                        class="md:col-span-2"
                                         label="Documents afférants (PDF)"
                                         name="fichierPDFPoint"
                                         type="file"
@@ -344,7 +317,7 @@ async function submitForm() {
                                 </div>
 
                                 <!-- Bouton -->
-                                <div class="sm:col-span-6 flex justify-center mt-6">
+                                <div class="md:col-span-3 lg:col-span-6 flex justify-center mt-6">
                                     <MazBtn
                                         type="submit"
                                         :disabled="isSubmitting"

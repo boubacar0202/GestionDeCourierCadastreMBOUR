@@ -1,11 +1,10 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue"; 
-import { Link, Head, useForm, usePage } from '@inertiajs/vue3'; 
+import { Link, Head, useForm, usePage, router as Inertia } from '@inertiajs/vue3'; 
 import MazBtn from "maz-ui/components/MazBtn"; 
 import { computed, ref } from "vue";
 import axios from "axios";
-import { toast } from "@/Components/AppToast";  
-import { Inertia } from '@inertiajs/inertia';
+import { toast } from "@/Components/AppToast";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import DeleteModal from "@/Components/DeleteModal.vue";

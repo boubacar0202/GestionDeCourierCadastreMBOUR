@@ -2,14 +2,12 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue"; 
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
-import { Head, useForm } from "@inertiajs/vue3";
+import { Head, useForm, usePage, router } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
 import MazRadio from "maz-ui/components/MazRadio";
 import { onMounted, ref, watch, watchEffect, computed } from "vue";
 import axios from "axios";
-import { toast } from "@/Components/AppToast";  
-import { Inertia } from '@inertiajs/inertia';
-import { usePage } from '@inertiajs/vue3'
+import { toast } from "@/Components/AppToast";
 
 const page = usePage() 
 
@@ -459,20 +457,22 @@ const submitForm = function () {
         return;
     }
 
-    // 5. Formulaire Laravel
-    form.post(route('secretariat.store'), {
-        onSuccess: (page) => { 
-            toast.success(page.props.flash?.success || "✅ Dossier enregistré sous le numéro : " + form.txt_num_dossier + " !");
-            Inertia.visit(route("secretariat.create"), { replace: true });
+    // Même logique que Cadastre_Kedougou
+    form.post(route("secretariat.store"), {
+        forceFormData: true,
+        onSuccess: () => {
+            toast.success("Enregistré avec succès");
+            router.visit(route("secretariat.create"), {
+                replace: true,
+                preserveState: false,
+                preserveScroll: false,
+            });
         },
         onError: (errors) => {
             const messages = Object.values(errors);
-            toast.error(messages.join('\n'));
+            toast.error(messages.join("\n"));
         },
-        onFinish: () => {
-            console.log("🟡 Requête terminée");
-        }
-    }); 
+    });
 };
 
 </script>
@@ -776,7 +776,7 @@ const submitForm = function () {
                                 </div>
                                 <div class="mb-6">
                                     <!-- Nature Juridique -->
-                                    <div class="sm:col-span-2">
+                                    <div class="md:col-span-2">
                                         <label for="slt_dependant_domaine" class="block font-medium text-primary-txt">
                                             Nature Juridique
                                         </label>
@@ -799,10 +799,10 @@ const submitForm = function () {
                                     <!-- Section Terrain Non Immatriculé -->
                                     <div v-if="activeTab === 'Terrain Non Immatriculé'" class="maz-py-4">
                                         <br/>
-                                        <div class="sm:col-span-12">
+                                        <div class="md:col-span-3 lg:col-span-6">
                                             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2">
                                                 <BaseSelect
-                                                    class="sm:col-span-2"
+                                                    class="md:col-span-2"
                                                     label="Dépendance Domaine"
                                                     name="slt_dependant_domaine" 
                                                     :options="[
@@ -821,10 +821,10 @@ const submitForm = function () {
                                     <!-- Section Terrain Immatriculé -->
                                     <div v-if="activeTab === 'Terrain Immatriculé'" class="maz-py-4">
                                         <br>
-                                        <div class="sm:col-span-12">
+                                        <div class="md:col-span-3 lg:col-span-6">
                                             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2">
                                                 <BaseSelect
-                                                    class="sm:col-span-2"
+                                                    class="md:col-span-2"
                                                     label="Ussu de bornage"
                                                     name="ussu_bornage" 
                                                     :options="[
@@ -892,7 +892,7 @@ const submitForm = function () {
                                                 /> 
 
                                                 <BaseInput 
-                                                    class="sm:col-span-2"
+                                                    class="md:col-span-2"
                                                     label="Nom Géomètre"
                                                     name="txt_nom_geometre" 
                                                     v-model="form.txt_nom_geometre" 
@@ -911,7 +911,7 @@ const submitForm = function () {
                                 <div class="mb-6">
                                     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2">
                                         <BaseSelect
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Titulaire"
                                             name="slt_titulaire" 
                                             v-model="form.slt_titulaire" 
@@ -1192,7 +1192,7 @@ const submitForm = function () {
                                         <BaseInput 
                                             type="file"
                                             accept="application/pdf"
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Importer le Fichier PDF" 
                                             name="fichierPDF" 
                                             @change="handleFileUpload" 
@@ -1202,7 +1202,7 @@ const submitForm = function () {
                                 <br />
 
                                 <!-- Bouton de soumission -->
-                                <div class="sm:col-span-6 flex justify-center">
+                                <div class="md:col-span-3 lg:col-span-6 flex justify-center">
                                     <MazBtn type="submit" no-shadow no-hover-effect
                                         class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-dark to-primary
                                             hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300

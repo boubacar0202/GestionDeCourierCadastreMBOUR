@@ -1,15 +1,11 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, useForm } from "@inertiajs/vue3";
+import { Head, useForm, router as Inertia } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import { onMounted, ref, watch, watchEffect, computed  } from "vue";
-import axios from "axios";
 import { toast } from "@/Components/AppToast";  
-import { Inertia } from '@inertiajs/inertia'; 
-import { router } from '@inertiajs/vue3';
- 
  
 const { arrivees } = defineProps({
     arrivees: Object,  
@@ -139,7 +135,7 @@ const deleteFile = (arrivee) => {
     const confirmation = confirm('Voulez-vous vraiment supprimer ce fichier PDF ?');
     if (!confirmation) return;
 
-    router.delete(`/arrivee/delete-pdf/${arrivee.id}`, {
+    Inertia.delete(`/arrivee/delete-pdf/${arrivee.id}`, {
         onSuccess: () => {
             arrivee.fichierPDF = null; // mettre à jour la vue
             toast.success('Fichier PDF supprimé avec succès ✅');
@@ -152,67 +148,27 @@ const deleteFile = (arrivee) => {
 }
 
   
-async function submit() {
-    try {
-        console.log("📤 Envoi avec axios...");
-        
-        const formData = new FormData();
-        
-        // Ajouter tous les champs UNE SEULE FOIS
-        formData.append('_method', 'PUT'); // Important pour Laravel
-        formData.append('txt_bordereau', form.txt_bordereau);
-        formData.append('txt_numdordre', form.txt_numdordre);
-        formData.append('dt_datearrivee', form.dt_datearrivee);
-        formData.append('txt_caractere', form.txt_caractere);
-        formData.append('txt_numcourier', form.txt_numcourier);
-        formData.append('dt_datecourier', form.dt_datecourier);
-        formData.append('txt_reference', form.txt_reference);
-        formData.append('txt_categorie', form.txt_categorie);
-        formData.append('txt_designation', form.txt_designation);
-        formData.append('dt_date', form.dt_date);
-        formData.append('txt_heure', form.txt_heure);
-        formData.append('txt_lieu', form.txt_lieu);
-        formData.append('txt_nombrepiece', form.txt_nombrepiece);
-        formData.append('txt_objet', form.txt_objet);
-        formData.append('txt_nicad', form.txt_nicad);
-        formData.append('txt_situation', form.txt_situation);
-        formData.append('txt_prenom', form.txt_prenom)
-        formData.append('txt_nom', form.txt_nom);
-        formData.append('txt_surface', form.txt_surface);
-        formData.append('txt_numLot', form.txt_numLot);
-        formData.append('txt_expediteur', form.txt_expediteur);
-        formData.append('txt_agenttraiteur', form.txt_agenttraiteur);
-        formData.append('txt_observation', form.txt_observation);
-        
-        // Ajouter le fichier
-        if (form.fichierPDF instanceof File) {
-            formData.append('fichierPDF', form.fichierPDF);
-        }
-
-        // Debug : vérifiez ce qui est envoyé
-        for (let [key, value] of formData.entries()) {
-            console.log(key + ': ', value);
-        }
-
-        const response = await axios.post(route('arrivee.update', arrivees.id), formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            }
-        });
-
-        toast.success('Modification réussie!');
-        Inertia.visit(route("instancearrivee.create"), { replace: true });
-        
-    } catch (error) {
-        console.error('Erreur détaillée:', error.response?.data);
-        if (error.response?.data?.errors) {
-            Object.values(error.response.data.errors).forEach(err => {
-                toast.error(err);
-            });
-        } else {
-            toast.error('Erreur lors de la modification');
-        }
+function submit() {
+    if (!(form.fichierPDF instanceof File)) {
+        form.fichierPDF = null;
     }
+
+    // Même logique que Cadastre_Kedougou → retour liste instances
+    form.post(route("arrivee.update", arrivees.id), {
+        forceFormData: true,
+        onSuccess: () => {
+            toast.success("Modification réussie");
+            Inertia.visit(route("instancearrivee.create"), {
+                replace: true,
+                preserveState: false,
+            });
+        },
+        onError: (errors) => {
+            Object.values(errors).forEach((err) => {
+                toast.error(Array.isArray(err) ? err[0] : err);
+            });
+        },
+    });
 }
  
 </script>
@@ -247,7 +203,7 @@ async function submit() {
                                 <div class="mb-6">
                                     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="N° BE"
                                             name="txt_bordereau"
                                             v-model="form.txt_bordereau"
@@ -285,7 +241,7 @@ async function submit() {
                                             required
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Réf.Courrier Arrivée"
                                             name="txt_reference"
                                             v-model="form.txt_reference"
@@ -293,7 +249,7 @@ async function submit() {
                                             required
                                         />
                                         <BaseSelect
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Catégorie"
                                             name="txt_categorie"
                                             v-model="form.txt_categorie"
@@ -309,7 +265,7 @@ async function submit() {
                                             ]"
                                         />
                                         <BaseSelect
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Designation"
                                             name="txt_designation"
                                             v-model="form.txt_designation"
@@ -347,7 +303,7 @@ async function submit() {
                                             autocomplete="off"
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Superficie"
                                             name="txt_surface"
                                             type="number"
@@ -357,35 +313,35 @@ async function submit() {
                                             autocomplete="off"
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Prénom"
                                             name="txt_prenom"
                                             v-model="form.txt_prenom"
                                             autocomplete="off"
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Nom"
                                             name="txt_nom"
                                             v-model="form.txt_nom"
                                             autocomplete="off"
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Situation"
                                             name="txt_situation"
                                             v-model="form.txt_situation"
                                             autocomplete="off"
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="NICAD"
                                             name="txt_nicad"
                                             v-model="form.txt_nicad"
                                             autocomplete="off"
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Nbre Pièce"
                                             name="txt_nombrepiece"
                                             v-model="form.txt_nombrepiece"
@@ -393,7 +349,7 @@ async function submit() {
                                             required
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Objet"
                                             name="txt_objet"
                                             v-model="form.txt_objet"
@@ -401,7 +357,7 @@ async function submit() {
                                             required
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Expéditeur"
                                             name="txt_expediteur"
                                             v-model="form.txt_expediteur"
@@ -409,7 +365,7 @@ async function submit() {
                                             required
                                         />
                                         <BaseSelect
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Agent Traiteur"
                                             name="txt_agenttraiteur"
                                             v-model="form.txt_agenttraiteur"
@@ -423,7 +379,7 @@ async function submit() {
                                             ]"
                                         />
                                         <BaseSelect
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Caractères"
                                             name="txt_caractere"
                                             v-model="form.txt_caractere"
@@ -435,13 +391,13 @@ async function submit() {
                                             ]"
                                         />
                                         <BaseInput
-                                            class="sm:col-span-4"
+                                            class="md:col-span-3 lg:col-span-4"
                                             label="Observation"
                                             name="txt_observation"
                                             v-model="form.txt_observation"
                                             autocomplete="off"
                                         />
-                                        <div class="sm:col-span-2">
+                                        <div class="md:col-span-2">
                                             <BaseInput
                                                 label="Importer le Fichier PDF"
                                                 name="fichierPDF"
@@ -465,7 +421,7 @@ async function submit() {
 
                                 <!-- Bouton de soumission -->
 
-                                <div class="sm:col-span-6 flex justify-center">
+                                <div class="md:col-span-3 lg:col-span-6 flex justify-center">
                                     <MazBtn 
                                         type="submit" no-shadow no-hover-effect
                                         class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-dark 

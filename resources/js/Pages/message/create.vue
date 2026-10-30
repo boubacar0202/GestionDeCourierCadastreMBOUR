@@ -9,7 +9,7 @@ const page = usePage();
 // Utilisateur connecté
 const user = ref(page.props.authUser || null); 
 const users = ref(page.props.users || []);
-const activeUserClass = (id) => receiverId.value === id ? 'bg-primary-menu font-bold text-white' : '';
+const activeUserClass = (id) => receiverId.value === id ? 'bg-primary font-bold text-white' : '';
 
 // Messagerie
 const receiverId = ref(null);
@@ -286,7 +286,7 @@ function cancelEdit() {
                   v-for="u in otherUsersWithUnread"
                   :key="u.id"
                   @click="selectUser(u.id)"
-                  class="hover:bg-primary-only hover:text-white hover:font-semibold
+                  class="hover:bg-primary hover:text-white hover:font-semibold
                         p-2 rounded flex items-center justify-between cursor-pointer"
                   :class="activeUserClass(u.id)"
                 >

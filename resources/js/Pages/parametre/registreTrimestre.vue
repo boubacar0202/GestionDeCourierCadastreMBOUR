@@ -1,14 +1,13 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue"; 
-import { Head, useForm } from "@inertiajs/vue3";
+import { Head, useForm, router } from "@inertiajs/vue3";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import MazBtn from "maz-ui/components/MazBtn";
 import MazRadio from "maz-ui/components/MazRadio";
 import { onMounted, ref, watch, computed  } from "vue";
 import axios from "axios"; 
-import { toast } from "@/Components/AppToast"; 
-import { Inertia } from '@inertiajs/inertia';
+import { toast } from "@/Components/AppToast";
    
  
 // const toast = showToast();
@@ -209,27 +208,27 @@ const rechercherDossier = async () => {
 };
  
 // Submit du formulaire
-const submitForm = function () {   
-    form.post(route('mutation.store'), { 
-        onSuccess: (page) => {
-            console.log("✅ Enregistré !", page);
-            toast.success(page.props.flash?.success || "✅ Dossier enregistré !");
-            Inertia.visit(route("mutation.create"), { replace: true });
-        },  
+const submitForm = function () {
+    // Même logique que Cadastre_Kedougou
+    form.post(route("mutation.store"), {
+        onSuccess: () => {
+            toast.success("Enregistré avec succès");
+            router.visit(route("mutation.create"), {
+                replace: true,
+                preserveState: false,
+                preserveScroll: false,
+            });
+        },
         onError: (errors) => {
-            console.error("❌ Erreurs de validation :", errors);
-
-            Object.entries(errors).forEach(([key, message]) => {
- 
+            Object.entries(errors).forEach(([, message]) => {
                 if (Array.isArray(message)) {
-                    message.forEach(msg => toast.error(msg));
-                }  
-                else {
+                    message.forEach((msg) => toast.error(msg));
+                } else {
                     toast.error(message);
                 }
             });
-        }, 
-    }); 
+        },
+    });
 };
  
 </script>
@@ -259,7 +258,7 @@ const submitForm = function () {
                                     <div
                                         class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 w-full max-w-xl "
                                     > 
-                                        <div class="flex flex-wrap items-center gap-2 sm:col-span-4">
+                                        <div class="flex flex-wrap items-center gap-2 md:col-span-3 lg:col-span-4">
                                             <BaseInput
                                                 type="text"
                                                 name="txt_num_lotissement"

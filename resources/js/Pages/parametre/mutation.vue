@@ -6,9 +6,11 @@ import DeleteModal from "@/Components/DeleteModal.vue";
 import { Link } from '@inertiajs/vue3'; 
 import axios from "axios";
 import { toast } from "@/Components/AppToast";  
+import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import { Inertia } from '@inertiajs/inertia';
 import { ref, computed } from "vue";
   
+defineOptions({ layout: DefaultLayout });
 
 const loadingDelete = ref(false); 
 const showDeleteModal = ref(false)
@@ -174,7 +176,7 @@ const confirmerSuppression = async ({ deleteCode, adminCode } = {}) => {
               <div class="max-h-[600px] overflow-x-auto shadow-md sm:rounded-xl mt-4">
                 <table class="table-auto w-full text-sm text-left text-primary-txt">
                   <thead
-                    class="sticky top-0 z-10 text-primary-txt text-center bg-primary-form"
+                    class="sticky top-0 z-10 text-primary-txt text-center bg-primary-form bg-gray-50 dark:bg-gray-700"
                   >
                     <!-- Ligne des titres principaux -->
                     <tr class="h-10">
@@ -209,9 +211,6 @@ const confirmerSuppression = async ({ deleteCode, adminCode } = {}) => {
                       <th class="px-4 py-3 text-sm text-primary-txt text-center border bg-primary-only font-bold">
                         Nom & Prénom
                       </th>
-                      <!-- <th class="px-4 py-3 text-sm text-primary-txt text-center border bg-primary-only font-bold">
-                        NICAD
-                      </th> -->
                       <th class="px-4 py-3 text-sm text-primary-txt text-center border bg-primary-only font-bold">
                         N° Pièce
                       </th>

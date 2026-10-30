@@ -4,7 +4,6 @@ import { Head, useForm, router } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
-import axios from "axios";
 import { toast } from "@/Components/AppToast";
 
 
@@ -26,29 +25,22 @@ const form = useForm({
     txt_numdordreVisite: props.visite?.txt_numdordreVisite || "",
 });
 
-async function submitForm() {
-    try {
-        const formData = new FormData();
-        formData.append("_method", "PUT");
-        formData.append("dt_visite", form.dt_visite);
-        formData.append("txt_traitementVisite", form.txt_traitementVisite);
-        formData.append("txt_objetVisite", form.txt_objetVisite);
-        formData.append("txt_telVisite", form.txt_telVisite);
-        formData.append("txt_prenomVisite", form.txt_prenomVisite);
-        formData.append("txt_numdordreVisite", form.txt_numdordreVisite);
-
-        await axios.post(route("visite.update", props.visite.id), formData);
-
-        toast.success("Modification réussie !");
-        router.visit(route("instancevisite.create"));
-    } catch (error) {
-        const errors = error.response?.data?.errors;
-        if (errors) {
-            Object.values(errors).flat().forEach((err) => toast.error(err));
-        } else {
-            toast.error("Erreur lors de la modification");
-        }
-    }
+function submitForm() {
+    // Même logique que Cadastre_Kedougou → retour liste instances
+    form.post(route("visite.update", props.visite.id), {
+        onSuccess: () => {
+            toast.success("Modification réussie");
+            router.visit(route("instancevisite.create"), {
+                replace: true,
+                preserveState: false,
+            });
+        },
+        onError: (errors) => {
+            Object.values(errors).forEach((err) => {
+                toast.error(Array.isArray(err) ? err[0] : err);
+            });
+        },
+    });
 }
 </script>
 
@@ -78,7 +70,7 @@ async function submitForm() {
                                 <div class="mb-6">
                                     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Date visite"
                                             name="dt_visite"
                                             type="date"
@@ -88,14 +80,14 @@ async function submitForm() {
                                             required
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="N° Arrivée du Visiteur"
                                             name="txt_numdordreVisite"
                                             v-model="form.txt_numdordreVisite"
                                             required
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Prénom & Nom"
                                             name="txt_prenomVisite"
                                             v-model="form.txt_prenomVisite"
@@ -103,7 +95,7 @@ async function submitForm() {
                                             required
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="N° Telephone"
                                             name="txt_telVisite"
                                             v-model="form.txt_telVisite"
@@ -111,7 +103,7 @@ async function submitForm() {
                                             required
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Objet"
                                             name="txt_objetVisite"
                                             v-model="form.txt_objetVisite"
@@ -119,7 +111,7 @@ async function submitForm() {
                                             required
                                         />
                                         <BaseSelect
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Traitement"
                                             name="txt_traitementVisite"
                                             v-model="form.txt_traitementVisite"
@@ -137,7 +129,7 @@ async function submitForm() {
 
                                 <!-- Bouton de soumission -->
 
-                                <div class="sm:col-span-6 flex justify-center">
+                                <div class="md:col-span-3 lg:col-span-6 flex justify-center">
                                     <MazBtn 
                                         type="submit" no-shadow no-hover-effect
                                         class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-dark 

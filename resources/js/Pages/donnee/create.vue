@@ -3,12 +3,11 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import BaseInput from '@/Components/BaseInput.vue';
 import BaseSelect from '@/Components/BaseSelect.vue';
 import { ref, computed, watch, onMounted } from 'vue';
-import { Head, router, Link } from '@inertiajs/vue3';
+import { Head, router as Inertia, Link } from '@inertiajs/vue3';
 import { toast } from "@/Components/AppToast";
 import DeleteModal from "@/Components/DeleteModal.vue";
 import MazBtn from "maz-ui/components/MazBtn";
-import { debounce } from 'lodash'; 
-import { Inertia } from '@inertiajs/inertia';
+import { debounce } from 'lodash';
 
 const props = defineProps({
     terrains: {
@@ -59,7 +58,7 @@ const adminCode = ref('');
 
 // Debounced search
 const debouncedSearch = debounce((page = 1) => {
-    router.get(route('donnees.create'), {
+    Inertia.get(route('donnees.create'), {
         ...filters.value,
         page: page
     }, {
@@ -104,7 +103,7 @@ const goToPage = (url) => {
         const page = urlParams.get('page');
         
         if (page) {
-            router.get(route('donnees.create'), {
+            Inertia.get(route('donnees.create'), {
                 ...filters.value,
                 page: page
             }, {
@@ -144,7 +143,7 @@ const supprimerTerrain = (terrain) => {
 const confirmerSuppression = (codes) => {
     loadingDelete.value = true;
     
-    router.delete(route('terrain.destroy', selectedTerrain.value.id), {
+    Inertia.delete(route('terrain.destroy', selectedTerrain.value.id), {
         data: {
             code: codes.adminCode
         },

@@ -1,17 +1,14 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, useForm, router as Inertia } from '@inertiajs/vue3';
 import MazBtn from "maz-ui/components/MazBtn";
 import MazRadio from "maz-ui/components/MazRadio";
 import BaseInput from '@/Components/BaseInput.vue'; 
 import BaseSelect from '@/Components/BaseSelect.vue';
-import { Inertia } from '@inertiajs/inertia'
-import { useForm } from '@inertiajs/vue3';
 import { reactive, ref, watch, watchEffect, computed } from 'vue';
 import { baremeOptions, mapsFromBaremes } from '@/utils/baremes'; 
-import { toast } from "@/Components/AppToast";  
-import axios from 'axios'
-import { usePage } from '@inertiajs/vue3';
+import { toast } from "@/Components/AppToast";
+import axios from "axios";
  
 
 const props = defineProps({
@@ -21,7 +18,15 @@ const props = defineProps({
     baremes: { type: Array, default: () => [] },
 });
 
-const { categories, prixParSecteur, coeffCAValues, coeffCLValues } = mapsFromBaremes(props.baremes);
+const tarifs = computed(() => mapsFromBaremes(props.baremes));
+
+function prixDe(table, code) {
+    if (code === null || code === undefined || code === "") return null;
+    const brut = table?.[String(code)];
+    if (brut === undefined || brut === null || brut === "") return null;
+    const valeur = Number(brut);
+    return Number.isFinite(valeur) ? valeur : null;
+}
  
 const txt_num_dossier = ref('');  
 const formVisible = ref(false); 
@@ -283,23 +288,15 @@ function removeBlockAP(i) {
     }
 }
 
-watch([currentCat, () => form.slt_categoriePR], ([type, cat]) => {
-    if (type && cat && categories[type]?.[cat]) {
-        form.nbr_prix_metre_carrePR = categories[type][cat]
-    } else {
-        form.nbr_prix_metre_carrePR = null
-    } 
+watchEffect(() => {
+    const type = currentCat.value
+    const cat = form.slt_categoriePR
+    form.nbr_prix_metre_carrePR = prixDe(tarifs.value.categories[type], cat)
 })
 watchEffect(() => {
+    const type = currentCat.value
     form.occupantsBP.forEach((occupant) => {
-        const type = currentCat.value
-        const cat = occupant.slt_categorieTG
-
-        if (categories[type] && categories[type][cat]) {
-            occupant.nbr_prix_metre_carreTG = categories[type][cat]
-        } else {
-            occupant.nbr_prix_metre_carreTG = null
-        }
+        occupant.nbr_prix_metre_carreTG = prixDe(tarifs.value.categories[type], occupant.slt_categorieTG)
     })
 }) 
 
@@ -405,8 +402,7 @@ function verifierSurfaceOccupant(occupant) {
 
 // Calcule nbr_surface_bati_solPR 
 watchEffect(() => {
-  const secteur = Number(form.slt_secteur);
-  form.nbr_prix_metre_carre = prixParSecteur[secteur] || 0;
+  form.nbr_prix_metre_carre = prixDe(tarifs.value.prixParSecteur, form.slt_secteur) || 0;
 }); 
 
 // Calcule valeur_terrain
@@ -471,11 +467,11 @@ watchEffect(() => {
 
 //  Calculer montant valeur batiment  
 const txt_valeur_terrain_bati = computed(() => {
-    const valeurPR = parseFloat(form.nbr_valeurPR)  || 0;
-    return form.occupantsBP.reduce((total, occupant) => {
-        const montant = parseFloat(occupant.nbr_valeurTG) || 0;
-        return total + montant + valeurPR;
+    const valeurPR = parseFloat(form.nbr_valeurPR) || 0;
+    const annexes = form.occupantsBP.reduce((total, occupant) => {
+        return total + (parseFloat(occupant.nbr_valeurTG) || 0);
     }, 0);
+    return valeurPR + annexes;
 });
 watchEffect(() => {
     form.txt_valeur_terrain_bati = txt_valeur_terrain_bati.value;
@@ -484,8 +480,7 @@ watchEffect(() => {
 // calculer nbr_valeur_ca_total     
 watchEffect(() => {
     form.occupantsCA.forEach((occupant) => {
-        const categorie = Number(occupant.slt_categorie_ca_total) || 0;
-        const prixMetre = coeffCAValues[categorie] || 0;  
+        const prixMetre = prixDe(tarifs.value.coeffCAValues, occupant.slt_categorie_ca_total) || 0;  
         const surfaceCA = parseFloat(occupant.nbr_surface_ca_total) || 0;
         const coeffCA = parseFloat(occupant.nbr_coefficient_ca_total) || 0;
         occupant.nbr_prix_metre_carre_ca_total = prixMetre;
@@ -508,8 +503,7 @@ watchEffect(() => {
 // calculer nbr_valeur_clo  
 watchEffect(() => {
     form.occupantsCL.forEach((occupant) => {
-        const categorieCL = Number(occupant.slt_categorie_clo) || 0;
-        const prixmetrecarreCL = coeffCLValues[categorieCL] || 0; 
+        const prixmetrecarreCL = prixDe(tarifs.value.coeffCLValues, occupant.slt_categorie_clo) || 0; 
 
         const lineaire = parseFloat(occupant.nbr_longueur_avant_clo) || 0;
         const coeffCL = parseFloat(occupant.nbr_coefficient_clo) || 0;
@@ -611,15 +605,15 @@ const residences = [
     { label: 'Résidence principale', value: 'Residence Principal' },
     { label: 'Résidence secondaire', value: 'Residence Secondaire' },
 ];
-const secteurs = baremeOptions(props.baremes, 'secteur', '', { withPrice: true });
-const categoriesMaison = baremeOptions(props.baremes, 'batiment', 'Maison individuelle');
-const categoriesImmeuble = baremeOptions(props.baremes, 'batiment', 'Immeuble collectif');
+const secteurs = computed(() => baremeOptions(props.baremes, 'secteur', '', { withPrice: true }));
+const categoriesMaison = computed(() => baremeOptions(props.baremes, 'batiment', 'Maison individuelle'));
+const categoriesImmeuble = computed(() => baremeOptions(props.baremes, 'batiment', 'Immeuble collectif'));
 const coefficients = ['0.1', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9']
     .map((value) => ({ label: value, value }));
 const coefficientsAvecUn = [...coefficients, { label: '1', value: '1' }];
 const coefficientsCloture = coefficients.filter((item) => item.value !== '0.9');
-const categoriesCours = baremeOptions(props.baremes, 'cours_amenagee');
-const categoriesCloture = baremeOptions(props.baremes, 'cloture');
+const categoriesCours = computed(() => baremeOptions(props.baremes, 'cours_amenagee'));
+const categoriesCloture = computed(() => baremeOptions(props.baremes, 'cloture'));
 const batimentsAnnexes = [
     'Secondaire', 'Tertiaire', 'Dépendance', 'Partie Saillante',
     'Partie saillante verticale', 'Partie saillante horizontale', 'Balcon',
@@ -670,12 +664,12 @@ const submitForm = async () => {
                 Enquête Cadastrale 
             </h2>
         </template> 
-        <div class="py-12">
+        <div class="geo-page">
             <div class="flex justify-center">
-                <div class="w-full max-w-8xl"> 
-                    <div class="bg-white border shadow-md rounded-xl">
-                        <div class="p-4 border-r bg-primary rounded-t-xl">
-                            <h1 class="text-lg text-white text-center font-semibold">Veillez vérifiier le numéro de dossier !</h1>
+                <div class="w-full"> 
+                    <div class="geo-sheet">
+                        <div class="geo-sheet-head">
+                            <h1>Veuillez vérifier le numéro de dossier</h1>
                         </div>
                         <div class="py-6">
                             <!-- Wrapper flex pour centrer -->
@@ -701,11 +695,11 @@ const submitForm = async () => {
                                 </div>
                             </div>
                         </div>
-                    </div><br>
+                    </div>
  
-                    <div v-if="formVisible" class="bg-white border border-primary-only/20 shadow-md rounded-xl">
-                        <div class="p-4 bg-primary rounded-t-xl">
-                            <h1 class="text-lg text-white text-center font-semibold">Formulaire de renseignement cadastral</h1>
+                    <div v-if="formVisible" class="geo-sheet">
+                        <div class="geo-sheet-head">
+                            <h1>Formulaire de renseignement cadastral</h1>
                         </div>
                         <!-- Corps du formulaire -->
                         <form @submit.prevent="submitForm" class="space-y-4">
@@ -875,8 +869,8 @@ const submitForm = async () => {
                                         <div v-show="activeTab === 'bati'" class="space-y-4">  
                                             <div class="flex justify-center">
                                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div class="w-72">
-                                                        <div class="h-10 flex items-center ps-8 border border-primary-only rounded">
+                                                    <div class="geo-choice">
+                                                        <div class="geo-choice-inner">
                                                             <MazRadio
                                                                 v-model="currentCat"
                                                                 value="Maison individuelle"
@@ -885,8 +879,8 @@ const submitForm = async () => {
                                                         </div>
                                                     </div>
 
-                                                    <div class="w-72">
-                                                        <div class="h-10 flex items-center ps-8 border border-primary-only rounded">
+                                                    <div class="geo-choice">
+                                                        <div class="geo-choice-inner">
                                                             <MazRadio
                                                                 v-model="currentCat"
                                                                 value="Immeuble collectif"
@@ -1053,9 +1047,9 @@ const submitForm = async () => {
                                                             <BaseSelect v-model="occupant.slt_cours_amenager_clo" label="Clôture" :name="`cloture_${i}`" :options="designationsClotures" placeholder="Choisir" />
                                                             <BaseInput label="Linéaire" type="number" :name="`lineaire_clo_${i}`" v-model="occupant.nbr_longueur_avant_clo" />
                                                             <BaseSelect v-model="occupant.slt_categorie_clo" label="Catégorie" :name="`categorie_clo_${i}`" :options="categoriesCloture" placeholder="CAT" />
-                                                            <BaseInput label="Prix / mL" type="number" :name="`prix_clo_${i}`" v-model="occupant.nbr_prix_metre_carre_clo" />
+                                                            <BaseInput label="Prix / mL" type="number" :name="`prix_clo_${i}`" readonly v-model="occupant.nbr_prix_metre_carre_clo" />
                                                             <BaseSelect v-model="occupant.nbr_coefficient_clo" label="Coefficient" :name="`coeff_clo_${i}`" :options="coefficientsCloture" placeholder="Coeff" />
-                                                            <BaseInput label="Valeur" type="number" :name="`valeur_clo_${i}`" v-model="occupant.nbr_valeur_clo" />
+                                                            <BaseInput label="Valeur" type="number" :name="`valeur_clo_${i}`" readonly v-model="occupant.nbr_valeur_clo" />
                                                         </div>
                                                     </div>
                                                     
@@ -1096,7 +1090,7 @@ const submitForm = async () => {
                                                             <BaseInput label="Valeur unitaire" type="number" :name="`valeur_unitaire_am_${i}`" v-model="occupant.nbr_valeur_unitaire_am" />
                                                             <BaseInput label="Quantité" type="number" :name="`quantite_am_${i}`" v-model="occupant.nbr_quantile_am" />
                                                             <BaseSelect v-model="occupant.slt_coeficien_am" label="Coefficient" :name="`coeff_am_${i}`" :options="coefficientsAvecUn" placeholder="Coeff" />
-                                                            <BaseInput label="Valeur" type="number" :name="`valeur_am_${i}`" v-model="occupant.nbr_valeur_am" />
+                                                            <BaseInput label="Valeur" type="number" :name="`valeur_am_${i}`" readonly v-model="occupant.nbr_valeur_am" />
                                                         </div>
                                                     </div>
                                                 </TransitionGroup>
@@ -1125,7 +1119,7 @@ const submitForm = async () => {
                                     </div>
                                 </div>
 
-                                <div class="geo-panel mt-8">
+                                <div class="geo-panel geo-summary mt-8">
                                     <h5 class="geo-title">Synthèse de l'évaluation</h5>
                                     <div class="geo-grid">
                                         <BaseInput label="Valeur vénale de l'immeuble" type="number" name="nbr_valeurVenaleLimeuble" step="0.01" readonly v-model="nbr_valeurVenaleLimeuble" />
@@ -1136,7 +1130,7 @@ const submitForm = async () => {
 
                                 <!-- Bouton de soumission -->
                                 
-                                <div class="sm:col-span-6 flex justify-center">
+                                <div class="geo-submit">
                                     <MazBtn @click.prevent="submitForm" class="geo-btn geo-btn-wide" size="medium">
                                         Enregistrer
                                     </MazBtn>
@@ -1153,22 +1147,60 @@ const submitForm = async () => {
 </template>
 
 <style scoped>
+.geo-page {
+    width: min(100%, 88rem);
+    margin: 0 auto;
+    padding: 1.5rem 0.75rem 3rem;
+}
+
+.geo-sheet {
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid #ead9c6;
+    border-radius: 0.75rem;
+}
+
+.geo-sheet + .geo-sheet {
+    margin-top: 1.25rem;
+}
+
+.geo-sheet-head {
+    padding: 0.85rem 1.25rem;
+    background: #613104;
+}
+
+.geo-sheet-head h1 {
+    margin: 0;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+}
+
 .geo-title {
     margin: 1.5rem 0 0.75rem;
-    font-size: 1.125rem;
+    font-size: 1.05rem;
     font-weight: 700;
-    color: #643407;
+    color: #613104;
+}
+
+.geo-sheet h6 {
+    margin: 0.25rem 0 0.85rem;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #613104;
 }
 
 .geo-panel,
-.geo-card {
+.geo-card,
+.geo-summary {
     width: 100%;
     margin-bottom: 1rem;
-    padding: 1rem 1.1rem;
-    background: #faefe6;
-    border: 1px solid #E6C5A2;
-    border-radius: 0.85rem;
-    box-shadow: 0 1px 2px rgba(97, 49, 4, 0.06);
+    padding: 1rem;
+    background: #fff;
+    border: 1px solid #ead9c6;
+    border-radius: 0.75rem;
 }
 
 .geo-repeater {
@@ -1208,7 +1240,7 @@ const submitForm = async () => {
 }
 
 .geo-grid.geo-fields-compact {
-    grid-template-columns: repeat(auto-fill, minmax(7rem, 9.5rem));
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
 }
 
 .geo-grid > :deep(*),
@@ -1230,10 +1262,7 @@ const submitForm = async () => {
 
 .geo-tabs-wrap {
     margin-bottom: 1rem;
-    padding: 0.35rem;
-    background: #faefe6;
-    border: 1px solid #E6C5A2;
-    border-radius: 0.85rem;
+    border-bottom: 1px solid #ead9c6;
 }
 
 .geo-tabs {
@@ -1243,46 +1272,91 @@ const submitForm = async () => {
 }
 
 .geo-tab-item {
-    flex: 1 1 8rem;
+    flex: 1 1 9.5rem;
 }
 
 .geo-tab {
     width: 100%;
-    padding: 0.7rem 0.6rem;
-    border-radius: 0.65rem;
+    padding: 0.65rem 0.5rem;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
     font-size: 0.875rem;
     font-weight: 600;
     color: #643407;
     background: transparent;
-    transition: background 0.2s ease, color 0.2s ease;
+    cursor: pointer;
 }
 
 .geo-tab-on {
-    color: #fff;
-    background: #613104;
+    color: #613104;
+    border-bottom-color: #613104;
 }
 
 .geo-tab-off:hover {
-    background: #ffe5c5;
+    color: #613104;
+}
+
+.geo-choice {
+    width: min(100%, 18rem);
+}
+
+.geo-choice-inner {
+    display: flex;
+    align-items: center;
+    min-height: 2.5rem;
+    padding: 0.35rem 0.85rem;
+    background: #fff;
+    border: 1px solid #ead9c6;
+    border-radius: 0.5rem;
+}
+
+.geo-choice:has(:checked) .geo-choice-inner {
+    border-color: #613104;
 }
 
 .geo-btn {
     height: 2.5rem;
-    padding: 0 1.15rem;
-    border-radius: 0.65rem;
+    padding: 0 1rem;
+    border: 0;
+    border-radius: 0.5rem;
     font-size: 0.875rem;
     font-weight: 600;
-    color: #fff;
-    background: linear-gradient(90deg, #613104, #A35200);
-    box-shadow: 0 6px 16px rgba(97, 49, 4, 0.18);
+    color: #fff !important;
+    background: #613104 !important;
+    cursor: pointer;
 }
 
 .geo-btn:hover {
-    filter: brightness(1.08);
+    background: #a35200 !important;
+}
+
+.geo-occupant-actions .geo-btn:last-child {
+    color: #613104 !important;
+    background: #fff !important;
+    border: 1px solid #e6c5a2;
+    box-shadow: none;
+}
+
+.geo-occupant-actions .geo-btn:last-child:hover {
+    background: #faefe6 !important;
 }
 
 .geo-btn-wide {
-    width: 16rem;
+    width: min(100%, 16rem);
+    height: 2.75rem;
+}
+
+.geo-submit {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #ead9c6;
+}
+
+.geo-sheet :deep(input[readonly]) {
+    background: #faf7f4 !important;
 }
 
 .slide-fade-enter-active,
@@ -1294,6 +1368,21 @@ const submitForm = async () => {
     .slide-fade-leave-to {
     opacity: 0;
     transform: translateY(12px);
+}
+
+@media (max-width: 760px) {
+    .geo-occupant-line {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .geo-occupant-actions {
+        justify-content: flex-end;
+    }
+
+    .geo-choice {
+        width: 100%;
+    }
 }
 
 @media (min-width: 768px) {

@@ -2,7 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import MazBtn from 'maz-ui/components/MazBtn';
 import { computed } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router as Inertia } from '@inertiajs/vue3';
 import { toast } from "@/Components/AppToast";
 import * as XLSX from 'xlsx';
 
@@ -156,7 +156,7 @@ const goTo = (trimestre) => {
         );
     }
 
-    router.get(route('parametre.trimestre.create'), { trimestre }, {
+    Inertia.get(route('parametre.trimestre.create'), { trimestre }, {
         preserveState: true,
         replace: true
     });

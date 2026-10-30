@@ -1,58 +1,132 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { ref, computed  } from 'vue';
-import { Head } from '@inertiajs/vue3';
-import { defineProps, onMounted } from 'vue';
-import { router, usePage  } from '@inertiajs/vue3'
-import { Link as InertiaLink } from '@inertiajs/vue3'
-import BaseInput from '@/Components/BaseInput.vue' 
- 
+import { ref, computed, watch, nextTick } from 'vue';
+import { Head, router as Inertia, Link as InertiaLink } from '@inertiajs/vue3';
+import BaseInput from '@/Components/BaseInput.vue';
+import BaseSelect from '@/Components/BaseSelect.vue';
+import MazBtn from 'maz-ui/components/MazBtn';
+
 const props = defineProps({
-    visite: Object,    
-    visites: Array, 
+    visites: {
+        type: Object,
+        default: () => ({
+            data: [],
+            links: [],
+            current_page: 1,
+            last_page: 1,
+            per_page: 15,
+            total: 0,
+            from: 0,
+            to: 0,
+        }),
+    },
+    designations: {
+        type: Array,
+        default: () => [],
+    },
+    totalCourrier: {
+        type: Number,
+        default: 0,
+    },
+    filters: {
+        type: Object,
+        default: () => ({}),
+    },
 });
-  
-const numeroCD = ref('');  
-const annee = ref('');
-const refPrenomNom = ref('');
 
-// Normalisation pour éviter les problèmes d'espaces et de casse
-function normalize(str) {
-    return str?.toString().trim().toLowerCase();
+const filters = ref({
+    annee: props.filters?.annee || '',
+    courrier: props.filters?.courrier || '',
+    prenomNom: props.filters?.prenomNom || '',
+    designation: props.filters?.designation || '',
+});
+
+let suppressFilterWatch = false;
+
+function debounce(fn, delay) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), delay);
+    };
 }
- 
-//  Filtrer par date et par Numéro + Tri croissant par txt_numdordrecd
-const filtereVisites = computed(() => {
-    const filtered = props.visites.filter(visite => {
-        const matchNumero = numeroCD.value
-            ? normalize(visite.txt_numdordreVisite)?.includes(normalize(numeroCD.value))
-            : true;
 
-        const matchAnnee = annee.value
-            ? new Date(visite.dt_visite).getFullYear().toString() === annee.value
-            : true;
-
-        const matchPrenomNom = refPrenomNom.value 
-            ? normalize(visite.txt_prenomVisite)?.includes(normalize(refPrenomNom.value)) 
-            : true;
- 
-        return matchNumero && matchAnnee && matchPrenomNom;
+const loadPage = (page = 1) => {
+    Inertia.get(route('instancevisite.create'), {
+        ...filters.value,
+        page,
+    }, {
+        preserveState: true,
+        replace: true,
+        preserveScroll: true,
+        only: ['visites'],
     });
+};
 
-    // Tri par ordre numérique de la partie avant "/"
-    return filtered.sort((a, b) => {
-        const numA = parseInt(a.txt_numdordreVisite?.split("/")[0] || 0, 10);
-        const numB = parseInt(b.txt_numdordreVisite?.split("/")[0] || 0, 10);
-        return numA - numB; // ordre croissant
-    });
+const debouncedSearch = debounce((page = 1) => {
+    loadPage(page);
+}, 300);
+
+watch(filters, () => {
+    if (suppressFilterWatch) return;
+    debouncedSearch(1);
+}, { deep: true });
+
+watch(
+    () => props.filters,
+    (value) => {
+        suppressFilterWatch = true;
+        filters.value = {
+            annee: value?.annee || '',
+            courrier: value?.courrier || '',
+            prenomNom: value?.prenomNom || '',
+            designation: value?.designation || '',
+        };
+        nextTick(() => {
+            suppressFilterWatch = false;
+        });
+    },
+    { deep: true }
+);
+
+const hasFilters = computed(() =>
+    Object.values(filters.value).some((value) => String(value || '').trim() !== '')
+);
+
+const pagination = computed(() => {
+    const links = Array.isArray(props.visites?.links) ? props.visites.links : [];
+    const pages = links.length > 2 ? links.slice(1, -1) : links.filter((link) => link?.url || link?.label);
+
+    return {
+        links: pages,
+        prev: props.visites?.prev_page_url || null,
+        next: props.visites?.next_page_url || null,
+        meta: {
+            current_page: props.visites?.current_page || 1,
+            per_page: props.visites?.per_page || 15,
+            total: props.visites?.total || 0,
+            last_page: props.visites?.last_page || 1,
+            from: props.visites?.from || 0,
+            to: props.visites?.to || 0,
+        },
+    };
 });
- 
-// Compter le nombre total de courrier
-const totalvisite = computed(() => {
-    return props.visites.filter(totalvisite => !!totalvisite.txt_numdordreVisite).length;
-});
- 
-// filtrer les instances par categorie  
+
+const goToPage = (url) => {
+    if (!url) return;
+    const params = new URL(url, window.location.origin).searchParams;
+    const next = Number(params.get('page') || 1);
+    if (next) loadPage(next);
+};
+
+const prevPage = () => {
+    if (pagination.value.prev) goToPage(pagination.value.prev);
+};
+
+const nextPage = () => {
+    if (pagination.value.next) goToPage(pagination.value.next);
+};
+
 const formatDate = (dateString) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -61,50 +135,45 @@ const formatDate = (dateString) => {
         year: 'numeric',
     });
 };
-  
-// fonction d'envoi du formulaire
+
 function supprimerVisite(visite) {
     const code = prompt("Entrez le code d'accès pour confirmer la suppression :");
 
     if (!code) {
-        alert("Aucun code saisi. Suppression annulée.");
+        alert('Aucun code saisi. Suppression annulée.');
         return;
     }
 
-    router.delete(route('instancevisite.destroy', visite.id), {
-        data: { code_acces: code }, // ✅ on envoie le code au backend
+    Inertia.delete(route('instancevisite.destroy', visite.id), {
+        data: { code_acces: code },
         preserveScroll: true,
         onSuccess: () => {
-            console.log('Suppression réussie');
+            if ((props.visites?.data?.length || 0) === 0 && (props.visites?.current_page || 1) > 1) {
+                loadPage(props.visites?.last_page || 1);
+            }
         },
         onError: (errors) => {
-            alert(errors.code_acces || "Erreur : code invalide ou suppression refusée.");
-            console.error(errors);
-        }
+            alert(errors.code_acces || 'Erreur : code invalide ou suppression refusée.');
+        },
     });
 }
- 
 </script>
 
 <template>
-    <Head title="Instances Départs">
+    <Head title="Instances Visites">
         <link rel="icon" sizes="512x512" href="/logo-01.png">
     </Head>
 
     <AuthenticatedLayout>
         <template #header>
-            <h2
-                class="text-xl text-primary-txt font-semibold leading-tight"
-            >
-                Liste des visiteurs
+            <h2 class="text-xl font-semibold leading-tight text-primary-txt">
+                Liste des Visiteurs
             </h2>
-            
-            <!-- Vérification pour afficher un message si aucune donnée -->
-            <template v-if="(!visites || visites.length === 0)">
-                <p>Aucun Instance Départ n'est trouvé.</p>
-            </template>
-           
-        </template v-else>
+
+            <p v-if="!totalCourrier" class="text-xl font-semibold leading-tight text-primary-txt">
+                Aucune visite trouvée.
+            </p>
+        </template>
 
         <div class="py-12">
             <div class="flex justify-center">
@@ -117,32 +186,51 @@ function supprimerVisite(visite) {
                             <div class="p-4 bg-primary-form border border-primary-only rounded-xl">
                                 <div class="flex flex-wrap items-center justify-between gap-3">
                                     <h1 class="text-lg text-primary-txt font-bold">
-                                        Liste des visiteurs :
-                                        <span v-if="totalvisite>0" class="text-primary-txt">
-                                            ({{ totalvisite }})
+                                        Liste des Visiteurs :
+                                        <span v-if="totalCourrier > 0" class="text-primary-txt">
+                                            ({{ totalCourrier }})
                                         </span>
                                         <span v-else class="text-red-600">
                                             Aucun enregistrement
-                                        </span> 
-                                    </h1>  
+                                        </span>
+                                        <span v-if="hasFilters" class="text-sm font-semibold text-primary">
+                                            — {{ pagination.meta.total }} avec filtres
+                                        </span>
+                                    </h1>
 
                                     <form @submit.prevent class="flex flex-wrap items-center gap-2">
                                         <BaseInput
-                                            class="w-28"
-                                            label="Date visite"
-                                            name="filtre-visite-annee"
+                                            class="w-24"
+                                            label="Année"
+                                            name="filtre-annee"
                                             type="search"
                                             maxlength="4"
-                                            placeholder="Date Visite"
-                                            v-model="annee"
+                                            placeholder="année"
+                                            v-model="filters.annee"
+                                        />
+                                        <BaseInput
+                                            class="w-36"
+                                            label="N° Visite"
+                                            name="filtre-courrier"
+                                            type="search"
+                                            placeholder="N° Visite"
+                                            v-model="filters.courrier"
                                         />
                                         <BaseInput
                                             class="w-40"
                                             label="Prénom et nom"
-                                            name="filtre-visite-nom"
+                                            name="filtre-nom"
                                             type="search"
-                                            placeholder="Prénom Nom"
-                                            v-model="refPrenomNom"
+                                            placeholder="Prénom & Nom"
+                                            v-model="filters.prenomNom"
+                                        />
+                                        <BaseSelect
+                                            class="w-44"
+                                            label="Traitement"
+                                            name="filtre-designation"
+                                            v-model="filters.designation"
+                                            :options="designations"
+                                            placeholder="Tous"
                                         />
                                     </form>
                                 </div>
@@ -150,68 +238,111 @@ function supprimerVisite(visite) {
 
                             <div class="p-4">
                                 <div class="max-h-[600px] overflow-x-auto shadow-md rounded-xl">
-                                            <table class="table table-auto w-full text-base text-left text-primary-txt">
+                                    <table class="table table-auto w-full text-base text-left text-primary-txt">
+                                        <thead
+                                            class="sticky top-0 z-10 text-primary-txt text-center border-l border-primary-only uppercase
+                                                bg-primary-form text-primary-txt whitespace-nowrap"
+                                        >
+                                            <tr class="h-10">
+                                                <th scope="col" class="px-6 border-l border-primary-only">N°</th>
+                                                <th scope="col" class="px-6 py-3 border-l border-primary-only">Numéro</th>
+                                                <th scope="col" class="px-6 py-3 border-l border-primary-only">Prénom & Nom</th>
+                                                <th scope="col" class="px-6 py-3 border-l border-primary-only">Téléphone</th>
+                                                <th scope="col" class="px-6 py-3 border-l border-primary-only">Objet</th>
+                                                <th scope="col" class="px-6 py-3 border-l border-primary-only">Traitement</th>
+                                                <th scope="col" class="px-6 py-3 border-l border-primary-only">Date visite</th>
+                                                <th scope="col" class="px-6 py-3 border-l border-primary-only">ACTIONS</th>
+                                            </tr>
+                                        </thead>
 
-                                                <thead class="sticky top-0 z-10 text-primary-txt text-center border-l border-primary-only uppercase 
-                                                        bg-primary-form text-primary-txt whitespace-nowrap">
-                                                    <tr class="h-10">
-                                                        <th scope="col" class="sticky left-0 z-30 px-6 py-3 border-l border-primary-only">N°</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Numero</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Prenom & Nom</th> 
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Telephone</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Objet</th>
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Traitement</th> 
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Date visite</th>  
-                                                        <th scope="col" class="px-6 py-3 border-l border-primary-only">Action</th>   
-                                                    </tr>
-                                                </thead>
-                                                        
-                                                <tbody sortedVisites>
-                                                    <tr v-for="(visite, index) in filtereVisites" :key="visite.id"  
-                                                        class="h-20 bg-white text-primary-txt text-center font-bold whitespace-nowrap hover:bg-primary-form dark:hover:bg-primary-form">
-                                                        <td scope="col" class="sticky left-0 z-0 border border-primary-only bg-white px-6 py-3 ">{{ index + 1 }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ visite.txt_numdordreVisite || '-'}}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ visite.txt_prenomVisite  || '-'}}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ visite.txt_telVisite || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ visite.txt_objetVisite || '-' }}</td>
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ visite.txt_traitementVisite || '-' }}</td> 
-                                                        <td scope="col" class="px-6 py-3 border border-primary-only">{{ formatDate(visite.dt_visite) || '-' }}</td> 
-                                                        <td class="flex items px-6 py-3">
-                                                            <div class="mt-2">
-                                                                <InertiaLink :href="route('visite.editvisite', visite.id)">
-                                                                    <MazBtn 
-                                                                        color="white" pastel size="sm"
-                                                                        class="h-8 w-28 text-white bg-gradient-to-r from-green-400 via-green-500 
-                                                                        to-green-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none 
-                                                                        focus:ring-green-300 dark:focus:ring-green-800 shadow-lg shadow-green-500/50 
-                                                                        dark:shadow-lg dark:shadow-green-800/80 font-medium rounded-lg text-sm px-5 
-                                                                        py-2.5 text-center me-2 mb-2"
-                                                                    >
-                                                                        Modifier
-                                                                    </MazBtn>
-                                                                </InertiaLink> 
-                                                            </div>
-                                                            <div class="container">
-                                                                <p></p>
-                                                            </div>
-                                                            <div class="mt-2">
-                                                                <MazBtn 
-                                                                    color="danger" size="sm"   
-                                                                    @click="() => supprimerVisite(visite)"
-                                                                    class="h-8 w-28 text-white bg-gradient-to-r from-danger-500 via-danger-600 
-                                                                    to-danger-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none 
-                                                                    focus:ring-danger-300 dark:focus:ring-danger-800 shadow-lg shadow-danger-500/50 
-                                                                    dark:shadow-lg dark:shadow-danger-800/80 font-medium rounded-lg text-sm px-5 
-                                                                    py-2.5 text-center me-2 mb-2"
-                                                                >
-                                                                    Supprimer
-                                                                </MazBtn>
-                                                            </div>
-                                                        </td> 
-                                                     
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                        <tbody>
+                                            <tr
+                                                v-for="(visite, index) in visites.data"
+                                                :key="visite.id"
+                                                class="bg-white text-primary-txt text-center font-bold whitespace-nowrap hover:bg-primary-form dark:hover:bg-primary-form"
+                                            >
+                                                <td class="sticky left-0 z-0 bg-white px-6 py-3 border border-primary-form">
+                                                    {{ ((pagination.meta.current_page - 1) * pagination.meta.per_page) + index + 1 }}
+                                                </td>
+                                                <td class="px-6 py-3 border border-primary-only">{{ visite.txt_numdordreVisite || '-' }}</td>
+                                                <td class="px-6 py-3 border border-primary-only">{{ visite.txt_prenomVisite || '-' }}</td>
+                                                <td class="px-6 py-3 border border-primary-only">{{ visite.txt_telVisite || '-' }}</td>
+                                                <td class="px-6 py-3 border border-primary-only">{{ visite.txt_objetVisite || '-' }}</td>
+                                                <td class="px-6 py-3 border border-primary-only">{{ visite.txt_traitementVisite || '-' }}</td>
+                                                <td class="px-6 py-3 border border-primary-only">{{ formatDate(visite.dt_visite) }}</td>
+                                                <td class="sticky right-0 z-8 px-2 py-1 border bg-white whitespace-nowrap">
+                                                    <div class="flex justify-center gap-2">
+                                                        <InertiaLink :href="route('visite.editvisite', visite.id)">
+                                                            <MazBtn
+                                                                size="large"
+                                                                aria-label="modifier"
+                                                                title="modifier"
+                                                                class="h-6 w-6 text-white bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-xs px-5 py-2.5 text-center"
+                                                            >
+                                                                ✏️
+                                                            </MazBtn>
+                                                        </InertiaLink>
+                                                        <MazBtn
+                                                            size="large"
+                                                            color="danger"
+                                                            aria-label="Supprimer"
+                                                            title="Supprimer"
+                                                            @click="() => supprimerVisite(visite)"
+                                                            class="h-6 w-6 text-white bg-gradient-to-r from-red-500 via-red-600 to-red-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-xs px-5 py-2.5 text-center"
+                                                        >
+                                                            🗑
+                                                        </MazBtn>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr v-if="!visites.data?.length">
+                                                <td colspan="8" class="text-center py-12 text-primary-txt text-base">
+                                                    Aucune visite trouvée
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="p-4 border-t flex flex-wrap justify-between items-center gap-4 bg-gray-50 rounded-b-xl">
+                                <p class="text-sm text-primary-txt">
+                                    {{ pagination.meta.from }}–{{ pagination.meta.to }} sur {{ pagination.meta.total }}
+                                </p>
+                                <div class="flex gap-1 flex-wrap">
+                                    <button
+                                        type="button"
+                                        @click="prevPage"
+                                        :disabled="!pagination.prev"
+                                        class="px-3 py-1.5 rounded-lg text-sm font-medium transition disabled:opacity-40 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-primary-txt"
+                                    >
+                                        ← Précédent
+                                    </button>
+
+                                    <button
+                                        v-for="(link, linkIndex) in pagination.links"
+                                        :key="linkIndex"
+                                        type="button"
+                                        @click="goToPage(link.url)"
+                                        :disabled="!link.url"
+                                        :class="[
+                                            'px-3.5 py-1.5 rounded-lg text-sm font-medium transition',
+                                            link.active
+                                                ? 'bg-primary text-white shadow-md'
+                                                : 'bg-gray-200 hover:bg-gray-300 text-primary-txt',
+                                            !link.url ? 'opacity-40 cursor-not-allowed' : ''
+                                        ]"
+                                        v-html="link.label"
+                                    />
+
+                                    <button
+                                        type="button"
+                                        @click="nextPage"
+                                        :disabled="!pagination.next"
+                                        class="px-3 py-1.5 rounded-lg text-sm font-medium transition disabled:opacity-40 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-primary-txt"
+                                    >
+                                        Suivant →
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -221,16 +352,16 @@ function supprimerVisite(visite) {
         </div>
     </AuthenticatedLayout>
 </template>
- 
- 
-<style scoped>
 
+<style scoped>
 table tr td {
-  padding-top: 0.25rem; /* équivaut à py-1 */
-  padding-bottom: 0.25rem;
-  line-height: 1rem; /* équivaut à leading-3 */
-  font-size: 0.80rem; /* équivaut à text-xs */
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    line-height: 1rem;
+    font-size: 0.80rem;
 }
 
+button:active:not(:disabled) {
+    transform: scale(0.95);
+}
 </style>
- 

@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue"; 
-import { Head, useForm } from "@inertiajs/vue3";
+import { Head, useForm, router } from "@inertiajs/vue3";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import MazBtn from "maz-ui/components/MazBtn";
@@ -8,7 +8,6 @@ import MazRadio from "maz-ui/components/MazRadio";
 import { onMounted, ref, watch, computed  } from "vue";
 import axios from "axios";
 import { useToast } from "maz-ui";
-import { Inertia } from '@inertiajs/inertia';
  
 
 
@@ -210,26 +209,24 @@ const submitForm = function () {  // Ajoutez `async` ici
     form.txt_num_parcelle = txt_num_parcelle?.value || ""; // Accès via this.slt_commune
     form.txt_appartement = txt_appartement?.value || ""; // Accès via this.slt_commune
   
-    // Formulaire Laravel
-    form.post(route('secretariat.store'), {
-        onSuccess: (page) => {
-            console.log("✅ Enregistré !", page);
-            toast.success(page.props.flash?.success || "✅ Dossier enregistré !");
-            Inertia.visit(route("secretariat.create"), { replace: true });
-        },
-        onError: (errors) => {
-            console.error("❌ Erreurs de validation :", errors);
-            Object.entries(errors).forEach(([key, messages]) => {
-                messages.forEach(msg => {
-                    toast.error(`${key} : ${msg}`);
-                });
+    // Même logique que Cadastre_Kedougou
+    form.post(route("secretariat.store"), {
+        forceFormData: true,
+        onSuccess: () => {
+            toast.success("Enregistré avec succès");
+            router.visit(route("secretariat.create"), {
+                replace: true,
+                preserveState: false,
+                preserveScroll: false,
             });
         },
-        onFinish: () => {
-            console.log("🟡 Requête terminée");
-        }
+        onError: (errors) => {
+            Object.entries(errors).forEach(([key, messages]) => {
+                const list = Array.isArray(messages) ? messages : [messages];
+                list.forEach((msg) => toast.error(`${key} : ${msg}`));
+            });
+        },
     });
-
 };
  
 </script>
@@ -266,7 +263,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                             id="txt_numdossier"
                                             required
                                             placeholder="Entrer le numéro dossier"
-                                            wrapper-class="sm:col-span-4"
+                                            wrapper-class="md:col-span-3 lg:col-span-4"
                                         />  
                                         <MazBtn 
                                             :loading="isLoading"
@@ -298,7 +295,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                             :options="TITULAIRE_OPTIONS"
                                             placeholder="Choisir ici"
                                             required
-                                            wrapper-class="sm:col-span-2"
+                                            wrapper-class="md:col-span-2"
                                         />
                                         <BaseInput label="Nationalite" name="txt_nationalite" id="Nationalite" v-model="form.txt_nationalite" autocomplete="address-level2" />
                                         <BaseSelect label="Civilité" name="slt_civilite" id="Civilite" v-model="form.slt_civilite" :options="CIVILITE_OPTIONS" placeholder="Choisir ici" />
@@ -328,7 +325,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                             accept="application/pdf"
                                             id="fichierPDF"
                                             autocomplete="off"
-                                            wrapper-class="sm:col-span-2"
+                                            wrapper-class="md:col-span-2"
                                             @change="handleFileUpload"
                                         />
                                     </div>
@@ -337,7 +334,7 @@ const submitForm = function () {  // Ajoutez `async` ici
 
                                 <!-- Bouton de soumission -->
 
-                                <div class="sm:col-span-6 flex justify-center">
+                                <div class="md:col-span-3 lg:col-span-6 flex justify-center">
                                     <MazBtn type="submit" no-shadow no-hover-effect
                                             class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-light to-primary-dark 
                                                 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-primary 

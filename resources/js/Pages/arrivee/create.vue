@@ -1,52 +1,56 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, useForm } from "@inertiajs/vue3";
-import MazBtn from "maz-ui/components/MazBtn";
+import { Head, useForm, router } from "@inertiajs/vue3";
+import MazBtn from "maz-ui/components/MazBtn"; 
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
-import MazRadio from "maz-ui/components/MazRadio";
-import { onMounted, ref, watch, watchEffect, computed  } from "vue";
-import axios from "axios"; 
-import { toast } from "@/Components/AppToast"; 
-import { Inertia } from '@inertiajs/inertia';
+import { ref, watch } from "vue";
+import axios from "axios";
+import { toast } from "@/Components/AppToast";  
+import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 
- 
- 
+// Configuration du layout
+defineOptions({ layout: DefaultLayout }); 
+
+// ════════════════════════════════════════════
+// 1. État local (fichier, date, etc.)
+// ════════════════════════════════════════════
 const fichierPDF = ref(null);
 const today = new Date().toISOString().split('T')[0];
 
-
-// Récuperer le fichier PDF 
+// ════════════════════════════════════════════
+// 2. Gestion du fichier PDF
+// ════════════════════════════════════════════
 function handleFileUpload(event) {
     const file = event.target.files[0];
-
     if (!file) return;
 
     if (file.type !== "application/pdf") {
         toast.error("Veuillez sélectionner un fichier PDF valide.");
-        event.target.value = ""; // reset input
+        event.target.value = "";
         return;
     }
 
     if (file.size > 100 * 1024 * 1024) { // 100 Mo
         toast.error("Le fichier dépasse 100 Mo !");
-        event.target.value = ""; // reset input
+        event.target.value = "";
         return;
     }
 
     fichierPDF.value = file;
-    form.fichierPDF = file;
-
-    console.log("Fichier PDF sélectionné :", fichierPDF.value);
+    form.fichierPDF = file; 
 }
 
+// ════════════════════════════════════════════
+// 3. Formulaire (useForm Inertia)
+// ════════════════════════════════════════════
 // Formulaire 
 const form = useForm({
     //  courrierarrivee
     txt_bordereau:"",
     txt_numdordre:"", 
     txt_caractere:"",
-    dt_datearrivee: "",
+    dt_datearrivee:"",
     txt_numcourier:"",
     dt_datecourier:"",
     txt_reference:"",
@@ -69,14 +73,28 @@ const form = useForm({
     fichierPDF: null,
 
 });
-  
-// Génération automatique du numéro d'ordre
+
+// ════════════════════════════════════════════
+// 4. Validation date de réception
+// ════════════════════════════════════════════
+const dateReceptionComplete = (valeur = form.dt_datearrivee) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(valeur || "")) return null;
+    const date = new Date(`${valeur}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return null;
+    const annee = valeur.slice(0, 4);
+    if (String(date.getFullYear()) !== annee) return null;
+    return { date, annee };
+};
+
+// ════════════════════════════════════════════
+// 5. Génération automatique du numéro de dossier (stable par année)
+// ════════════════════════════════════════════
 const fetchNextDossier = async (annee) => {
+    if (!/^\d{4}$/.test(String(annee))) return false;
     try {
         const response = await axios.get(`/arrivee/next/${annee}`);
         const numero = response.data.num_dordre;
 
-        // ✅ Formater la date au format DD-MM-YYYY
         const date = new Date(form.dt_datearrivee);
         const day = String(date.getDate()).padStart(2, "0");
         const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -84,119 +102,115 @@ const fetchNextDossier = async (annee) => {
         const dateFormatee = `${day}-${month}-${year}`;
 
         form.txt_numdordre = `${numero}/${dateFormatee}`;
-        console.log("✅ Numéro généré :", form.txt_numdordre);
-
+        return true;
     } catch (error) {
-        console.error("❌ Erreur :", error);
-
-        const date = new Date();
-        const day = String(date.getDate()).padStart(2, "0");
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const year = date.getFullYear();
-        const dateFormatee = `${day}-${month}-${year}`;
-
-        form.txt_numdordre = `00001/${dateFormatee}`;
+        console.error("❌ Erreur génération N° arrivée :", error);
+        toast.error("Impossible de générer le numéro d'arrivée. Réessayez.");
+        return false;
     }
 };
 
-// Regénérer automatiquement quand la date change
+// ════════════════════════════════════════════
+// 6. Regénérer automatiquement quand la date change
+// ════════════════════════════════════════════ 
 watch(() => form.dt_datearrivee, (nouvelleDate) => {
     if (nouvelleDate) {
         const annee = new Date(nouvelleDate).getFullYear();
         fetchNextDossier(annee);
     }
-});
+}); 
 
-
-// Afficher ou cacher les champs 
-const choix = [
-    "Convocation - Invitation",
-    "Information",
-    "Réclamation - Signalement",
-    "Réquisition - Instruction"
-];
+// ════════════════════════════════════════════
+// 5. Gestion des champs conditionnels (Catégorie, Bail, etc.)
+// ════════════════════════════════════════════
 const show = ref(false);
 const handleCategorieChange = () => {
-    //show.value = form.txt_categorie === "Convocation - Invitation";
-      show.value = choix.includes(form.txt_categorie);
+    show.value = form.txt_categorie === "Convocation - Invitation";
 };
 watch(() => form.txt_categorie, (newValue) => {
-    //show.value = newValue === "Convocation - Invitation";
-      show.value = choix.includes(newValue);
+    show.value = newValue === "Convocation - Invitation";
 });
- 
-// récuperer les categories de courrier arrivee
-const categories = {
-    "1": "Demande SERVICES",
-    "2": "Convocation - Invitation",
-    "3": "Information",
-    "4": "Réclamation - Signalement",
-    "5": "Réquisition - Instruction" 
-};
-const designationsParCategirie = {
-    'Demande SERVICES': ['Morcellements',  'Demande de Régularisation', 'Réquisition d\'immatriculation', 'Demande Avis Technique', 'Demande de terrain/Echange', 'Prospection de terrain', 
+
+const showBail = ref(false); 
+watch(
+    [() => form.txt_designation, () => form.txt_typecourrier],
+    ([designation, typecourrier]) => {
+        showBail.value =
+            (designation === "Demande de Régularisation par voie de Bail" || designation === "Demande de CIC") &&
+            typecourrier !== "BE";
+    }
+);
+
+// ════════════════════════════════════════════
+// 6. Listes déroulantes (Catégories / Désignations)
+// ════════════════════════════════════════════
+const designationsParCategorie = {
+    'Demande SERVICES': ['Morcellements', 'Réquisition d\'immatriculation', 'Demande Avis Technique', 'Demande de terrain/Echange', 'Prospection de terrain', 
         'Autorisation de construction', 'Demande d\'extraits de plan', 'Autorisation de lotir', 'Demande d\'états des lieux', 'Demande de délimitation', 'Demande de reconstruction', 
         'Réquisition DSCOS', 'Tribunal', 'Litiges','Demande de situation foncière', 'Demande de Cession définitive', 'Demande d\'évaluation',
-        'Demande de Cession définitive a Titre Gratuit', 'Demande d\'attestation du Cadastre', 
+        'Demande de Cession définitive a Titre Gratuit', 'Demande de Régularisation par voie de Bail', 'Demande d\'attestation du Cadastre', 
         'Réceptions de lotissements', 'Demande de CIC', 'Duplication de CIC', 'Demande de Titre foncier', 
-        'Autirisationde morceler', 'Autre'
+        'Autorisation de morceler'
     ],
     'Convocation - Invitation': ['Réunion', 'Audience Publique', 'Alerte', 'Visite de site', 
         'Rencontre', 'Randonnée', 'Marche', 'Session', 'Congré', 'Cérémonie', 'Inauguration',
-        'Journée dédiée', 'Forum', 'Formation', 'Séminaire', 'Caravane'
+        'Journée dédiée', 'Forum', 'Formation', 'Séminaire', 'Caravane', 'Atelier'
     ],
     'Information': ['Note de service', 'Circulaire', 'Rapport', 
         'Transmission lettre', 'Document administratif', 'Texte Juridique',
         'Lettre', 'Rapport d\'étude impact', 'PV - Compte - rendu', 'Texte juridique', 'Décision - Arrêté', 'Délibération', 'Résolution', 'Autres'
     ],
-    'Réclamation - Signalement': ['Dénonciation', 'Plainte', 
-        'Alerte'
-    ],
-    'Réquisition - Instruction': ['Réquisition matériel', 'Instruction à suivre', 'DE' 
-    ], 
- 
+    'Réclamation - Signalement': ['Dénonciation', 'Plainte', 'Alerte'],
+    'Réquisition - Instruction': ['Réquisition matériel', 'Instruction à suivre', 'DE'],
 };
- 
+
 const designations = ref([]);
 watch(() => form.txt_categorie, (newCategorie) => {
-    designations.value = designationsParCategirie[newCategorie] || [];
-    form.txt_designation = '' || 'choisis Catégiries'
+    designations.value = designationsParCategorie[newCategorie] || [];
+    form.txt_designation = '';
 });
- 
-// reupèration references courrier arrivée
+
+// ════════════════════════════════════════════
+// 7. Construction automatique de la référence
+// ════════════════════════════════════════════
 watch(
-  () => [form.txt_numcourier, form.dt_datecourier],
-  ([newNum, newDate]) => {
-    if (!newDate) return;
-
-    const date = new Date(newDate);
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-
-    const dateFormatee = `${day}-${month}-${year}`; // "29-08-2026"
-    form.txt_reference = `${newNum} du ${dateFormatee}`;
-  }
+    () => [form.txt_numcourier, form.dt_datecourier],
+    ([newNum, newDate]) => {
+        if (!newDate) return;
+        const date = new Date(newDate);
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        const dateFormatee = `${day}-${month}-${year}`;
+        form.txt_reference = `${newNum} du ${dateFormatee}`;
+    }
 );
 
-
-// Soumission du formulaire
-const submitForm = function () {  // Ajoutez `async` ici
-    console.log("📤 Envoi du formulaire :", form);
-    console.log("✅ Données finales envoyées à Laravel :", form.data()); 
-  
-    // Formulaire Laravel
-    form.post(route('arrivee.store'), {
+// ════════════════════════════════════════════
+// 8. Soumission du formulaire (avec CSRF géré par Inertia)
+// ════════════════════════════════════════════
+// Soumission — même logique que Cadastre_Kedougou
+const submitForm = function () {
+    form.post(route("arrivee.store"), {
+        forceFormData: true,
         onSuccess: () => {
-            toast.success('Enregistré avec succès')
-            Inertia.visit(route("arrivee.create"), { replace: true });
+            toast.success("Enregistré avec succès");
+            // Recharge la page create (vide le formulaire) — preserveState: false obligatoire sur même URL
+            router.visit(route("arrivee.create"), {
+                replace: true,
+                preserveState: false,
+                preserveScroll: false,
+            });
         },
         onError: (errors) => {
-            Object.values(errors).forEach(msg => toast.error(msg))
-        }
-    }) 
+            Object.values(errors).forEach((msg) =>
+                toast.error(Array.isArray(msg) ? msg[0] : msg)
+            );
+        },
+    });
 };
- 
+
+
 </script>
 
 <template>
@@ -228,7 +242,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                     >  
                                         <BaseInput
                                             v-if="!show"
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="N° BE"
                                             name="txt_bordereau"
                                             autocomplete="on"
@@ -240,16 +254,18 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4"
                                     >  
                                         <BaseInput
-                                            label="Date Reception"
+                                            label="Date Réception"
                                             name="dt_datearrivee"
                                             v-model="form.dt_datearrivee"
-                                            type="date"    
+                                            type="date"
+                                            required
                                         />
                                          
                                         <BaseInput
                                             label="N° Arrivée"
                                             name="txt_numdordre"
-                                            v-model="form.txt_numdordre"   
+                                            v-model="form.txt_numdordre"
+                                            readonly
                                         />
                                   
                                         <BaseInput
@@ -263,17 +279,19 @@ const submitForm = function () {  // Ajoutez `async` ici
                                             name="dt_datecourier"
                                             v-model="form.dt_datecourier"   
                                             type="date"
+                                            :max="today"
+                                            required
                                         />
  
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Ref.Courriers Arrivée"
                                             name="txt_reference"
                                             v-model="form.txt_reference"
                                         />
  
                                         <BaseSelect
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Catégorie"
                                             name="txt_categorie"
                                             v-model="form.txt_categorie"
@@ -288,7 +306,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         />
 
                                         <BaseSelect
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Designation"
                                             name="txt_designation"
                                             v-model="form.txt_designation"
@@ -321,14 +339,14 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         />
   
                                         <BaseInput 
-                                            class="sm:col-span-2" 
+                                            class="md:col-span-2" 
                                             label="Nombre de dossiers"
                                             name="txt_nombrepiece"
                                             v-model="form.txt_nombrepiece"
                                         />
                    
                                         <BaseInput 
-                                            class="sm:col-span-2" 
+                                            class="md:col-span-2" 
                                             label="Objet"
                                             name="txt_objet"
                                             v-model="form.txt_objet"
@@ -343,14 +361,16 @@ const submitForm = function () {  // Ajoutez `async` ici
                                                            
                                         <BaseInput 
                                             v-if="!show" 
-                                            step="0.01" min="0"
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
                                             label="Superficie"
                                             name="txt_surface"
                                             v-model="form.txt_surface"
                                         />
                                                                                                      
                                         <BaseInput 
-                                            class="sm:col-span-2" 
+                                            class="md:col-span-2" 
                                             v-if="!show"  
                                             label="Prénom"
                                             name="txt_prenom"
@@ -359,7 +379,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         />
                                                                                                                                               
                                         <BaseInput 
-                                            class="sm:col-span-2" 
+                                            class="md:col-span-2" 
                                             v-if="!show"  
                                             label="Nom"
                                             name="txt_nom"
@@ -368,7 +388,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         />
                                                                                                                                                                                                                                      
                                         <BaseInput 
-                                            class="sm:col-span-2" 
+                                            class="md:col-span-2" 
                                             v-if="!show"  
                                             label="Situation"
                                             name="txt_situation"
@@ -377,7 +397,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         />
  
                                         <BaseInput 
-                                            class="sm:col-span-2" 
+                                            class="md:col-span-2" 
                                             v-if="!show"  
                                             label="NICAD"
                                             name="txt_nicad"
@@ -386,7 +406,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         />
  
                                         <BaseInput 
-                                            class="sm:col-span-2" 
+                                            class="md:col-span-2" 
                                             label="Expéditeur"
                                             name="txt_expediteur"
                                             autocomplete="address-level2"
@@ -394,7 +414,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         />
                                                                                                                                                                                                                                                                                                             
                                         <BaseSelect  
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Agent Traiteur"
                                             name="txt_agenttraiteur"
                                             v-model="form.txt_agenttraiteur"
@@ -424,12 +444,12 @@ const submitForm = function () {  // Ajoutez `async` ici
                                                 {value: 'Alioune NIANG', label: 'Alioune NIANG'},
                                                 {value: 'Boly DIOP', label: 'Boly DIOP'},
                                                 {value: 'Djiby THIANDUM', label: 'Djiby THIANDUM'},
-                                                {label: 'Awa SOW', label: 'Awa SOW'}
+                                                {value: 'Awa SOW', label: 'Awa SOW'}
                                             ]"
                                         />
                                                                                                                                                                                                                                                                                                              
                                         <BaseSelect
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Caractères"
                                             name="txt_caractere" 
                                             v-model="form.txt_caractere"
@@ -442,14 +462,14 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         />
                                                                                                                                                                                                                                                                                                              
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Observation"
                                             name="txt_observation" 
                                             v-model="form.txt_observation"
                                         />
                                                                                                                                                                                                                                                                                                                                                       
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Importer le Fichier PDF"
                                             name="fichier_PDF" 
                                             @change="handleFileUpload"
@@ -461,7 +481,7 @@ const submitForm = function () {  // Ajoutez `async` ici
 
                                 <!-- Bouton de soumission -->
 
-                                <div class="sm:col-span-6 flex justify-center">
+                                <div class="md:col-span-3 lg:col-span-6 flex justify-center">
                                     <MazBtn 
                                         type="submit" no-shadow no-hover-effect
                                         class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-dark 

@@ -31,7 +31,7 @@ return new class extends Migration
             $table->string('txt_prenomcd')->nullable(); 
             $table->string('txt_nomcd')->nullable();  
             $table->decimal('txt_surfacecd', 20, 2)->nullable();
-            $table->string('txt_numLotcd')->nullabe();
+            $table->string('txt_numLotcd')->nullable();
             $table->string('txt_destinatairecd');
             $table->date('dt_dateenvoicd');
             $table->string('txt_referencereceptioncd')->nullable();

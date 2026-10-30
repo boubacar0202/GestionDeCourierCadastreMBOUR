@@ -8,8 +8,7 @@ import MazRadio from "maz-ui/components/MazRadio";
 import AppCodeAccee from "@/Components/AppCodeAccee.vue";
 import { onMounted, ref, watch, computed  } from "vue";
 import axios from "axios";
-import { toast } from "@/Components/AppToast";  
-import { Inertia } from '@inertiajs/inertia'; 
+import { toast } from "@/Components/AppToast"; 
 import "vue-toastification/dist/index.css";
    
    
@@ -987,7 +986,7 @@ async function submitForm() {
 
                                 <!-- Bouton de soumission -->
 
-                                <div class="sm:col-span-6 flex justify-center">
+                                <div class="md:col-span-3 lg:col-span-6 flex justify-center">
                                     <MazBtn type="submit" no-shadow no-hover-effect
                                             class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-light to-primary-dark 
                                                 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-primary 

@@ -6,7 +6,8 @@ import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { createApp, h } from "vue";
 import { ZiggyVue } from "../../vendor/tightenco/ziggy";
 import * as MazUI from "maz-ui";
-import { installToaster } from 'maz-ui'; 
+import { installToaster } from 'maz-ui';
+import AppLogoLoader from "@/Components/AppLogoLoader.vue"; 
 // import Toast from 'vue-toastification'
  
 // const appName = import.meta.env.VITE_APP_NAME || "Bou";
@@ -38,31 +39,34 @@ createInertiaApp({
         );
     },
     setup({ el, App, props, plugin }) {
-        const app = createApp({ render: () => h(App, props) });
-    
+        const app = createApp({
+            render: () =>
+                h("div", { class: "contents" }, [
+                    h(App, props),
+                    h(AppLogoLoader),
+                ]),
+        });
+
         // Gestion globale des erreurs
         app.config.errorHandler = (err, vm, info) => {
-            console.error('Erreur Vue attrapée:', err, vm, info)
-        }
+            console.error("Erreur Vue attrapée:", err, vm, info);
+        };
 
         // Configuration de MazUI avec la couleur personnalisée
         app.use(MazUI, {
             colors: {
-                primary: '#FE5835',
-                second: '#613104',
+                primary: "#FE5835",
+                second: "#613104",
             },
         });
-    
+
         // Ajout des plugins
         app.use(plugin)
             .use(ZiggyVue)
             .use(installToaster, toasterOptions)
             .mount(el);
-
-        // app.use(Toast)
-    },    
-      
-    progress: {
-        color: "#FE5835",
     },
+
+    // Remplacé par AppLogoLoader (logo animé)
+    progress: false,
 });

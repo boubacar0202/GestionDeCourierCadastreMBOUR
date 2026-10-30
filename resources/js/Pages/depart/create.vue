@@ -1,12 +1,11 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, useForm } from "@inertiajs/vue3";
+import { Head, useForm, router } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
 import MazRadio from "maz-ui/components/MazRadio";
 import { onMounted, ref, watch, watchEffect, computed  } from "vue";
 import axios from "axios";
 import { toast } from "@/Components/AppToast";  
-import { Inertia } from '@inertiajs/inertia';  
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
  
@@ -85,6 +84,7 @@ watch(() => form.txt_categoriecd, (newValue) => {
   
 // Automaiser le Numéro d'ordre
 const fetchNextDossier = async (annee) => {
+    if (!/^\d{4}$/.test(String(annee))) return;
     try {
         const response = await axios.get(`/depart/next/${annee}`);
         const numero = response.data.num_dordre;
@@ -125,7 +125,7 @@ const referenceToExpediteur = ref({});
 const referenceToObject = ref({}); 
 const referenceToNombrePiece = ref({}); 
 const referenceToReception = ref({});
-const referenceToBordereau = ref({});
+// const referenceToBordereau = ref({});
 const referenceToNumLot = ref({});
 const referenceToPrenom = ref({});
 const referenceToNom = ref({});
@@ -149,7 +149,7 @@ watch(() => form.txt_categoriecd, async (newCategorie) => {
         referenceToNombrePiece.value = res.data.map_ref_to_nombrePiece || {};
         referenceToReception.value = res.data.map_ref_to_reception || {};
 
-        referenceToBordereau.value = res.data.map_ref_to_bordoreau || {};
+        // referenceToBordereau.value = res.data.map_ref_to_bordoreau || {};
         referenceToNumLot.value = res.data.map_ref_to_numLot || {};
         referenceToPrenom.value = res.data.map_ref_to_prenom || {};
         referenceToNom.value = res.data.map_ref_to_nom || {};
@@ -163,7 +163,7 @@ watch(() => form.txt_categoriecd, async (newCategorie) => {
         form.txt_nombrepiececd = '';
         form.txt_referencereceptioncd = ''; 
  
-        form.txt_bordereaucd = '',
+        // form.txt_bordereaucd = '',
         form.txt_numLotcd = '';
         form.txt_prenomcd = '';
         form.txt_nomcd = '';
@@ -271,12 +271,12 @@ watch(() => form.txt_referencecourierarriveecd, (selectedRef) => {
 });
 
 // Surveiller le categorie et récupérer le Num Lot 
-watch(() => form.txt_referencecourierarriveecd, (selectedRef) => {
-    if (selectedRef && referenceToBordereau.value[selectedRef]) {
-        form.txt_bordereaucd = referenceToBordereau.value[selectedRef];
-    } else {
-        form.txt_bordereaucd = (form.txt_numdordrecd || '') + '/MFB/DSF/CSF-MB/BCAD';    }
-});
+// watch(() => form.txt_referencecourierarriveecd, (selectedRef) => {
+//     if (selectedRef && referenceToBordereau.value[selectedRef]) {
+//         form.txt_bordereaucd = referenceToBordereau.value[selectedRef];
+//     } else {
+//         form.txt_bordereaucd = (form.txt_numdordrecd || '') + '/MFB/DSF/CSF-MB/BCAD';    }
+// });
  
 // reupèration references courrier depart
 watch(
@@ -400,17 +400,23 @@ const submitForm = function () {  // Ajoutez `async` ici
         toast.error("La date d'envoi dépasse d'aujourd'hui. CORRIGER");
         return;
     }
-    // Formulaire Laravel
-    form.post(route('depart.store'), {   
+    // Même logique que Cadastre_Kedougou
+    form.post(route("depart.store"), {
+        forceFormData: true,
         onSuccess: () => {
-            toast.success('Enregistré avec succès')
-            Inertia.visit(route("depart.create"), { replace: true });
+            toast.success("Enregistré avec succès");
+            router.visit(route("depart.create"), {
+                replace: true,
+                preserveState: false,
+                preserveScroll: false,
+            });
         },
         onError: (errors) => {
-            Object.values(errors).forEach(msg => toast.error(msg))
-        }
-    })
-
+            Object.values(errors).forEach((msg) =>
+                toast.error(Array.isArray(msg) ? msg[0] : msg)
+            );
+        },
+    });
 };
 
 </script>
@@ -444,7 +450,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                     > 
 
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="N° BE"
                                             name="txt_bordereaucd"
                                             autocomplete="on"
@@ -454,15 +460,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                     </div><br>
                                     <div
                                         class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4"
-                                    > 
-                                        
-                                        <BaseInput
-                                            label="N° Départ"
-                                            name="txt_numdordrecd"
-                                            v-model="form.txt_numdordrecd"
-                                            required
-                                        />
-                                                                                
+                                    >                                      
                                         <BaseInput
                                             label="Date Courrier"
                                             name="dt_datecouriercd"
@@ -470,9 +468,16 @@ const submitForm = function () {  // Ajoutez `async` ici
                                             v-model="form.dt_datecouriercd"
                                             required
                                         />
-                                                
+                                        
+                                        <BaseInput
+                                            label="N° Départ"
+                                            name="txt_numdordrecd"
+                                            v-model="form.txt_numdordrecd"
+                                            required
+                                        />
+                                           
                                         <BaseSelect
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Catégorie"
                                             name="txt_categoriecd" 
                                             v-model="form.txt_categoriecd"
@@ -492,7 +497,7 @@ const submitForm = function () {  // Ajoutez `async` ici
 
                                         <BaseSelect
                                             v-if="showcd"
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Ref.Courrier Arrivée à Repondre"
                                             name="txt_referencecourierarriveecd"
                                             v-model="form.txt_referencecourierarriveecd"
@@ -501,7 +506,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         />  
                                                                       
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Nombre de pièces"
                                             name="txt_nombrepiececd" 
                                             v-model="form.txt_nombrepiececd"
@@ -509,7 +514,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         />
                                                                                                                                 
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Référence Courrier"
                                             name="txt_referencecd" 
                                             v-model="form.txt_referencecd"
@@ -517,7 +522,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         />
                                                                                                                                                                         
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Objet"
                                             name="txt_objetcd" 
                                             v-model="form.txt_objetcd"
@@ -539,14 +544,14 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         />
                                                                                                                                                                                                                      
                                         <BaseInput 
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Prénom"
                                             name="txt_prenomcd" 
                                             v-model="form.txt_prenomcd" 
                                         />
                                                                                                                                                                                                                     
                                         <BaseInput 
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Nom"
                                             name="txt_nomcd" 
                                             v-model="form.txt_nomcd" 
@@ -554,7 +559,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         />
                                                                                                                                                                                                                     
                                         <BaseInput 
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Situation"
                                             name="txt_situationcd" 
                                             v-model="form.txt_situationcd" 
@@ -562,7 +567,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         />
                                                                                                                                                                                                                    
                                         <BaseInput 
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="NICAD"
                                             name="txt_nicadcd" 
                                             v-model="form.txt_nicadcd" 
@@ -570,7 +575,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         />
                                                                                                                                                                                                                     
                                         <BaseInput 
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Destinataire"
                                             name="txt_destinatairecd" 
                                             v-model="form.txt_destinatairecd" 
@@ -578,7 +583,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         />
                                                                                                                                                                                                                     
                                         <BaseInput 
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Ref. Décharge"
                                             name="txt_referencereceptioncd" 
                                             v-model="form.txt_referencereceptioncd" 
@@ -604,7 +609,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                         />
                                                                                                                                                                                                                    
                                         <BaseSelect 
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Caractères"
                                             name="txt_caracterecd"
                                             v-model="form.txt_caracterecd" 
@@ -625,7 +630,7 @@ const submitForm = function () {  // Ajoutez `async` ici
                                                                                                                                                                                                                  
                                         <BaseInput  
                                             type="file"
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Importer le fichier PDF"
                                             name="fichier_PDFcd"
                                             @change="handleFileUploadcd" 
@@ -637,7 +642,7 @@ const submitForm = function () {  // Ajoutez `async` ici
  
                                 <!-- Bouton de soumission -->
 
-                                <div class="sm:col-span-6 flex justify-center">
+                                <div class="md:col-span-3 lg:col-span-6 flex justify-center">
                                     <MazBtn 
                                         type="submit" no-shadow no-hover-effect
                                         class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-dark 

@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import BaseInput from "@/Components/BaseInput.vue";
-import { Head, router, Link } from '@inertiajs/vue3';
+import { Head, router as Inertia, Link } from '@inertiajs/vue3';
 import { ref, computed, onMounted, watch } from 'vue';
 import { debounce } from 'lodash';
 import { toast } from "@/Components/AppToast";
@@ -71,7 +71,7 @@ const getRowNumber = (index) => {
 
 // Debounced search
 const debouncedSearch = debounce((page = 1) => {
-    router.get(route('matrice.create'), {
+    Inertia.get(route('matrice.create'), {
         ...filters.value,
         page: page
     }, {
@@ -95,7 +95,7 @@ const goToPage = (url) => {
         const page = urlParams.get('page');
         
         if (page) {
-            router.get(route('matrice.create'), {
+            Inertia.get(route('matrice.create'), {
                 ...filters.value,
                 page: page
             }, {
@@ -136,7 +136,7 @@ const confirmerSuppression = () => {
     }
 
     loadingDelete.value = true;
-    router.delete(route('matrice.destroy', selectedTerrain.value.id), {
+    Inertia.delete(route('matrice.destroy', selectedTerrain.value.id), {
         onSuccess: () => {
             showDeleteModal.value = false;
             selectedTerrain.value = null;

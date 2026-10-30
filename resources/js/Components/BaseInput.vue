@@ -1,154 +1,136 @@
 <script setup>
-import { computed, ref, useAttrs } from 'vue'
+  import { computed, ref, useAttrs } from "vue"
 
 defineOptions({ inheritAttrs: false })
 
-const props = defineProps({
-  modelValue: [String, Number],
-  label: String,
-  name: String,
-  id: String,
-  type: { type: String, default: 'text' },
-  required: Boolean,
-  disabled: Boolean,
-  placeholder: String,
-  max: [String, Number],
-  min: [String, Number],
-  maxlength: [String, Number],
-  minlength: [String, Number],
-  autocomplete: { type: String, default: 'on' },
-  readonly: Boolean,
-  error: String,
-  customError: String,
-  step: [String, Number],
-  accept: String,
-  autofocus: Boolean,
-  wrapperClass: String,
-  inputClass: { type: String, default: '' },
-  modelModifiers: { type: Object, default: () => ({}) },
-})
-
-const emit = defineEmits(['update:modelValue', 'input', 'change', 'blur'])
 const attrs = useAttrs()
-const field = ref(null)
-const selectedFileName = ref('')
 
-const inputId = computed(() => props.id || props.name || undefined)
-const messageErreur = computed(() => props.error || props.customError || '')
-const fileAccept = computed(() => props.accept || (props.type === 'file' ? 'application/pdf' : undefined))
-const fileLabel = computed(() => selectedFileName.value || 'Aucun fichier sélectionné')
-
-const extraListeners = computed(() => {
-  const listeners = {}
-  Object.entries(attrs).forEach(([key, value]) => {
-    if (key.startsWith('on') && !['onInput', 'onChange', 'onBlur'].includes(key)) {
-      listeners[key] = value
-    }
+  const props = defineProps({
+    modelValue: [String, Number],
+    label: String,
+    name: String,
+    id: String,
+    inputClass: { type: String, default: "" },
+    wrapperClass: { type: String, default: "sm:col-span-1" },
+    type: { type: String, default: "text" },
+    required: Boolean,
+    disabled: Boolean,
+    autofocus: Boolean,
+    placeholder: String,
+    max: [String, Number],
+    min: [String, Number],
+    step: [String, Number],
+    maxlength: [String, Number],
+    minlength: [String, Number],
+    autocomplete: { type: String, default: "null" },
+    accept: String,
+    readonly: Boolean,
+    error: String,
+    customError: String,
+    fontSize: { type: String, default: "0.875rem" },
+    modelModifiers: { type: Object, default: () => ({}) },
   })
-  return listeners
-})
 
-const rootClass = computed(() => {
-  const extra = attrs.class
-  if (props.wrapperClass) return [props.wrapperClass, extra]
-  const text = Array.isArray(extra) ? extra.join(' ') : (extra || '')
-  return String(text).includes('col-span') ? extra : ['sm:col-span-1', extra]
-})
+  const emit = defineEmits(["update:modelValue", "input", "change", "blur"])
 
-const controlClass = computed(() => [
-  'app-field block w-full',
-  props.inputClass,
-  messageErreur.value ? 'is-invalid' : '',
-  props.disabled ? 'is-disabled' : '',
-])
+  const classeEnveloppe = computed(() => attrs.class || props.wrapperClass)
+  const attrsSansClasse = computed(() => {
+    const { class: _classe, ...reste } = attrs
+    return reste
+  })
 
-defineExpose({ focus: () => field.value?.focus() })
+  const inputEl = ref(null)
+  const inputId = computed(() => props.id || props.name || undefined)
 
-function castValue(raw) {
-  if (!props.modelModifiers?.number) return raw
-  const parsed = Number.parseFloat(String(raw))
-  return Number.isNaN(parsed) ? '' : parsed
-}
-
-function onInput(event) {
-  if (props.type === 'file') return
-  emit('update:modelValue', castValue(event.target.value))
-  emit('input', event)
-}
-
-function onChange(event) {
-  if (props.type !== 'file') {
-    emit('update:modelValue', castValue(event.target.value))
+  function onInput(event) {
+    if (props.type === "file") return
+    let value = event.target.value
+    if (props.modelModifiers.number) {
+      const parsed = Number.parseFloat(value)
+      value = Number.isNaN(parsed) ? "" : parsed
+    }
+    emit("update:modelValue", value)
+    emit("input", event)
   }
-  emit('change', event)
-  if (props.type === 'file') {
-    selectedFileName.value = event.target.files?.[0]?.name || ''
-  }
-}
 
-function openFilePicker() {
-  if (props.disabled) return
-  field.value?.click()
-}
+  function onChange(event) {
+    emit("change", event)
+  }
+
+  const inputInlineStyle = computed(() => ({
+    fontSize: props.fontSize,
+    fontWeight: props.inputClass.includes("font-bold") ? "700" : "500",
+    fontStyle: props.inputClass.includes("italic") ? "italic" : "normal",
+    color: "#66380a",
+  }))
+
+  defineExpose({ focus: () => inputEl.value?.focus() })
 </script>
 
 <template>
-  <div :class="rootClass">
-    <label v-if="label" :for="inputId" class="block text-sm font-medium text-primary-txt">
+  <div v-bind="attrsSansClasse" :class="classeEnveloppe">
+    <label
+      v-if="label"
+      :for="inputId"
+      class="block text-sm font-semibold text-primary mb-1"
+      :style="{ fontSize: fontSize }"
+    >
       {{ label }}
-      <span v-if="required" class="text-red-500">*</span>
+      <span v-if="required" class="text-red-500 ml-0.5">*</span>
     </label>
 
-    <div class="relative" :class="label ? 'mt-2' : ''">
-      <div v-if="type === 'file'" class="app-file" :class="{ 'is-invalid': messageErreur, 'is-disabled': disabled }">
-        <input
-          :id="inputId"
-          :name="name"
-          type="file"
-          :required="required"
-          :disabled="disabled"
-          :accept="fileAccept"
-          ref="field"
-          class="app-file-native"
-          v-on="extraListeners"
-          @change="onChange"
-        />
-        <button type="button" class="app-file-btn" :disabled="disabled" @click="openFilePicker">
-          Parcourir
-        </button>
-        <span class="app-file-name">{{ fileLabel }}</span>
-      </div>
+    <div class="relative">
       <input
-        v-else
+        ref="inputEl"
         :type="type"
         :name="name"
         :id="inputId"
         :readonly="readonly"
         :disabled="disabled"
+        :autofocus="autofocus"
         :placeholder="placeholder"
         :required="required"
         :max="max"
         :min="min"
         :step="step"
-        :accept="accept"
         :maxlength="maxlength"
         :minlength="minlength"
-        :autofocus="autofocus"
-        :autocomplete="autocomplete === 'null' ? 'on' : autocomplete"
-        :aria-invalid="messageErreur ? 'true' : undefined"
+        :autocomplete="autocomplete ?? 'on'"
+        :accept="accept"
         :aria-label="label || placeholder || undefined"
-        ref="field"
-        :class="controlClass"
-        :value="modelValue"
-        v-on="extraListeners"
+        :class="[
+          type === 'file' ? 'block w-full min-h-10 py-1.5' : 'h-10 block w-full py-2',
+          'rounded-xl bg-white px-3.5 text-base text-primary-txt',
+          $slots.append ? 'pr-10' : '',
+          'border border-gray-300 shadow-sm',
+          'transition-all duration-200 ease-in-out',
+          'placeholder:text-primary-txt/50 placeholder:font-normal',
+          'hover:border-gray-400 hover:shadow',
+          'focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary focus:shadow-md',
+          'read-only:bg-gray-50 read-only:cursor-default read-only:focus:ring-0 read-only:focus:border-gray-300',
+          'disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-70',
+          inputClass,
+          type === 'file' ? 'file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-form file:text-primary hover:file:bg-primary-only file:cursor-pointer cursor-pointer py-1.5' : '',
+          (error || customError)
+            ? 'border-red-500 focus:ring-red-500/40 focus:border-red-500'
+            : ''
+        ]"
+        :style="inputInlineStyle"
+        :value="type !== 'file' ? modelValue : null"
         @input="onInput"
         @change="onChange"
         @blur="emit('blur', $event)"
       />
-      <slot v-if="type !== 'file'" name="suffix" />
-      <slot v-if="type !== 'file'" name="append" />
+      <slot name="append" />
     </div>
 
-    <span v-if="messageErreur" class="mt-1 block text-sm text-red-500">{{ messageErreur }}</span>
+    <p v-if="error || customError" class="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+      <svg class="h-3.5 w-3.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M18 10A8 8 0 112 10a8 8 0 0116 0zm-8-4a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+      </svg>
+      <span :style="{ fontSize: fontSize }">
+        {{ error || customError }}
+      </span>
+    </p>
   </div>
 </template>

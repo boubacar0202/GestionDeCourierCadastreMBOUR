@@ -1,14 +1,12 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, useForm } from "@inertiajs/vue3";
+import { Head, useForm, router as Inertia } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import { onMounted, ref, watch, watchEffect, computed  } from "vue";
 import axios from "axios";
-import { toast } from "@/Components/AppToast";  
-import { Inertia } from '@inertiajs/inertia';  
-import { router } from '@inertiajs/vue3' 
+import { toast } from "@/Components/AppToast"; 
    
   
 const { departs, arrivees } = defineProps({
@@ -249,7 +247,7 @@ const deleteFile = (depart) => {
     }
 
     if (confirm('Voulez-vous vraiment supprimer ce fichier PDF ?')) {
-        router.delete(`/depart/delete-pdf/${depart.id}`, {
+        Inertia.delete(`/depart/delete-pdf/${depart.id}`, {
             onSuccess: () => {
                 depart.fichierPDFcd = null
                 toast.success('Fichier supprimé avec succès ✅')
@@ -262,59 +260,27 @@ const deleteFile = (depart) => {
     }
 }
 
-async function submit() {
-    try {
-        console.log("📤 Envoi du formulaire départ...");
-
-        const formData = new FormData();
-        formData.append('_method', 'PUT'); // Laravel update 
-        formData.append('txt_bordereaucd', form.txt_bordereaucd);
-        formData.append('txt_numdordrecd', form.txt_numdordrecd);
-        formData.append('dt_datecouriercd', form.dt_datecouriercd);
-        formData.append('txt_caracterecd', form.txt_caracterecd); 
-        formData.append('txt_referencecourierarriveecd', form.txt_referencecourierarriveecd);
-        formData.append('dt_dateenvoicd', form.dt_dateenvoicd);
-        formData.append('txt_referencecd', form.txt_referencecd);
-        formData.append('txt_nombrepiececd', form.txt_nombrepiececd);
-        formData.append('txt_categoriecd', form.txt_categoriecd); 
-        formData.append('txt_destinatairecd', form.txt_destinatairecd);
-        formData.append('txt_objetcd', form.txt_objetcd); 
-        
-        formData.append('txt_nicadcd', form.txt_nicadcd);
-        formData.append('txt_situationcd', form.txt_situationcd);
-        formData.append('txt_prenomcd', form.txt_prenomcd)
-        formData.append('txt_nomcd', form.txt_nomcd);
-        formData.append('txt_surfacecd', form.txt_surfacecd);
-        formData.append('txt_numLotcd', form.txt_numLotcd);
-
-        formData.append('txt_referencereceptioncd', form.txt_referencereceptioncd);
-        formData.append('txt_dureetraitementcd', form.txt_dureetraitementcd);
-        formData.append('txt_observationcd', form.txt_observationcd);
-
-        if (form.fichierPDFcd instanceof File) {
-            formData.append('fichierPDFcd', form.fichierPDFcd);
-        }
-
-        // Debug
-        for (let [key, value] of formData.entries()) {
-            console.log(key + ':', value);
-        }
-
-        await axios.post(route('depart.update', departs.id), formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
-
-        toast.success('Modification réussie !');
-        Inertia.visit(route('instancedepart.create'), { replace: true });
-
-    } catch (error) {
-        console.error('Erreur détaillée:', error.response?.data);
-        if (error.response?.data?.errors) {
-            Object.values(error.response.data.errors).forEach(err => toast.error(err));
-        } else {
-            toast.error('Erreur lors de la modification');
-        }
+function submit() {
+    if (!(form.fichierPDFcd instanceof File)) {
+        form.fichierPDFcd = null;
     }
+
+    // Même logique que Cadastre_Kedougou → retour liste instances
+    form.post(route("depart.update", departs.id), {
+        forceFormData: true,
+        onSuccess: () => {
+            toast.success("Modification réussie");
+            Inertia.visit(route("instancedepart.create"), {
+                replace: true,
+                preserveState: false,
+            });
+        },
+        onError: (errors) => {
+            Object.values(errors).forEach((err) => {
+                toast.error(Array.isArray(err) ? err[0] : err);
+            });
+        },
+    });
 }
 
 
@@ -351,7 +317,7 @@ async function submit() {
                                 <div class="mb-6">
                                     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="N° BE"
                                             name="txt_bordereau"
                                             v-model="form.txt_bordereaucd"
@@ -360,7 +326,7 @@ async function submit() {
                                     </div><br>
                                     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="N° Dordre"
                                             name="txt_numdordrecd"
                                             v-model="form.txt_numdordrecd"
@@ -373,7 +339,7 @@ async function submit() {
                                             v-model="form.dt_datecouriercd"
                                         />
                                         <BaseSelect
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Catégorie"
                                             name="txt_categoriecd"
                                             v-model="form.txt_categoriecd"
@@ -389,7 +355,7 @@ async function submit() {
                                             ]"
                                         />
                                         <BaseSelect
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Ref.Courrier Arrivée à Repondre"
                                             name="txt_referencecourierarriveecd"
                                             v-model="form.txt_referencecourierarriveecd"
@@ -397,20 +363,20 @@ async function submit() {
                                             placeholder="Choisir une référence"
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Nbre de pièces"
                                             name="txt_nombrepiececd"
                                             v-model="form.txt_nombrepiececd"
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Référence Courrier"
                                             name="txt_referencecd"
                                             v-model="form.txt_referencecd"
                                             required
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Objet"
                                             name="txt_objetcd"
                                             v-model="form.txt_objetcd"
@@ -432,35 +398,35 @@ async function submit() {
                                             autocomplete="off"
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Prénom"
                                             name="txt_prenomcd"
                                             v-model="form.txt_prenomcd"
                                             autocomplete="off"
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Nom"
                                             name="txt_nomcd"
                                             v-model="form.txt_nomcd"
                                             autocomplete="off"
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Situation"
                                             name="txt_situationcd"
                                             v-model="form.txt_situationcd"
                                             autocomplete="off"
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="NICAD"
                                             name="txt_nicadcd"
                                             v-model="form.txt_nicadcd"
                                             autocomplete="off"
                                         />
                                         <BaseInput
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Destinataire"
                                             name="txt_destinatairecd"
                                             v-model="form.txt_destinatairecd"
@@ -482,13 +448,13 @@ async function submit() {
                                         />
                                         <BaseInput
                                             v-if="!show"
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Durrée de traitement"
                                             name="txt_dureetraitementcd"
                                             v-model="form.txt_dureetraitementcd"
                                         />
                                         <BaseSelect
-                                            class="sm:col-span-2"
+                                            class="md:col-span-2"
                                             label="Caractères"
                                             name="txt_caracterecd"
                                             v-model="form.txt_caracterecd"
@@ -499,12 +465,12 @@ async function submit() {
                                             ]"
                                         />
                                         <BaseInput
-                                            class="sm:col-span-4"
+                                            class="md:col-span-3 lg:col-span-4"
                                             label="Observation"
                                             name="txt_observationcd"
                                             v-model="form.txt_observationcd"
                                         />
-                                        <div class="sm:col-span-2">
+                                        <div class="md:col-span-2">
                                             <BaseInput
                                                 label="Importer le Fichier PDF"
                                                 name="fichierPDFcd"
@@ -528,7 +494,7 @@ async function submit() {
  
                                 <!-- Bouton de soumission -->
 
-                                <div class="sm:col-span-6 flex justify-center">
+                                <div class="md:col-span-3 lg:col-span-6 flex justify-center">
                                     <MazBtn 
                                         type="submit" no-shadow no-hover-effect
                                         class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-dark 

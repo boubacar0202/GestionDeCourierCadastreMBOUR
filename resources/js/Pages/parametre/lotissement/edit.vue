@@ -1,14 +1,13 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue"; 
-import { Head, useForm } from "@inertiajs/vue3";
+import { Head, useForm, router } from "@inertiajs/vue3";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import MazBtn from "maz-ui/components/MazBtn"; 
 import AppCodeAccee from "@/Components/AppCodeAccee.vue";
 import { onMounted, ref, watch, computed } from "vue";
 import axios from "axios";
-import { toast } from "@/Components/AppToast";  
-import { Inertia } from '@inertiajs/inertia';
+import { toast } from "@/Components/AppToast";
 
   
 const {lotissements} = defineProps({
@@ -151,32 +150,26 @@ const codeDaccees = async (payload) => {
     }
 }
   
-async function submitForm() {
-    try {
-        const formData = new FormData();
-        formData.append('_method', 'PUT'); 
-        formData.append('txt_denomination', form.txt_denomination);
-        formData.append('txt_nombreParcelle', form.txt_nombreParcelle);
-        formData.append('slt_departement', form.slt_departement);
-        formData.append('slt_arrondissement', form.slt_arrondissement);
-        formData.append('slt_commune', form.slt_commune);
-        formData.append('txt_surfaceLotissement', form.txt_surfaceLotissement);
-
-        if (form.txt_documentsAfferants instanceof File) {
-            formData.append('txt_documentsAfferants', form.txt_documentsAfferants);
-        }
-
-        const url = route('parametre.lotissement.update', form.id); 
-
-        await axios.post(url, formData);
-
-        toast.success("Modification réussie !");
-        Inertia.visit(route('parametre.lotissement.index'), { replace: true });
-
-    } catch (error) {
-        console.error(error);
-        toast.error("Erreur lors de la modification");
+function submitForm() {
+    if (!(form.txt_documentsAfferants instanceof File)) {
+        form.txt_documentsAfferants = null;
     }
+
+    form.post(route("parametre.lotissement.update", form.id), {
+        forceFormData: true,
+        onSuccess: () => {
+            toast.success("Modification réussie");
+            router.visit(route("parametre.lotissement.index"), {
+                replace: true,
+                preserveState: false,
+            });
+        },
+        onError: (errors) => {
+            Object.values(errors).forEach((err) => {
+                toast.error(Array.isArray(err) ? err[0] : err);
+            });
+        },
+    });
 }
 
 
@@ -219,7 +212,7 @@ async function submitForm() {
                                 <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-4"> 
 
                                     <BaseSelect
-                                        class="sm:col-span-2"
+                                        class="md:col-span-2"
                                         label="Département"
                                         name="slt_departement"
                                         :options="departements"
@@ -230,7 +223,7 @@ async function submitForm() {
                                     /> 
 
                                     <BaseSelect
-                                        class="sm:col-span-2"
+                                        class="md:col-span-2"
                                         label="Arrondissement"
                                         :options="arrondissements"
                                         optionLabel="slt_arrondissement"
@@ -240,7 +233,7 @@ async function submitForm() {
                                     />
 
                                     <BaseSelect
-                                        class="sm:col-span-2"
+                                        class="md:col-span-2"
                                         label="Commune"
                                         :options="communes"
                                         optionLabel="slt_commune"
@@ -250,7 +243,7 @@ async function submitForm() {
                                     />
 
                                     <BaseInput
-                                        class="sm:col-span-2"
+                                        class="md:col-span-2"
                                         label="Dénommination"
                                         name="txt_denomination" 
                                         autocomplete="off"
@@ -258,7 +251,7 @@ async function submitForm() {
                                     />
 
                                     <BaseInput
-                                        class="sm:col-span-2"
+                                        class="md:col-span-2"
                                         label="Nombre de Parcelles"
                                         name="txt_nombreParcelle" 
                                         autocomplete="off"
@@ -267,7 +260,7 @@ async function submitForm() {
 
                                     
                                     <BaseInput
-                                        class="sm:col-span-2"
+                                        class="md:col-span-2"
                                         label="Surface du Lotissement"
                                         name="txt_surfaceLotissement"
                                         autocomplete="off"
@@ -275,7 +268,7 @@ async function submitForm() {
                                     />
 
                                     <BaseInput
-                                        class="sm:col-span-4"
+                                        class="md:col-span-3 lg:col-span-4"
                                         label="Documents Afférants" 
                                         accept="application/pdf"
                                         name="txt_documentsAfferants"
@@ -296,7 +289,7 @@ async function submitForm() {
 
                                 <!-- Bouton de soumission -->
 
-                                <div class="sm:col-span-6 flex justify-center">
+                                <div class="md:col-span-3 lg:col-span-6 flex justify-center">
                                     <MazBtn type="submit" no-shadow no-hover-effect
                                             class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-dark to-primary
                                                 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300

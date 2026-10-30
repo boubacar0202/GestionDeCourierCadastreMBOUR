@@ -1258,11 +1258,11 @@ async function submit() {
 
                   <form @submit.prevent="submit" class="space-y-4"> 
                     <div class="p-6">
-                      <div class="sm:col-span-12">
+                      <div class="md:col-span-3 lg:col-span-6">
                         <!-- Reference Dossier -->
                         <h5 class="text-lg text-primary-txt font-bold">Reference Dossier</h5><br />
                         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                          <div class="sm:col-span-2">
+                          <div class="md:col-span-2">
                             <BaseInput v-model="form.txt_num_dossier" id="txt_num_dossier" label="Numéro de dossier" :error="form.errors.txt_num_dossier" />
                           </div>
                           <BaseSelect v-model="form.slt_service_rendu" id="slt_service_rendu" label="Service Rendu" :error="form.errors.slt_service_rendu" :options="serviceRenduOptions" />
@@ -1311,9 +1311,9 @@ async function submit() {
                         <!-- Non immatriculé -->
                         <div v-if="!isImmatricule" class="maz-py-4">
                           <br />
-                          <div class="sm:col-span-12">
+                          <div class="md:col-span-3 lg:col-span-6">
                             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                              <div class="sm:col-span-2">
+                              <div class="md:col-span-2">
                                 <BaseSelect v-model="form.slt_dependant_domaine" id="slt_dependant_domaine" label="Dépendant du domaine" :options="dependantDomaineOptions" />
                               </div>
                             </div>
@@ -1324,7 +1324,7 @@ async function submit() {
                         <div v-if="isImmatricule" class="maz-py-4">
                           <br />
                           <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                            <div class="sm:col-span-2">
+                            <div class="md:col-span-2">
                               <BaseSelect v-model="form.ussu_bornage" id="ussu_bornage" label="Ussu de bornage" :options="ussuBornageOptions" @change="handleSelectChange" />
                             </div>
                             <BaseInput v-model="form.txt_titre_mere" id="Titre_mere" label="Titre Mere" />
@@ -1342,7 +1342,7 @@ async function submit() {
                         <!-- Identité Titulaire -->
                         <h5 class="text-lg font-bold">Identité Titulaire de droit</h5><br />
                         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                          <div class="sm:col-span-2">
+                          <div class="md:col-span-2">
                             <BaseSelect v-model="form.slt_titulaire" id="slt_titulaire" label="Titulaire" :error="form.errors.slt_titulaire" :options="titulaireOptions" />
                           </div>
 
@@ -1408,7 +1408,7 @@ async function submit() {
                         </div>
 
                         <div v-if="showAllSectionsMutation" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                          <div class="sm:col-span-2">
+                          <div class="md:col-span-2">
                             <BaseSelect v-model="form.slt_titulaireMutation" id="slt_titulaireMutation" label="Titulaire" 
                               :error="form.errors.slt_titulaireMutation" :options="titulaireOptionsMutation"
                             /> 
@@ -1517,10 +1517,10 @@ async function submit() {
 
                         <!-- Montants -->
                         <div class="flex grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                          <div class="sm:col-span-2">
+                          <div class="md:col-span-2">
                             <BaseInput v-model="form.nbr_montantLoyerTotal" id="MontantLoyerTotal" label="Montant Loyer Total" readonly class="w-64" />
                           </div>
-                          <div class="sm:col-span-2">
+                          <div class="md:col-span-2">
                             <BaseInput :model-value="form.nbr_TVATotal" id="TVATotal" label="TVA Totale" readonly class="w-64" />
                           </div>
                         </div>
@@ -1561,22 +1561,22 @@ async function submit() {
                           <!-- Onglet Terrain -->
                           <div class="p-6">
                             <div v-show="activeTab === 'terrain'" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                              <div class="sm:col-span-2">
+                              <div class="md:col-span-2">
                                 <BaseInput v-model="form.txt_superficie_totale" id="txt_superficie_totale" type="number" label="Superficie Totale Terrain" readonly />
                               </div>
-                              <div class="sm:col-span-2">
+                              <div class="md:col-span-2">
                                 <BaseInput v-model="form.txt_superficie_bati_sol" id="Superficie_bati_sol" type="number" label="Superficie Bâti au sol" min="0" :max="form.nbr_surface" />
                               </div>
-                              <div class="sm:col-span-2">
+                              <div class="md:col-span-2">
                                 <BaseInput v-model="form.txt_superficie_non_bati" id="Superficie_non_bati" type="number" label="Superficie Non Bâti" readonly />
                               </div>
-                              <div class="sm:col-span-2">
+                              <div class="md:col-span-2">
                                 <BaseSelect v-model="form.slt_secteur" id="slt_secteur" label="Secteur" :options="secteurOptions" />
                               </div>
-                              <div class="sm:col-span-2">
+                              <div class="md:col-span-2">
                                 <BaseInput v-model="form.nbr_prix_metre_carre" id="nbr_prix_metre_carre" type="number" label="Prix mètre Carré" readonly />
                               </div>
-                              <div class="sm:col-span-2">
+                              <div class="md:col-span-2">
                                 <BaseInput v-model="form.nbr_valeur_terrain" type="number" step="0.01" label="Valeur du Terrain" readonly />
                               </div>
                             </div>
@@ -1584,12 +1584,12 @@ async function submit() {
                             <!-- Onglet Bâti -->
                             <div v-show="activeTab === 'bati'" class="space-y-4">
                               <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-8 items-center">
-                                <div class="sm:col-span-2">
+                                <div class="md:col-span-2">
                                   <div class="h-10 flex ps-8 border border-primary-only rounded dark:border-primary">
                                     <MazRadio v-model="form.currentCat" class="block font-medium text-primary-txt" value="Maison individuelle" label="Maison individuelle" />
                                   </div>
                                 </div>
-                                <div class="sm:col-span-2">
+                                <div class="md:col-span-2">
                                   <div class="h-10 flex ps-8 border border-primary-only rounded dark:border-primary">
                                     <MazRadio v-model="form.currentCat" class="block font-medium text-primary-txt" value="Immeuble collectif" label="Immeuble collectif" />
                                   </div>
@@ -1604,7 +1604,7 @@ async function submit() {
                                       <div class="sm:col-span-1">
                                         <BaseInput v-model="form.txt_dependant_domainePR" label="Bâtiment" readonly class="w-36" />
                                       </div>
-                                      <div class="sm:col-span-2">
+                                      <div class="md:col-span-2">
                                         <BaseSelect
                                           v-if="form.currentCat === 'Maison individuelle'"
                                           v-model="form.slt_categoriePR" id="slt_categoriePR" label="CAT"
@@ -1648,7 +1648,7 @@ async function submit() {
                                       <div class="sm:col-span-1">
                                         <BaseSelect v-model="occupant.slt_dependant_domaineTG" id="slt_dependant_domaineTG" label="Bâtiment" :options="batimentSecondaireOptions" class="w-36" />
                                       </div>
-                                      <div class="sm:col-span-2">
+                                      <div class="md:col-span-2">
                                         <BaseSelect
                                           v-if="form.currentCat === 'Maison individuelle'"
                                           v-model="occupant.slt_categorieTG" id="slt_categorieTG" label="CAT"
@@ -1826,7 +1826,7 @@ async function submit() {
                                 <div class="grid gap-6 mb-6 md:grid-cols-1">
                                   <BaseInput v-model="form.dt_dateEvaluation" id="dt_dateEvaluation" type="date" label="Date d'évaluation" class="w-64" />
                                 </div>
-                                <div class="sm:col-span-2">
+                                <div class="md:col-span-2">
                                   <BaseInput
                                     label="Importer le Fichier PDF"
                                     type="file"
@@ -1846,7 +1846,7 @@ async function submit() {
                         </div>
 
                         <!-- Bouton de soumission -->
-                        <div class="sm:col-span-6 flex justify-center">
+                        <div class="md:col-span-3 lg:col-span-6 flex justify-center">
                           <MazBtn type="submit"
                             class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-dark to-primary hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
                             size="medium">

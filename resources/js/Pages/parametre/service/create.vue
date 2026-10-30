@@ -7,7 +7,7 @@ import { ref, computed } from "vue";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import { toast } from "@/Components/AppToast";
-import { router } from "@inertiajs/vue3";
+import { router as Inertia } from "@inertiajs/vue3";
 import axios from "axios";
 
 
@@ -117,9 +117,11 @@ const submitForm = () => {
         preserveScroll: true,
         onSuccess: () => {
             toast.success("Enregistré avec succès");
-            form.reset();
-            fichierPDF.value = null;
-            fileInputKey.value++; // reset l'input file
+            Inertia.visit(route("parametre.service.create"), {
+                replace: true,
+                preserveState: false,
+                preserveScroll: false,
+            });
         },
         onError: (errors) => {
             Object.values(errors).forEach((e) => toast.error(e));
@@ -155,7 +157,7 @@ const confirmerSuppression = async ({ adminCode } = {}) => {
         if (data.success) {
             toast.success(data.message);
             showDeleteModal.value = false;
-            router.reload({ preserveState: false, preserveScroll: true });
+            Inertia.reload({ preserveState: false, preserveScroll: true });
         } else {
             toast.error(data.message || "Code invalide.");
         }
@@ -259,7 +261,7 @@ const confirmerSuppression = async ({ adminCode } = {}) => {
                                     </div>
                                 </div>
 
-                                <div class="sm:col-span-6 flex justify-center">
+                                <div class="md:col-span-3 lg:col-span-6 flex justify-center">
                                     <MazBtn
                                         type="submit"
                                         :loading="form.processing"

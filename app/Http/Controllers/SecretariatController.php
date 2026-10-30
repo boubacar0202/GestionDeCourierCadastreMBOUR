@@ -477,6 +477,7 @@ class SecretariatController extends Controller
                 'nbr_surface' => $terrain->nbr_surface,
                 'txt_nicad' => $terrain->txt_nicad,
                 'txt_num_dossier' => $dossier->txt_num_dossier,
+                'success' => 'Dossier enregistré sous le numéro : '.$dossier->txt_num_dossier,
             ]);
         });
     }
