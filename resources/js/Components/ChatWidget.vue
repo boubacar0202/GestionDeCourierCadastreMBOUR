@@ -299,18 +299,18 @@ onUnmounted(() => {
                     ←
                 </button>
                 <div class="min-w-0">
-                    <p class="chat-kicker">Discussion</p>
-                    <p class="chat-title">
+                    <p class="chat-kicker text-white">Discussion</p>
+                    <p class="chat-title text-white">
                         {{ receiverUser ? receiverUser.name : "Choisir un utilisateur" }}
                     </p>
                 </div>
-                <button type="button" class="chat-icon-btn" @click="closePlugin" aria-label="Fermer">
-                    ×
+                <button type="button" class="chat-icon-btn hover:text-white hover:bg-danger-500" @click="closePlugin" aria-label="Fermer">
+                    ❌
                 </button>
             </header>
 
             <ul v-if="!receiverId" class="chat-users">
-                <li v-if="otherUsers.length === 0" class="chat-empty">Aucun autre utilisateur</li>
+                <li v-if="otherUsers.length === 0" class="chat-empty text-primary-txt">Aucun autre utilisateur</li>
                 <li v-for="u in otherUsers" :key="u.id">
                     <button type="button" class="chat-user" @click="selectUser(u.id)">
                         <span class="chat-avatar">{{ initials(u.name) }}</span>
@@ -322,21 +322,21 @@ onUnmounted(() => {
 
             <template v-else>
                 <div ref="messagesEl" class="chat-messages" @scroll="handleScroll">
-                    <p v-if="filteredMessages.length === 0" class="chat-empty">
+                    <p v-if="filteredMessages.length === 0" class="chat-empty text-primary-txt">
                         Aucun message avec {{ receiverUser.name }}
                     </p>
                     <template v-for="(msg, index) in filteredMessages" :key="msg.id">
                     <p
                         v-if="index === 0 || dayKey(msg.created_at) !== dayKey(filteredMessages[index - 1].created_at)"
-                        class="chat-day"
+                        class="chat-day text-primary-txt"
                     >
                         {{ new Date(msg.created_at).toLocaleDateString() }}
                     </p>
                     <div
-                        class="chat-row"
+                        class="chat-row text-primary-txt"
                         :class="sameId(msg.sender_id, user.id) ? 'is-mine' : ''"
                     >
-                        <div class="chat-bubble" :class="sameId(msg.sender_id, user.id) ? 'is-mine' : ''">
+                        <div class="chat-bubble text-primary-txt" :class="sameId(msg.sender_id, user.id) ? 'is-mine' : ''">
                             <p>{{ msg.content }}</p>
                             <div class="chat-meta">
                                 <span>{{ formatWhen(msg.created_at) }}</span>
@@ -352,8 +352,8 @@ onUnmounted(() => {
                                 ⋮
                             </button>
                             <div v-if="activeMenuId === msg.id" class="chat-menu">
-                                <button type="button" @click="editMessage(msg)">Modifier</button>
-                                <button type="button" class="is-danger" @click="deleteMessage(msg.id)">Supprimer</button>
+                                <button type="button" class="text-primary-txt" @click="editMessage(msg)">Modifier</button>
+                                <button type="button" class="text-danger-500" @click="deleteMessage(msg.id)">Supprimer</button>
                             </div>
                         </div>
                     </div>

@@ -214,23 +214,23 @@ const submitForm = function () {
 </script>
 
 <template>
-    <Head title="Courrier Arrivées" />
+    <Head title="Courrier Arrivée" />
 
     <AuthenticatedLayout>
         <template #header>
             <h2 class="text-xl font-semibold leading-tight text-primary-txt">
-                Enregistrement des Courriers Arrivées
+                Enregistrement des Courriers Arrivées 
             </h2>
 
         </template>
 
         <div class="py-12">
             <div class="flex justify-center">
-                <div class="w-full max-w-8xl px-2 py-2">
+                <div class="w-full max-w-8xl">
                     <div class="bg-white shadow-md rounded-xl">
                         <!-- En-tête du formulaire -->
-                        <div class="p-4 border-b bg-primary flex items-center justify-between rounded-t-xl gap-2">
-                            <h2 class="text-2xl leading-tight text-white font-bold">Formulaire d'enregistrement des Courriers Arrivés</h2>
+                        <div   class="p-4 border-b bg-primary rounded-t-xl">
+                            <h2 class="text-2xl leading-tight text-white font-bold">Formulaire d'enregistrement des Courriers Arrivées</h2>
                         </div>
                         <!-- Corps du formulaire -->
                         <form @submit.prevent="submitForm">
