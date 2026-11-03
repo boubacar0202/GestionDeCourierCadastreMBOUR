@@ -139,26 +139,46 @@ const supprimerTerrain = (terrain) => {
     showDeleteModal.value = true;
 };
 
-// Confirmer la suppression
+// Confirmer la suppression (POST — plus fiable que DELETE sous XAMPP/Apache)
 const confirmerSuppression = (codes) => {
+    if (!selectedTerrain.value?.id) {
+        toast.error('Aucun terrain sélectionné');
+        return;
+    }
+
     loadingDelete.value = true;
-    
-    Inertia.delete(route('terrain.destroy', selectedTerrain.value.id), {
-        data: {
-            code: codes.adminCode
-        },
+
+    const codeAdmin = String(codes?.adminCode || '').trim();
+    const confirmation = String(codes?.deleteCode || '').trim().toUpperCase();
+
+    if (confirmation !== 'SUPPRIMER') {
+        toast.error('Tapez exactement SUPPRIMER pour confirmer.');
+        loadingDelete.value = false;
+        return;
+    }
+
+    if (!codeAdmin) {
+        toast.error('Code administrateur requis.');
+        loadingDelete.value = false;
+        return;
+    }
+
+    Inertia.post(route('terrain.destroyTerrain', selectedTerrain.value.id), {
+        code: codeAdmin,
+    }, {
+        preserveScroll: true,
         onSuccess: () => {
             showDeleteModal.value = false;
             selectedTerrain.value = null;
             toast.success('Terrain supprimé avec succès');
-            debouncedSearch(props.terrains.meta?.current_page || 1);
         },
         onError: (errors) => {
-            toast.error('Erreur lors de la suppression');
+            const msg = errors.code || errors.message;
+            toast.error(Array.isArray(msg) ? msg[0] : (msg || 'Code incorrect ou erreur de suppression'));
         },
         onFinish: () => {
             loadingDelete.value = false;
-        }
+        },
     });
 };
 

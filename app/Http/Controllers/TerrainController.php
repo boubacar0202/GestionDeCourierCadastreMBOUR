@@ -14,23 +14,19 @@ class TerrainController extends Controller
     public function destroyTerrain(Request $request, $id)
     {
         try {
-            // 🔐 Vérification du code administrateur
-            if (!$request->filled('code')) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Code administrateur requis.'
-                ], 422);
+            // 🔐 Vérification du code administrateur (table code_acces)
+            $codeSaisi = trim((string) $request->input('code', ''));
+
+            if ($codeSaisi === '') {
+                return back()->withErrors(['code' => 'Code administrateur requis.']);
             }
 
-            $code = CodeAcces::where('id', 3)
-                ->where('code', $request->input('code'))
-                ->first();
+            if (! CodeAcces::correspond($codeSaisi)) {
+                $message = CodeAcces::estBloque()
+                    ? 'Trop de tentatives. Réessayez dans quelques minutes.'
+                    : 'Code d\'accès invalide.';
 
-            if (!$code) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Code d\'accès invalide.'
-                ], 403);
+                return back()->withErrors(['code' => $message]);
             }
 
             DB::beginTransaction();
@@ -38,42 +34,30 @@ class TerrainController extends Controller
             $terrain = Terrain::findOrFail($id);
             $titulaire = $terrain->titulaire;
 
-            // ✅ Suppression de la référence cadastrale (relation directe)
             if ($terrain->referenceCadastrale) {
                 $terrain->referenceCadastrale->delete();
             }
 
-            // ✅ Suppression du dossier (relation directe)
             if ($terrain->dossier) {
                 $terrain->dossier->delete();
             }
 
-            // ✅ Suppression du terrain
             $terrain->delete();
 
-            // ✅ Suppression du titulaire s'il n'a plus de terrains
             if ($titulaire && $titulaire->terrains()->count() === 0) {
                 $titulaire->delete();
             }
 
             DB::commit();
 
-            return redirect()->route('donnee.create')->with([
-                'success' => true,
-                'message' => 'Terrain supprimé avec succès.'
-            ]);
-  
+            return redirect()->route('donnee.create')
+                ->with('success', 'Terrain supprimé avec succès.');
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            
-            return redirect()->route('donnee.create')->with([
-                'success' => false,
+            return back()->withErrors([
                 'message' => 'Erreur serveur lors de la suppression.',
-                'error' => $e->getMessage() // utile en dev
-            ], 500);
- 
-
+            ]);
         }
     }
 

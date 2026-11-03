@@ -264,6 +264,44 @@ function appreciationClass(appreciation) {
     return 'bg-gray-100 text-gray-600';
 }
 
+// Couleurs variées par type (palette style Cadastre_Kedougou)
+const TYPE_BADGE_PALETTE = [
+    'bg-rose-100 text-rose-800',
+    'bg-sky-100 text-sky-800',
+    'bg-amber-100 text-amber-800',
+    'bg-teal-100 text-teal-800',
+    'bg-violet-100 text-violet-800',
+    'bg-orange-100 text-orange-800',
+    'bg-emerald-100 text-emerald-800',
+    'bg-indigo-100 text-indigo-800',
+    'bg-pink-100 text-pink-800',
+    'bg-lime-100 text-lime-800',
+    'bg-cyan-100 text-cyan-800',
+    'bg-fuchsia-100 text-fuchsia-800',
+];
+
+const MONTH_THEME_PALETTE = [
+    { hover: 'hover:bg-orange-50', totalBg: 'bg-orange-50 border-orange-200', totalText: 'text-orange-600' },
+    { hover: 'hover:bg-sky-50', totalBg: 'bg-sky-50 border-sky-200', totalText: 'text-sky-600' },
+    { hover: 'hover:bg-violet-50', totalBg: 'bg-violet-50 border-violet-200', totalText: 'text-violet-600' },
+    { hover: 'hover:bg-amber-50', totalBg: 'bg-amber-50 border-amber-200', totalText: 'text-amber-600' },
+    { hover: 'hover:bg-teal-50', totalBg: 'bg-teal-50 border-teal-200', totalText: 'text-teal-600' },
+    { hover: 'hover:bg-rose-50', totalBg: 'bg-rose-50 border-rose-200', totalText: 'text-rose-600' },
+];
+
+function typeBadgeClass(type) {
+    const key = String(type || '');
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+        hash = (hash + key.charCodeAt(i) * (i + 1)) % 997;
+    }
+    return TYPE_BADGE_PALETTE[hash % TYPE_BADGE_PALETTE.length];
+}
+
+function monthTheme(index) {
+    return MONTH_THEME_PALETTE[Number(index) % MONTH_THEME_PALETTE.length];
+}
+
 // Formatage des montants
 function formatCurrency(amount) {
     if (amount === null || amount === undefined || isNaN(amount)) {
@@ -291,16 +329,20 @@ function createCharts() {
                     datasets: [{
                         data: pieData.data,
                         backgroundColor: pieData.colors?.length ? pieData.colors : [
-                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                            '#9966FF', '#FF9F40', '#FF6B6B', '#4ECDC4',
+                            '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD',
                         ],
-                        hoverOffset: 8
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 10,
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true, pointStyle: 'circle' } },
+                        legend: { position: 'bottom', labels: { padding: 18, usePointStyle: true, pointStyle: 'circle', font: { size: 12 } } },
                         title: { display: true, text: 'Répartition des Dossiers', font: { size: 16, weight: 'bold' }, padding: { bottom: 20 } },
                         tooltip: {
                             callbacks: {
@@ -321,15 +363,35 @@ function createCharts() {
         if (barChartInstance) barChartInstance.destroy();
         const barData = chartData.value.bar;
         if (barData.labels?.length && barData.datasets?.length) {
+            // Couleurs contrastées style Kedougou (bleu / rose)
+            const coloredDatasets = (barData.datasets || []).map((ds, index) => {
+                if (index === 0) {
+                    return {
+                        ...ds,
+                        backgroundColor: ds.backgroundColor || 'rgba(54, 162, 235, 0.75)',
+                        borderColor: ds.borderColor || 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2,
+                        borderRadius: 4,
+                    };
+                }
+                return {
+                    ...ds,
+                    backgroundColor: ds.backgroundColor || 'rgba(255, 99, 132, 0.75)',
+                    borderColor: ds.borderColor || 'rgba(255, 99, 132, 1)',
+                    borderWidth: 2,
+                    borderRadius: 4,
+                };
+            });
+
             barChartInstance = new Chart(barChartRef.value.getContext('2d'), {
                 type: 'bar',
-                data: { labels: barData.labels, datasets: barData.datasets },
+                data: { labels: barData.labels, datasets: coloredDatasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
                         legend: { display: true, position: 'top', labels: { usePointStyle: true, padding: 20, font: { size: 12, weight: 'bold' } } },
-                        title: { display: true, text: 'Comparaison: Extrait de plan vs Délimitation', font: { size: 16, weight: 'bold' }, padding: { bottom: 20 } }
+                        title: { display: true, text: 'Comparaison: Arrivées vs Départs', font: { size: 16, weight: 'bold' }, padding: { bottom: 20 } }
                     },
                     scales: {
                         y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 1 } },
@@ -562,15 +624,21 @@ watchEffect((onInvalidate) => {
             <section class="chart-grid">
                 <article class="panel">
                     <div class="panel-head">
-                        <h2>Répartition des dossiers</h2>
-                        <span class="panel-kicker">Répartition</span>
+                        <h2 class="flex items-center gap-2">
+                            <span class="w-1 h-6 bg-sky-500 rounded-full"></span>
+                            Répartition des dossiers
+                        </h2>
+                        <span class="px-3 py-1 bg-sky-100 text-sky-700 rounded-full text-xs font-semibold">Catégories</span>
                     </div>
                     <div class="chart-frame"><canvas ref="pieChartRef"></canvas></div>
                 </article>
                 <article class="panel">
                     <div class="panel-head">
-                        <h2>Évolution mensuelle</h2>
-                        <span class="panel-kicker">Comparaison</span>
+                        <h2 class="flex items-center gap-2">
+                            <span class="w-1 h-6 bg-rose-500 rounded-full"></span>
+                            Évolution mensuelle
+                        </h2>
+                        <span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-semibold">6 mois</span>
                     </div>
                     <div class="chart-frame"><canvas ref="barChartRef"></canvas></div>
                 </article>
@@ -619,10 +687,18 @@ watchEffect((onInvalidate) => {
                             <tbody class="bg-white divide-y divide-gray-100">
                                 <template v-for="(month, mi) in (cessionDataDelimitation.months || [])" :key="mi">
                                     <template v-if="month.details && Object.keys(month.details).length > 0">
-                                        <tr v-for="(detail, type) in month.details" :key="type" v-if="type !== 'TOTAL'"
-                                            class="hover:bg-orange-50">
+                                        <tr
+                                            v-for="(detail, type) in month.details"
+                                            :key="type"
+                                            v-if="type !== 'TOTAL'"
+                                            :class="monthTheme(mi).hover"
+                                        >
                                             <td class="px-4 py-2 text-sm text-center font-medium text-primary-txt">{{ month.name }}</td>
-                                            <td class="px-4 py-2"><span class="px-2 py-0.5 bg-orange-100 text-orange-800 rounded-full text-xs">{{ type }}</span></td>
+                                            <td class="px-4 py-2">
+                                                <span :class="['px-2 py-0.5 rounded-full text-xs font-medium', typeBadgeClass(type)]">
+                                                    {{ type }}
+                                                </span>
+                                            </td>
                                             <td class="px-4 py-2 text-center text-sm">{{ detail?.nombre ?? 0 }}</td>
                                             <td class="px-4 py-2 text-right text-sm">{{ formatCurrency(detail?.montant_total ?? 0) }}</td>
                                         </tr>
@@ -630,11 +706,11 @@ watchEffect((onInvalidate) => {
                                     <tr v-else>
                                         <td colspan="4" class="text-center text-primary-txt/60 py-2 text-sm">Aucune donnée pour {{ month.name }}</td>
                                     </tr>
-                                    <tr class="bg-orange-50 font-bold border-t-2 border-orange-200">
+                                    <tr :class="['font-bold border-t-2', monthTheme(mi).totalBg]">
                                         <td class="px-4 py-2 text-sm text-primary-txt text-center">TOTAL</td>
                                         <td class="px-4 py-2 text-center text-sm text-primary-txt">—</td>
-                                        <td class="px-4 py-2 text-center text-orange-600">{{ month.nombre_unitaire ?? 0 }}</td>
-                                        <td class="px-4 py-2 text-right text-orange-600">{{ formatCurrency(month.montant_total ?? 0) }}</td>
+                                        <td :class="['px-4 py-2 text-center', monthTheme(mi).totalText]">{{ month.nombre_unitaire ?? 0 }}</td>
+                                        <td :class="['px-4 py-2 text-right', monthTheme(mi).totalText]">{{ formatCurrency(month.montant_total ?? 0) }}</td>
                                     </tr>
                                 </template>
                                 <tr class="bg-green-50 font-bold border-t-4 border-green-400">
@@ -765,7 +841,9 @@ watchEffect((onInvalidate) => {
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-center text-primary-txt">
-                                    <MazBtn @click="afficherInformations(row)" color="primary" size="sm">Voir</MazBtn>
+                                    <MazBtn @click="afficherInformations(row)" color="primary" size="sm">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                                    </MazBtn>
                                 </td>
                             </tr>
                             </template>

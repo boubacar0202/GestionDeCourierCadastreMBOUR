@@ -22,7 +22,7 @@ class CodeAcces extends Model
     public static function correspond(string $code, ?int $id = null): bool
     {
         $code = trim($code);
-        if ($code === '' || self::tentativesEpuisees()) {
+        if ($code === '') {
             return false;
         }
 
@@ -31,15 +31,23 @@ class CodeAcces extends Model
             $requete->where('id', $id);
         }
 
-        if (! $requete->exists()) {
-            self::enregistrerEchec();
+        // Un code valide doit toujours passer (même après des échecs)
+        if ($requete->exists()) {
+            self::effacerEchecs();
 
-            return false;
+            return true;
         }
 
-        self::effacerEchecs();
+        if (! self::tentativesEpuisees()) {
+            self::enregistrerEchec();
+        }
 
-        return true;
+        return false;
+    }
+
+    public static function estBloque(): bool
+    {
+        return self::tentativesEpuisees();
     }
 
     public static function consommer(string $code): bool

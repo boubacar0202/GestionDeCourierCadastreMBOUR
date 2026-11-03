@@ -585,15 +585,21 @@ class ParametreController extends Controller
             ->groupBy('txt_categorie')
             ->get();
 
+        // Palette variée style Cadastre_Kedougou
+        $colors = [
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+            '#9966FF', '#FF9F40', '#FF6B6B', '#4ECDC4',
+            '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD',
+            '#98D8C8', '#F7DC6F', '#C9CBCF', '#FF9FF3',
+        ];
+
         if ($rows->isEmpty()) {
             return [
                 'labels' => ['Aucun courrier'],
                 'data' => [0],
-                'colors' => ['#c6a15b'],
+                'colors' => [$colors[0]],
             ];
         }
-
-        $colors = ['#a35b24', '#7a3e12', '#c6a15b', '#5c3a22', '#9b3a2f', '#2c1810'];
 
         return [
             'labels' => $rows->map(fn ($row) => $row->txt_categorie ?: 'Sans catégorie')->all(),
@@ -622,16 +628,16 @@ class ParametreController extends Controller
                 [
                     'label' => 'Arrivées',
                     'data' => $arrivees,
-                    'backgroundColor' => 'rgba(163, 91, 36, 0.75)',
-                    'borderColor' => '#a35b24',
+                    'backgroundColor' => 'rgba(54, 162, 235, 0.75)',
+                    'borderColor' => 'rgba(54, 162, 235, 1)',
                     'borderWidth' => 2,
                     'borderRadius' => 4,
                 ],
                 [
                     'label' => 'Départs',
                     'data' => $departs,
-                    'backgroundColor' => 'rgba(198, 161, 91, 0.75)',
-                    'borderColor' => '#c6a15b',
+                    'backgroundColor' => 'rgba(255, 99, 132, 0.75)',
+                    'borderColor' => 'rgba(255, 99, 132, 1)',
                     'borderWidth' => 2,
                     'borderRadius' => 4,
                 ],

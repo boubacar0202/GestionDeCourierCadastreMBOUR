@@ -129,26 +129,43 @@ const supprimerTerrain = (terrain) => {
     showDeleteModal.value = true;
 };
 
-const confirmerSuppression = () => {
-    if (deleteCode.value !== 'SUPPRIMER') {
-        toast.error('Code incorrect');
+const confirmerSuppression = (codes) => {
+    if (!selectedTerrain.value?.id) {
+        toast.error('Aucun terrain sélectionné');
+        return;
+    }
+
+    const codeAdmin = String(codes?.adminCode || '').trim();
+    const confirmation = String(codes?.deleteCode || '').trim().toUpperCase();
+
+    // Le code est dans le DeleteModal — pas dans la variable locale deleteCode
+    if (confirmation !== 'SUPPRIMER') {
+        toast.error('Tapez exactement SUPPRIMER pour confirmer.');
+        return;
+    }
+
+    if (!codeAdmin) {
+        toast.error('Code administrateur requis.');
         return;
     }
 
     loadingDelete.value = true;
-    Inertia.delete(route('matrice.destroy', selectedTerrain.value.id), {
+    Inertia.post(route('terrain.destroyTerrain', selectedTerrain.value.id), {
+        code: codeAdmin,
+    }, {
+        preserveScroll: true,
         onSuccess: () => {
             showDeleteModal.value = false;
             selectedTerrain.value = null;
             toast.success('Terrain supprimé avec succès');
-            debouncedSearch(1);
         },
         onError: (errors) => {
-            toast.error('Erreur lors de la suppression');
+            const msg = errors.code || errors.message;
+            toast.error(Array.isArray(msg) ? msg[0] : (msg || 'Code incorrect ou erreur de suppression'));
         },
         onFinish: () => {
             loadingDelete.value = false;
-        }
+        },
     });
 };
 
